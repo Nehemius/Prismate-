@@ -387,7 +387,6 @@ export default function Home() {
   // OTP state
   const [otpStep, setOtpStep] = useState(false);
   const [enteredOtp, setEnteredOtp] = useState("");
-  const [simulatedOtp, setSimulatedOtp] = useState<string | null>(null);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [otpMessage, setOtpMessage] = useState<string | null>(null);
@@ -1345,7 +1344,6 @@ export default function Home() {
       }
 
       setOtpStep(true);
-      setSimulatedOtp(data.otp);
       setOtpMessage(data.message);
     } catch (err) {
       setLoginError(err instanceof Error ? err.message : "Network authentication error.");
@@ -1410,7 +1408,6 @@ export default function Home() {
     setUser(null);
     setOtpStep(false);
     setEnteredOtp("");
-    setSimulatedOtp(null);
     setLoginEmail("");
     setLoginName("");
     setActiveTab("chemistry");
