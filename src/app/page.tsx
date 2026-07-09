@@ -2561,6 +2561,7 @@ export default function Home() {
                             >
                               <div className="absolute top-2 left-2 z-10 bg-white/80 border border-black/15 px-2 py-0.5 rounded backdrop-blur-md flex items-center gap-1.5 transition-colors group-hover:border-black/30">
                                 <span className="text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold">Product compound</span>
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                               </div>
 
                               {/* Single-tap Sidepanel Notes Toggle for Android touch support */}
@@ -2573,8 +2574,6 @@ export default function Home() {
                               >
                                 {sidePanelOpen ? "📖 Hide Notes" : "📖 View Notes"}
                               </button>
-                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                              </div>
 
                               <MoleculeViewer 
                                 sdfName={selectedReaction.product_sdf} 
@@ -2828,11 +2827,11 @@ export default function Home() {
                         </motion.div>
                       )}
                     </AnimatePresence>
-              </>
-            )}
-          </div>
-        )
-      )}
+                  </>
+                )}
+              </div>
+            )
+          )}
 
           {/* TAB 2: ANONYMOUS Q&A */}
           {activeTab === "qa" && (
