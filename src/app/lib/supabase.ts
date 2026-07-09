@@ -120,14 +120,14 @@ export class MockDB {
             // Dynamic Author Label Matrix based on client role & visibility preferences
             let finalAuthorName = "Student";
             if (authorRole === "student") {
-              if (user.role === "teacher" && item.student_visible_to_teacher) {
-                finalAuthorName = rawAuthorName; // Visible strictly to verified teachers
+              if ((user.role === "teacher" && item.student_visible_to_teacher) || item.user_id === user.id) {
+                finalAuthorName = rawAuthorName; // Visible to teachers and the author themselves
               } else {
                 finalAuthorName = "Student"; // Anonymous to peers
               }
             } else {
               // Teacher post
-              finalAuthorName = item.teacher_reply_anonymous ? "Anonymous Teacher" : "Teacher";
+              finalAuthorName = item.teacher_reply_anonymous ? "Anonymous Teacher" : `Teacher ${rawAuthorName}`;
             }
 
             const replies: Reply[] = (item.replies || []).map((r: any) => {
@@ -136,9 +136,9 @@ export class MockDB {
               
               let finalRName = "Anonymous Teacher";
               if (rRole === "teacher") {
-                finalRName = r.is_anonymous ? "Anonymous" : "Teacher";
+                finalRName = r.is_anonymous ? "Anonymous Teacher" : `Teacher ${rName}`;
               } else {
-                finalRName = rName;
+                finalRName = r.is_anonymous ? "Anonymous Student" : rName;
               }
 
               return {
@@ -171,7 +171,7 @@ export class MockDB {
           if (user.role === "student") {
             return mapped.filter(q => q.author_id === user.id || q.ai_flag_status === "approved");
           } else {
-            return mapped.filter(q => q.student_visible_to_teacher || q.author_id === user.id);
+            return mapped; // Teachers can see all queries to moderate and answer them!
           }
         }
       } catch (err) {
@@ -188,24 +188,25 @@ export class MockDB {
     return queries.map((q) => {
       let finalName = "Student";
       if (q.author_role === "student" || !q.author_role) {
-        if (user.role === "teacher" && q.student_visible_to_teacher) {
+        if ((user.role === "teacher" && q.student_visible_to_teacher) || q.author_id === user.id) {
           finalName = q.author_name && q.author_name !== "Anonymous Student" ? q.author_name : "Student";
         } else {
           finalName = "Student";
         }
       } else {
         // Teacher query
-        finalName = q.teacher_reply_anonymous ? "Anonymous Teacher" : "Teacher";
+        finalName = q.teacher_reply_anonymous ? "Anonymous Teacher" : `Teacher ${q.author_name || "Nehemius"}`;
       }
 
       const replies = (q.replies || []).map(r => {
         let finalRName = "Anonymous";
-        if (r.author_role === "teacher" || !r.author_role) {
-          finalRName = r.is_anonymous ? "Anonymous" : "Teacher";
+        const rRole = r.author_role || "teacher";
+        if (rRole === "teacher") {
+          finalRName = r.is_anonymous ? "Anonymous Teacher" : `Teacher ${r.author_name || "Nehemius"}`;
         } else {
-          finalRName = r.author_name || "Student";
+          finalRName = r.is_anonymous ? "Anonymous Student" : (r.author_name || "Student");
         }
-        return { ...r, author_name: finalRName };
+        return { ...r, author_name: finalRName, author_role: rRole };
       });
 
       return {
@@ -217,7 +218,7 @@ export class MockDB {
       if (user.role === "student") {
         return q.author_id === user.id || q.ai_flag_status === "approved";
       } else {
-        return q.student_visible_to_teacher || q.author_id === user.id;
+        return true; // Teachers can see all queries!
       }
     });
   }
