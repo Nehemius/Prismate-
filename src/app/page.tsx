@@ -496,7 +496,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    const handlePopState = (e: PopStateEvent) => {
+    const handlePopState = () => {
       let overlayClosed = false;
 
       if (quizOpen) {
@@ -2696,7 +2696,7 @@ export default function Home() {
                             onChange={(e) => setTeacherPostAnonymous(e.target.checked)}
                             className="rounded border-white/20 bg-white/5 text-black focus:ring-0 w-4 h-4"
                           />
-                          <span>Post anonymously as "Anonymous Teacher" (Default: Show display name "{user.display_name}")</span>
+                          <span>Post anonymously as &quot;Anonymous Teacher&quot; (Default: Show display name &quot;{user.display_name}&quot;)</span>
                         </label>
                       )}
 
