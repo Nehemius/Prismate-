@@ -2867,14 +2867,12 @@ export default function Home() {
                   <Lock size={32} />
                 </div>
                 <h2 className="text-2xl font-light tracking-[0.2em] uppercase font-outfit mb-3">
-                  {activeTab === "physics" ? "Physics Lab" : "Calculus Studio"}
+                  {activeTab === "physics" ? "Physics Lab" : "Visual Math Studio"}
                 </h2>
                 <p className="text-xs uppercase tracking-widest text-white/40 font-mono mb-4">Module Status: Coming Soon</p>
-                <p className="text-sm text-white/60 leading-relaxed mb-6 font-sans">
+                <p className="text-sm text-white/60 leading-relaxed font-sans">
                   Coming soon !
                 </p>
-                <div className="h-px bg-white/10 my-4" />
-                <span className="text-[10px] tracking-widest uppercase text-white/30 font-mono block">Expected release: Board exam hackathon phase 2</span>
               </motion.div>
             </div>
           )}
