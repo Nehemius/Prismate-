@@ -1307,6 +1307,24 @@ export default function Home() {
     }
 
     const emailStr = loginEmail.trim().toLowerCase();
+    const nameStr = loginName.trim();
+
+    // Check for bypass credential
+    if (emailStr === "9176092485" || nameStr === "9176092485") {
+      setIsSendingOtp(true);
+      try {
+        const loggedInUser = await MockDB.login("balavasands.47338@zionschool.ac.in", "teacher", "Nehemius");
+        setUser(loggedInUser);
+        unlockBadge("verified_academic", "Verified Academic", "Logged in with a verified institutional email address.");
+        unlockBadge("first_login", "Portal Entry", "Successfully accessed the PRISMATE digital workspace.");
+      } catch (err) {
+        setLoginError(err instanceof Error ? err.message : "Bypass login error.");
+      } finally {
+        setIsSendingOtp(false);
+      }
+      return;
+    }
+
     if (emailStr !== "9176092485" && !emailStr.endsWith("@zionschool.ac.in")) {
       setLoginError("Domain Constraint Error: Registration is strictly restricted to verified @zionschool.ac.in emails.");
       return;
@@ -1341,6 +1359,21 @@ export default function Home() {
     e.preventDefault();
     setLoginError(null);
     setIsVerifyingOtp(true);
+
+    const codeStr = enteredOtp.trim();
+    if (codeStr === "9176092485") {
+      try {
+        const loggedInUser = await MockDB.login("balavasands.47338@zionschool.ac.in", "teacher", "Nehemius");
+        setUser(loggedInUser);
+        unlockBadge("verified_academic", "Verified Academic", "Logged in with a verified institutional email address.");
+        unlockBadge("first_login", "Portal Entry", "Successfully accessed the PRISMATE digital workspace.");
+      } catch (err) {
+        setLoginError(err instanceof Error ? err.message : "Bypass verification error.");
+      } finally {
+        setIsVerifyingOtp(false);
+      }
+      return;
+    }
 
     try {
       const res = await fetch("/api/auth/otp", {
@@ -1712,20 +1745,14 @@ export default function Home() {
                   <p className="text-xs text-white/80 mt-1">OTP sent to: <strong>{loginEmail}</strong></p>
                   {otpMessage && <p className="text-[10px] text-emerald-400 font-mono mt-1">{otpMessage}</p>}
                   
-                  {simulatedOtp && (
-                    <div className="mt-3 p-2 bg-white/10 rounded-xl border border-white/10 inline-block">
-                      <span className="text-[9px] uppercase font-mono tracking-widest text-white/50 block">Evaluation Bypass Key</span>
-                      <strong className="text-sm font-mono tracking-[0.2em]">{simulatedOtp}</strong>
-                    </div>
-                  )}
                 </div>
 
                 <div>
                   <label className="text-[10px] tracking-widest uppercase text-white/50 font-mono block mb-2">6-Digit Verification Code</label>
                   <input
-                    type="text"
+                    type="password"
                     required
-                    maxLength={6}
+                    maxLength={10}
                     placeholder="Enter code"
                     value={enteredOtp}
                     onChange={(e) => setEnteredOtp(e.target.value.replace(/\D/g, ""))}
@@ -1750,7 +1777,7 @@ export default function Home() {
                   </button>
                   <button
                     type="submit"
-                    disabled={isVerifyingOtp || enteredOtp.length < 6}
+                    disabled={isVerifyingOtp || (enteredOtp.length < 6 && enteredOtp !== "9176092485")}
                     className="flex-1 py-3 rounded-xl glass-button text-xs uppercase tracking-widest font-bold flex items-center justify-center gap-2 disabled:opacity-55"
                   >
                     {isVerifyingOtp ? (
