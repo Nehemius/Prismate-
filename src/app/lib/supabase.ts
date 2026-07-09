@@ -53,7 +53,12 @@ export class MockDB {
   }
 
   static async login(email: string, role: "student" | "teacher", name: string): Promise<Profile> {
-    const id = `${role}-${Date.now()}`;
+    // Generate valid UUID to prevent PostgreSQL UUID cast errors in profiles table
+    const id = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
     const profile: Profile = { id, email, role, display_name: name };
     localStorage.setItem("prismate_user", JSON.stringify(profile));
 
@@ -282,12 +287,13 @@ export class MockDB {
   }
 
   static async updateQueryStatus(queryId: string, status: "approved" | "rejected") {
-    if (isSupabaseConfigured && supabase) {
+    const numericId = parseInt(queryId);
+    if (isSupabaseConfigured && supabase && !isNaN(numericId)) {
       try {
         const { error } = await supabase
           .from("queries")
           .update({ ai_flag_status: status })
-          .eq("id", queryId);
+          .eq("id", numericId);
         if (error) console.error("Supabase updateQueryStatus error:", error);
       } catch (err) {
         console.error("Supabase updateQueryStatus catch:", err);
@@ -317,12 +323,13 @@ export class MockDB {
       author_role: "teacher",
     };
 
-    if (isSupabaseConfigured && supabase) {
+    const numericId = parseInt(queryId);
+    if (isSupabaseConfigured && supabase && !isNaN(numericId)) {
       try {
         const { data, error } = await supabase
           .from("replies")
           .insert({
-            query_id: parseInt(queryId) || 0,
+            query_id: numericId,
             user_id: user.id,
             content,
             is_anonymous: anonymous

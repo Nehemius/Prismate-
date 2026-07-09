@@ -115,7 +115,7 @@ export default function ReagentAtomViewer({ symbol, transparent, reactionId }: R
           <div className="relative w-48 h-48 select-none scale-[0.85] md:scale-90">
             {/* SVG Bonds Background - Centered lines pointing exactly to atomic centers */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none">
-              <line x1="96" y1="96" x2="96" y2="36" stroke="#B0B0B0" strokeWidth="4" />
+              <line x1="96" y1="96" x2="96" y2="22" stroke="#B0B0B0" strokeWidth="4" />
               <line x1="96" y1="96" x2="96" y2="166" stroke="#B0B0B0" strokeWidth="4" />
               <line x1="96" y1="96" x2="26" y2="144" stroke="#B0B0B0" strokeWidth="4" />
               <line x1="96" y1="96" x2="166" y2="144" stroke="#B0B0B0" strokeWidth="4" />
@@ -131,7 +131,7 @@ export default function ReagentAtomViewer({ symbol, transparent, reactionId }: R
             
             {/* Top Chlorine (CPK: Green) - Larger than Carbon/Hydrogen */}
             <div 
-              className="absolute top-1 left-[64px] w-16 h-16 rounded-full flex items-center justify-center font-bold text-sm text-black shadow-lg z-20" 
+              className="absolute top-[-10px] left-[64px] w-16 h-16 rounded-full flex items-center justify-center font-bold text-sm text-black shadow-lg z-20" 
               style={{ background: "radial-gradient(circle at 35% 35%, #A8FFA8 0%, #1FF01F 60%, #0A800A 100%)" }}
             >
               Cl

@@ -578,6 +578,9 @@ export default function Home() {
       setBuilderSelectedBond(null);
       setBuilderHistory([]);
       setBuilderMessage("Choose a starting element from the options below to place at the center.");
+      if (typeof window !== "undefined") {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
     }
   }, [selectedReaction, gridSize]);
 
@@ -723,8 +726,8 @@ export default function Home() {
   };
 
   const renderBondLine = (c: number, r: number, symbol: string) => {
-    const cx = Math.floor(gridSize / 2);
-    const isHorizontal = (c % 2) !== (cx % 2); 
+    const cy = Math.floor(gridSize / 2);
+    const isHorizontal = (r % 2) === (cy % 2); 
     if (isHorizontal) {
       if (symbol === "double") {
         return (
@@ -1786,6 +1789,15 @@ export default function Home() {
                 </div>
               </form>
             )}
+            
+            {/* Connection Status Badge */}
+            <div className="mt-6 pt-4 border-t border-white/5 flex items-center justify-center gap-1.5 text-[9px] font-mono tracking-wider">
+               <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConfigured ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`}></span>
+               <span className="text-white/40 uppercase">Database Status:</span>
+               <span className={isSupabaseConfigured ? "text-emerald-400 font-bold animate-pulse" : "text-amber-400 font-bold"}>
+                 {isSupabaseConfigured ? "Cloud Active" : "Local Sandbox"}
+               </span>
+             </div>
           </motion.div>
         </div>
       ) : (
@@ -1854,6 +1866,14 @@ export default function Home() {
 
             {/* Profile Panel */}
             <div className="flex items-center gap-4">
+              {/* Database Status Indicator Badge */}
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[9px] font-mono tracking-wider select-none">
+                <span className={`w-1.5 h-1.5 rounded-full ${isSupabaseConfigured ? "bg-emerald-400 animate-pulse" : "bg-amber-400"}`}></span>
+                <span className={isSupabaseConfigured ? "text-emerald-400 font-bold animate-pulse" : "text-amber-400 font-bold"}>
+                  {isSupabaseConfigured ? "Cloud Active" : "Local Sandbox"}
+                </span>
+              </div>
+
               <div className="flex items-center gap-2 text-right">
                 <span className="hidden sm:inline text-xs font-semibold text-white/90">{user.display_name}</span>
                 <span className="px-2 py-0.5 rounded bg-white/10 text-[9px] uppercase tracking-widest font-mono text-white/60">
@@ -2054,6 +2074,32 @@ export default function Home() {
                       ref={whiteboardCanvasRef}
                       className={`absolute inset-0 z-40 ${isDrawingMode ? "pointer-events-auto cursor-crosshair animate-fade-in" : "pointer-events-none"}`}
                     />
+
+                    {/* Top Floating Glass Header for Fullscreen Mode */}
+                    <div className="absolute top-4 left-4 right-4 z-50 flex items-center justify-between pointer-events-auto">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => {
+                            setFullscreenMode(false);
+                            setSidePanelOpen(false);
+                          }}
+                          className="px-4 py-2 bg-white/95 border border-black/10 hover:bg-neutral-50 rounded-xl font-bold font-outfit text-xs uppercase tracking-wider text-black flex items-center gap-1.5 active:scale-95 transition-all shadow-md backdrop-blur-md"
+                        >
+                          ✕ Exit Fullscreen
+                        </button>
+                        <div className="bg-white/90 border border-black/10 px-4 py-2 rounded-xl backdrop-blur-md shadow-sm hidden sm:block">
+                          <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold font-sans">Active Lab:</span>
+                          <span className="font-mono text-xs uppercase text-black/80 font-bold ml-1">{selectedReaction.name}</span>
+                        </div>
+                      </div>
+                      
+                      <button
+                        onClick={() => setSidePanelOpen(prev => !prev)}
+                        className="px-4 py-2 bg-black text-white hover:bg-black/90 rounded-xl font-bold font-outfit text-xs uppercase tracking-wider flex items-center gap-1.5 active:scale-95 transition-all shadow-md animate-pulse"
+                      >
+                        {sidePanelOpen ? "📖 Hide Notes" : "📖 View Notes"}
+                      </button>
+                    </div>
 
                     {/* Floating Whiteboard Pen Button Menu */}
                     <div className="absolute bottom-6 left-6 z-50 flex items-center gap-3">
@@ -2345,15 +2391,59 @@ export default function Home() {
                               </p>
                             </div>
 
-                            {/* 7. Uses & Applications */}
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Uses & Applications</span>
-                              <p className="text-xs text-white/70 leading-relaxed font-sans select-text">
-                                {renderSubscripts(selectedReaction.uses_applications)}
-                              </p>
-                            </div>
+                             {/* 7. Uses & Applications */}
+                             <div className="space-y-1.5">
+                               <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Uses & Applications</span>
+                               <p className="text-xs text-white/70 leading-relaxed font-sans select-text">
+                                 {renderSubscripts(selectedReaction.uses_applications)}
+                               </p>
+                             </div>
 
-                          </div>
+                             {/* Divider line */}
+                             <div className="h-px bg-white/10 my-4" />
+
+                             {/* Take Concept Quiz Button (expanded inside the scroll list) */}
+                             <div className="space-y-3">
+                               <button
+                                 onClick={handleStartQuiz}
+                                 className="w-full py-3 rounded-xl bg-white hover:bg-neutral-50 text-black font-bold text-xs uppercase tracking-widest active:scale-97 transition-all flex items-center justify-center gap-2 shadow-lg animate-pulse"
+                               >
+                                 <HelpCircle size={14} /> Take Concept Quiz
+                               </button>
+                             </div>
+
+                             {/* Atom Color Legend Section (beyond the quiz button) */}
+                             <div className="space-y-2 bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
+                               <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block mb-2">Atom Color Legend</span>
+                               <div className="grid grid-cols-2 gap-2">
+                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #555555 0%, #000000 100%)" }} />
+                                   Carbon (C)
+                                 </div>
+                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                   <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ background: "#FFFFFF" }} />
+                                   Hydrogen (H)
+                                 </div>
+                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFA3A3 0%, #FF0D0D 100%)" }} />
+                                   Oxygen (O)
+                                 </div>
+                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #E67C7C 0%, #A62929 100%)" }} />
+                                   Bromine (Br)
+                                 </div>
+                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #A8FFA8 0%, #1FF01F 100%)" }} />
+                                   Chlorine (Cl)
+                                 </div>
+                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFE3E3 0%, #FFB5B5 100%)" }} />
+                                   Boron (B)
+                                 </div>
+                               </div>
+                             </div>
+
+                           </div>
                         </motion.div>
                       )}
                     </AnimatePresence>
@@ -2471,6 +2561,18 @@ export default function Home() {
                             >
                               <div className="absolute top-2 left-2 z-10 bg-white/80 border border-black/15 px-2 py-0.5 rounded backdrop-blur-md flex items-center gap-1.5 transition-colors group-hover:border-black/30">
                                 <span className="text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold">Product compound</span>
+                              </div>
+
+                              {/* Single-tap Sidepanel Notes Toggle for Android touch support */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSidePanelOpen(prev => !prev);
+                                }}
+                                className="absolute top-2 right-2 z-10 px-2.5 py-1.5 bg-white/90 border border-black/15 hover:border-black/30 rounded-xl backdrop-blur-md text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold flex items-center gap-1 active:scale-95 transition-all shadow-sm"
+                              >
+                                {sidePanelOpen ? "📖 Hide Notes" : "📖 View Notes"}
+                              </button>
                                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
                               </div>
 
@@ -2557,6 +2659,38 @@ export default function Home() {
                           )}
                         </div>
                       </div>
+
+                      {/* Atom Color Legend Section (Normal Mode) */}
+                      <div className="mt-4 p-4 rounded-2xl bg-neutral-50 border border-black/5">
+                        <h4 className="text-[10px] tracking-widest uppercase text-black/50 font-mono mb-2">Atom Color Representation Legend</h4>
+                        <div className="flex flex-wrap gap-3">
+                          <div className="flex items-center gap-1.5 bg-white border border-black/5 px-3 py-1 rounded-xl text-[10px] font-bold font-mono text-black shadow-sm">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #555555 0%, #000000 100%)" }} />
+                            Carbon (C)
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-white border border-black/5 px-3 py-1 rounded-xl text-[10px] font-bold font-mono text-black shadow-sm">
+                            <span className="w-2.5 h-2.5 rounded-full border border-black/20" style={{ background: "#FFFFFF" }} />
+                            Hydrogen (H)
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-white border border-black/5 px-3 py-1 rounded-xl text-[10px] font-bold font-mono text-black shadow-sm">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFA3A3 0%, #FF0D0D 100%)" }} />
+                            Oxygen (O)
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-white border border-black/5 px-3 py-1 rounded-xl text-[10px] font-bold font-mono text-black shadow-sm">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #E67C7C 0%, #A62929 100%)" }} />
+                            Bromine (Br)
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-white border border-black/5 px-3 py-1 rounded-xl text-[10px] font-bold font-mono text-black shadow-sm">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #A8FFA8 0%, #1FF01F 100%)" }} />
+                            Chlorine (Cl)
+                          </div>
+                          <div className="flex items-center gap-1.5 bg-white border border-black/5 px-3 py-1 rounded-xl text-[10px] font-bold font-mono text-black shadow-sm">
+                            <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFE3E3 0%, #FFB5B5 100%)" }} />
+                            Boron (B)
+                          </div>
+                        </div>
+                      </div>
+
                     </div>
 
                     {/* SLIDE-OUT INTERACTIVE SIDE PANEL (Dark thematic panel over white background workspace) */}
@@ -2646,21 +2780,54 @@ export default function Home() {
                               </p>
                             </div>
 
+                            {/* Divider line */}
+                            <div className="h-px bg-white/10 my-4" />
+
+                            {/* Take Concept Quiz Button (expanded inside the scroll list) */}
+                            <div className="space-y-3">
+                              <button
+                                onClick={handleStartQuiz}
+                                className="w-full py-3 rounded-xl bg-white hover:bg-neutral-50 text-black font-bold text-xs uppercase tracking-widest active:scale-97 transition-all flex items-center justify-center gap-2 shadow-lg animate-pulse"
+                              >
+                                <HelpCircle size={14} /> Take Concept Quiz
+                              </button>
+                            </div>
+
+                            {/* Atom Color Legend Section (beyond the quiz button) */}
+                            <div className="space-y-2 bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
+                              <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block mb-2">Atom Color Legend</span>
+                              <div className="grid grid-cols-2 gap-2">
+                                <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #555555 0%, #000000 100%)" }} />
+                                  Carbon (C)
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                  <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ background: "#FFFFFF" }} />
+                                  Hydrogen (H)
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFA3A3 0%, #FF0D0D 100%)" }} />
+                                  Oxygen (O)
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #E67C7C 0%, #A62929 100%)" }} />
+                                  Bromine (Br)
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #A8FFA8 0%, #1FF01F 100%)" }} />
+                                  Chlorine (Cl)
+                                </div>
+                                <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                                  <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFE3E3 0%, #FFB5B5 100%)" }} />
+                                  Boron (B)
+                                </div>
+                              </div>
+                            </div>
+
                           </div>
-
-
-                      {/* Quiz Button Footer */}
-                      <div className="p-4 border-t border-white/10 bg-white/3">
-                        <button
-                          onClick={handleStartQuiz}
-                          className="w-full py-3 rounded-xl bg-white text-black font-bold text-xs uppercase tracking-widest hover:bg-white/90 active:scale-97 transition-all flex items-center justify-center gap-2 shadow-lg"
-                        >
-                          <HelpCircle size={14} /> Take Concept Quiz
-                        </button>
-                      </div>
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
               </>
             )}
           </div>
