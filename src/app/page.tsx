@@ -2498,7 +2498,7 @@ export default function Home() {
                                 <MoleculeViewer 
                                   sdfName={selectedReaction.reactant_sdf} 
                                   viewerId={`reactant-${selectedReaction.id}`} 
-                                  autoRotate={autoRotate} 
+                                  autoRotate={autoRotate && !fullscreenMode} 
                                 />
                                 <div className="text-center font-mono text-[10px] text-black/60 mt-1 uppercase font-bold">
                                   {renderSubscripts(selectedReaction.reactant_sdf.replace("-", " "))}
@@ -2575,7 +2575,7 @@ export default function Home() {
                               <MoleculeViewer 
                                 sdfName={selectedReaction.product_sdf} 
                                 viewerId={`product-${selectedReaction.id}`} 
-                                autoRotate={autoRotate} 
+                                autoRotate={autoRotate && !fullscreenMode} 
                               />
                               <div className="text-center font-mono text-[10px] text-black/60 mt-1 uppercase font-bold">
                                 {renderSubscripts(selectedReaction.iupac_product_name)}

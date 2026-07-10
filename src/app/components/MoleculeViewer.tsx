@@ -179,7 +179,7 @@ export default function MoleculeViewer({ sdfName, viewerId, autoRotate = true, t
     if (!autoRotate || isInteracting) return;
 
     const spin = () => {
-      if (viewerRef.current) {
+      if (containerRef.current && containerRef.current.getBoundingClientRect().width > 0 && viewerRef.current) {
         try {
           viewerRef.current.rotate(0.5, "y"); // Rotate 0.5 degrees per frame on Y-axis
           viewerRef.current.render();
