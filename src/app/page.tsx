@@ -438,13 +438,13 @@ export default function Home() {
 
   // Molecule guesser state
   const [solvedReactions, setSolvedReactions] = useState<Record<string, boolean>>({});
-  const [guessGrid, setGuessGrid] = useState<Record<string, { type: "element" | "bond"; symbol: string }>>({});
+  const [guessGrid, setGuessGrid] = useState<Record<string, { type: "element" | "bond"; symbol: string; isHorizontal?: boolean }>>({});
   const [builderActiveCoords, setBuilderActiveCoords] = useState<[number, number] | null>(null);
   const [builderSelectedBond, setBuilderSelectedBond] = useState<"single" | "double" | "triple" | null>(null);
   const [builderMessage, setBuilderMessage] = useState<string>("Select a starting block below to begin building the product.");
   const [gridSize, setGridSize] = useState<number>(7);
   const [builderHistory, setBuilderHistory] = useState<{
-    grid: Record<string, { type: "element" | "bond"; symbol: string }>;
+    grid: Record<string, { type: "element" | "bond"; symbol: string; isHorizontal?: boolean }>;
     activeCoords: [number, number] | null;
     selectedBond: "single" | "double" | "triple" | null;
     message: string;
@@ -725,9 +725,9 @@ export default function Home() {
     }
   };
 
-  const renderBondLine = (c: number, r: number, symbol: string) => {
+  const renderBondLine = (c: number, r: number, symbol: string, isHorizontalOverride?: boolean) => {
     const cy = Math.floor(gridSize / 2);
-    const isHorizontal = (r % 2) === (cy % 2); 
+    const isHorizontal = isHorizontalOverride !== undefined ? isHorizontalOverride : ((r % 2) === (cy % 2)); 
     if (isHorizontal) {
       if (symbol === "double") {
         return (
@@ -823,9 +823,10 @@ export default function Home() {
                 message: builderMessage
               }
             ]);
+            const isHoriz = (r === ay);
             setGuessGrid(prev => ({
               ...prev,
-              [bondKey]: { type: "bond", symbol: dragVal }
+              [bondKey]: { type: "bond", symbol: dragVal, isHorizontal: isHoriz }
             }));
             setBuilderActiveCoords([nextX, nextY]);
             setBuilderSelectedBond(null);
@@ -905,9 +906,10 @@ export default function Home() {
       }
     ]);
 
+    const isHoriz = (dir === 2 || dir === 4);
     setGuessGrid(prev => ({
       ...prev,
-      [bondKey]: { type: "bond", symbol: builderSelectedBond }
+      [bondKey]: { type: "bond", symbol: builderSelectedBond, isHorizontal: isHoriz }
     }));
     setBuilderActiveCoords([nextX, nextY]);
     setBuilderSelectedBond(null);
@@ -1035,7 +1037,7 @@ export default function Home() {
                 </div>
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
-                  {renderBondLine(c, r, item.symbol)}
+                  {renderBondLine(c, r, item.symbol, item.isHorizontal)}
                 </div>
               )
             ) : placementDir !== null ? (
@@ -2211,69 +2213,64 @@ export default function Home() {
                       className="flex-1 flex flex-col p-12 justify-center items-center h-screen cursor-pointer"
                     >
                       {/* Equation container */}
-                      <div className="w-full flex flex-row items-start justify-center gap-6">
+                      <div className={`w-full flex flex-row items-start justify-center transition-all duration-500 ${sidePanelOpen ? "gap-0" : "gap-6"}`}>
                         
-                        {/* Reactant, Plus, Reagent, Arrow (Hidden when side panel is open to focus on product) */}
-                        {!sidePanelOpen && (
-                          <>
-                            {/* Reactant Column */}
-                            <div className="w-[35%] flex flex-col items-center">
-                              <div className="w-full h-[460px] flex flex-col justify-center items-center">
-                                <MoleculeViewer 
-                                  sdfName={selectedReaction.reactant_sdf} 
-                                  viewerId={`reactant-fs-${selectedReaction.id}`} 
-                                  autoRotate={autoRotate} 
-                                  transparent={true}
-                                />
-                              </div>
-                              
-                              {/* Bottom Info */}
-                              <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
-                                <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reactant Compound</span>
-                                <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.reactant_sdf.replace("-", " ")}</span>
-                                {renderStructure2D(selectedReaction.reactant_sdf)}
-                              </div>
-                            </div>
+                        {/* Reactant Column */}
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[35%] opacity-100"}`}>
+                          <div className="w-full h-[460px] flex flex-col justify-center items-center">
+                            <MoleculeViewer 
+                              sdfName={selectedReaction.reactant_sdf} 
+                              viewerId={`reactant-fs-${selectedReaction.id}`} 
+                              autoRotate={autoRotate} 
+                              transparent={true}
+                            />
+                          </div>
+                          
+                          {/* Bottom Info */}
+                          <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reactant Compound</span>
+                            <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.reactant_sdf.replace("-", " ")}</span>
+                            {renderStructure2D(selectedReaction.reactant_sdf)}
+                          </div>
+                        </div>
 
-                            {/* Plus Sign */}
-                            <div className="h-[460px] flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3">
-                              +
-                            </div>
+                        {/* Plus Sign */}
+                        <div className={`transition-all duration-500 ease-in-out flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
+                          +
+                        </div>
 
-                            {/* Reagent Column */}
-                            <div className="w-[24%] flex flex-col items-center">
-                              <div className="w-full h-[460px] flex flex-col justify-center items-center">
-                                <ReagentAtomViewer 
-                                  symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
-                                  valenceElectrons={REAGENT_MAP[selectedReaction.id]?.electrons || 1} 
-                                  transparent={true}
-                                  reactionId={selectedReaction.id}
-                                />
-                              </div>
-                              
-                              {/* Bottom Info */}
-                              <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
-                                <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reagent Molecule</span>
-                                <span className="font-mono text-sm uppercase text-black/80 font-bold">
-                                  {renderSubscripts(selectedReaction.reagents.split(",")[0])}
-                                </span>
-                              </div>
-                            </div>
+                        {/* Reagent Column */}
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[24%] opacity-100"}`}>
+                          <div className="w-full h-[460px] flex flex-col justify-center items-center">
+                            <ReagentAtomViewer 
+                              symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
+                              valenceElectrons={REAGENT_MAP[selectedReaction.id]?.electrons || 1} 
+                              transparent={true}
+                              reactionId={selectedReaction.id}
+                            />
+                          </div>
+                          
+                          {/* Bottom Info */}
+                          <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reagent Molecule</span>
+                            <span className="font-mono text-sm uppercase text-black/80 font-bold">
+                              {renderSubscripts(selectedReaction.reagents.split(",")[0])}
+                            </span>
+                          </div>
+                        </div>
 
-                            {/* Arrow */}
-                            <div className="h-[460px] flex flex-col items-center justify-center text-center select-none px-3">
-                              <div className="text-7xl font-light text-black/35 leading-none my-2">
-                                →
-                              </div>
-                              <span className="text-[11px] font-mono text-black/60 font-bold max-w-[150px] truncate" title={selectedReaction.conditions}>
-                                {selectedReaction.conditions}
-                              </span>
-                            </div>
-                          </>
-                        )}
+                        {/* Arrow */}
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center justify-center text-center select-none px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
+                          <div className="text-7xl font-light text-black/35 leading-none my-2">
+                            →
+                          </div>
+                          <span className="text-[11px] font-mono text-black/60 font-bold max-w-[150px] truncate" title={selectedReaction.conditions}>
+                            {selectedReaction.conditions}
+                          </span>
+                        </div>
 
                         {/* Product Column */}
-                        <div className={`flex flex-col items-center transition-all duration-300 ${sidePanelOpen ? "w-[85%]" : "w-[35%]"}`}>
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center ${sidePanelOpen ? "w-[65%]" : "w-[35%]"}`}>
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             {solvedReactions[selectedReaction.id] || user?.role === "teacher" ? (
                               <MoleculeViewer 
@@ -2309,7 +2306,7 @@ export default function Home() {
                           animate={{ x: 0, opacity: 1 }}
                           exit={{ x: "100%", opacity: 0.8 }}
                           transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/95 text-white z-50 max-h-screen overflow-hidden flex-shrink-0"
+                          className="absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/95 text-white z-50 max-h-screen overflow-hidden shadow-2xl"
                         >
                           {/* Header */}
                           <div className="p-4 border-b border-white/10 flex flex-col gap-3 bg-white/3">
