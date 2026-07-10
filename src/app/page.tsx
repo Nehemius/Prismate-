@@ -1648,7 +1648,13 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col font-sans select-none relative">
+    <div className="min-h-screen bg-black text-white flex flex-col font-sans select-none relative overflow-hidden">
+      {/* Background Liquid Glass Blobs */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[10%] left-[10%] w-[350px] h-[350px] rounded-full bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 blur-[120px] animate-blob" />
+        <div className="absolute bottom-[20%] right-[10%] w-[450px] h-[450px] rounded-full bg-gradient-to-br from-emerald-500/15 to-teal-500/20 blur-[130px] animate-blob animation-delay-2000" />
+        <div className="absolute top-[40%] left-[60%] w-[400px] h-[400px] rounded-full bg-gradient-to-r from-blue-500/10 to-violet-500/15 blur-[140px] animate-blob animation-delay-4000" />
+      </div>
       {/* Toast Notification for new badge */}
       <AnimatePresence>
         {newBadgeNotification && (
@@ -2226,17 +2232,19 @@ export default function Home() {
                             />
                           </div>
                           
-                          {/* Bottom Info */}
-                          <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reactant Compound</span>
-                            <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.reactant_sdf.replace("-", " ")}</span>
+                          {/* Bottom Info - Glass Card */}
+                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex flex-col items-center justify-center gap-1 text-center shadow-lg">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 font-bold">Reactant Compound</span>
+                            <span className="font-mono text-sm uppercase text-white/80 font-bold">{selectedReaction.reactant_sdf.replace("-", " ")}</span>
                             {renderStructure2D(selectedReaction.reactant_sdf)}
                           </div>
                         </div>
 
-                        {/* Plus Sign */}
-                        <div className={`transition-all duration-500 ease-in-out flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
-                          +
+                        {/* Plus Sign - Glass Circle */}
+                        <div className={`transition-all duration-500 ease-in-out flex items-center justify-center px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
+                          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-4xl font-light text-white/50 shadow-md">
+                            +
+                          </div>
                         </div>
 
                         {/* Reagent Column */}
@@ -2250,21 +2258,21 @@ export default function Home() {
                             />
                           </div>
                           
-                          {/* Bottom Info */}
-                          <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reagent Molecule</span>
-                            <span className="font-mono text-sm uppercase text-black/80 font-bold">
+                          {/* Bottom Info - Glass Card */}
+                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex flex-col items-center justify-center gap-1 text-center shadow-lg">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 font-bold">Reagent Molecule</span>
+                            <span className="font-mono text-sm uppercase text-white/80 font-bold">
                               {renderSubscripts(selectedReaction.reagents.split(",")[0])}
                             </span>
                           </div>
                         </div>
 
-                        {/* Arrow */}
+                        {/* Arrow - Glass Circle */}
                         <div className={`transition-all duration-500 ease-in-out flex flex-col items-center justify-center text-center select-none px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none animate-none" : "w-auto opacity-100"}`}>
-                          <div className="text-7xl font-light text-black/35 leading-none my-2">
+                          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-3xl font-light text-white/50 shadow-md mb-2">
                             →
                           </div>
-                          <span className="text-[11px] font-mono text-black/60 font-bold max-w-[150px] truncate" title={selectedReaction.conditions}>
+                          <span className="text-[11px] font-mono text-white/60 font-bold max-w-[150px] truncate" title={selectedReaction.conditions}>
                             {selectedReaction.conditions}
                           </span>
                         </div>
@@ -2280,17 +2288,17 @@ export default function Home() {
                                 transparent={true}
                               />
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center bg-black/5 rounded-3xl border border-dashed border-black/10 p-6 text-center">
-                                <span className="text-sm font-mono text-black/40 font-bold uppercase tracking-wider">Product Locked</span>
-                                <span className="text-xs font-mono text-black/30 mt-2">Solve the Molecular Builder guesser game in workspace view to unlock.</span>
+                              <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 rounded-3xl border border-dashed border-white/10 p-6 text-center backdrop-blur-sm">
+                                <span className="text-sm font-mono text-white/40 font-bold uppercase tracking-wider">Product Locked</span>
+                                <span className="text-xs font-mono text-white/30 mt-2">Solve the Molecular Builder guesser game in workspace view to unlock.</span>
                               </div>
                             )}
                           </div>
                           
-                          {/* Bottom Info */}
-                          <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Product Compound</span>
-                            <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.iupac_product_name}</span>
+                          {/* Bottom Info - Glass Card */}
+                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex flex-col items-center justify-center gap-1 text-center shadow-lg">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 font-bold">Product Compound</span>
+                            <span className="font-mono text-sm uppercase text-white/80 font-bold">{selectedReaction.iupac_product_name}</span>
                             {renderStructure2D(selectedReaction.product_sdf)}
                           </div>
                         </div>
@@ -2300,7 +2308,7 @@ export default function Home() {
 
                     {/* Right: Fullscreen Side Panel - Hardware-accelerated CSS transition */}
                     <div
-                      className={`absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-[#080808] text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-500 ${
+                      className={`absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/30 backdrop-blur-2xl text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-500 ${
                         sidePanelOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
                       }`}
                       style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
