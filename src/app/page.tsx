@@ -407,6 +407,15 @@ export default function Home() {
 
   // Side Panel logic
   const [sidePanelOpen, setSidePanelOpen] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
+  useEffect(() => {
+    setIsTransitioning(true);
+    const timer = setTimeout(() => {
+      setIsTransitioning(false);
+    }, 320);
+    return () => clearTimeout(timer);
+  }, [sidePanelOpen]);
 
   // Q&A module feed state
   const [queries, setQueries] = useState<Query[]>([]);
@@ -2218,16 +2227,24 @@ export default function Home() {
                       }}
                       className="flex-1 flex flex-col p-12 justify-center items-center h-screen cursor-pointer"
                     >
-                      {/* Equation container */}
-                      <div className={`w-full flex flex-row items-start justify-center transition-all duration-500 ${sidePanelOpen ? "gap-0" : "gap-6"}`}>
+                      {/* Equation container - scales and translates smoothly as a single unit on the GPU */}
+                      <div 
+                        style={{ 
+                          transform: sidePanelOpen ? 'scale(0.76) translateX(-220px)' : 'scale(1) translateX(0)', 
+                          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+                          transformOrigin: 'center left',
+                          willChange: 'transform'
+                        }}
+                        className="w-full flex flex-row items-start justify-center gap-6"
+                      >
                         
                         {/* Reactant Column */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[35%] opacity-100"}`}>
+                        <div className="w-[35%] flex flex-col items-center">
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             <MoleculeViewer 
                               sdfName={selectedReaction.reactant_sdf} 
                               viewerId={`reactant-fs-${selectedReaction.id}`} 
-                              autoRotate={autoRotate && !sidePanelOpen} 
+                              autoRotate={autoRotate && !isTransitioning} 
                               transparent={true}
                             />
                           </div>
@@ -2241,14 +2258,14 @@ export default function Home() {
                         </div>
 
                         {/* Plus Sign - Glass Circle */}
-                        <div className={`transition-all duration-500 ease-in-out flex items-center justify-center px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
+                        <div className="flex items-center justify-center px-3">
                           <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-4xl font-light text-white/50 shadow-md">
                             +
                           </div>
                         </div>
 
                         {/* Reagent Column */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[24%] opacity-100"}`}>
+                        <div className="w-[24%] flex flex-col items-center">
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             <ReagentAtomViewer 
                               symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
@@ -2268,7 +2285,7 @@ export default function Home() {
                         </div>
 
                         {/* Arrow - Glass Circle */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center justify-center text-center select-none px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none animate-none" : "w-auto opacity-100"}`}>
+                        <div className="flex flex-col items-center justify-center text-center select-none px-3">
                           <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-3xl font-light text-white/50 shadow-md mb-2">
                             →
                           </div>
@@ -2278,13 +2295,13 @@ export default function Home() {
                         </div>
 
                         {/* Product Column */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center ${sidePanelOpen ? "w-[65%]" : "w-[35%]"}`}>
+                        <div className="w-[35%] flex flex-col items-center">
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             {solvedReactions[selectedReaction.id] || user?.role === "teacher" ? (
                               <MoleculeViewer 
                                 sdfName={selectedReaction.product_sdf} 
                                 viewerId={`product-fs-${selectedReaction.id}`} 
-                                autoRotate={autoRotate} 
+                                autoRotate={autoRotate && !isTransitioning} 
                                 transparent={true}
                               />
                             ) : (
@@ -2308,10 +2325,13 @@ export default function Home() {
 
                     {/* Right: Fullscreen Side Panel - Hardware-accelerated CSS transition */}
                     <div
-                      className={`absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/30 backdrop-blur-2xl text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-500 ${
+                      className={`absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/30 backdrop-blur-2xl text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-300 ${
                         sidePanelOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
                       }`}
-                      style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                      style={{ 
+                        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'transform'
+                      }}
                     >
                       {/* Header */}
                       <div className="p-4 border-b border-white/10 flex flex-col gap-3 bg-white/3">
