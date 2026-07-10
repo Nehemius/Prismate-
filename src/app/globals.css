@@ -22,49 +22,13 @@ html, body {
 
 body {
   color: var(--foreground);
-  background: var(--background);
+  /* High performance multi-stop static gradients to simulate organic glass lighting refraction without GPU-heavy animations */
+  background: 
+    radial-gradient(circle at 10% 10%, rgba(255, 255, 255, 0.04) 0%, transparent 45%),
+    radial-gradient(circle at 90% 90%, rgba(255, 255, 255, 0.035) 0%, transparent 45%),
+    #000000;
   font-family: var(--font-inter), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow-x: hidden;
-  position: relative;
-}
-
-/* Floating background glow blobs for advanced glass refraction */
-body::before, body::after {
-  content: "";
-  position: fixed;
-  width: 60vw;
-  height: 60vw;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: -1;
-  filter: blur(130px);
-  opacity: 0.85;
-}
-
-body::before {
-  top: -15%;
-  left: -15%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0) 70%);
-  animation: float-blob-1 30s infinite alternate ease-in-out;
-}
-
-body::after {
-  bottom: -15%;
-  right: -15%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.035) 0%, rgba(255, 255, 255, 0) 70%);
-  animation: float-blob-2 35s infinite alternate ease-in-out;
-}
-
-@keyframes float-blob-1 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(12vw, 8vh) scale(1.15); }
-  100% { transform: translate(-6vw, 18vh) scale(0.9); }
-}
-
-@keyframes float-blob-2 {
-  0% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-10vw, -12vh) scale(0.85); }
-  100% { transform: translate(6vw, 6vh) scale(1.1); }
 }
 
 /* Ensure all scrolling containers use smooth scrolling and touch inertia */

@@ -2211,14 +2211,14 @@ export default function Home() {
                       className="flex-1 flex flex-col p-12 justify-center items-center h-screen cursor-pointer"
                     >
                       {/* Equation container */}
-                      <div className="w-full flex flex-row items-center justify-center gap-6">
+                      <div className="w-full flex flex-row items-start justify-center gap-6">
                         
                         {/* Reactant, Plus, Reagent, Arrow (Hidden when side panel is open to focus on product) */}
                         {!sidePanelOpen && (
                           <>
                             {/* Reactant Column */}
-                            <div className="w-[35%] flex flex-col justify-between items-center min-h-[580px]">
-                              <div className="w-full flex-1 flex flex-col min-h-[500px]">
+                            <div className="w-[35%] flex flex-col items-center">
+                              <div className="w-full h-[460px] flex flex-col justify-center items-center">
                                 <MoleculeViewer 
                                   sdfName={selectedReaction.reactant_sdf} 
                                   viewerId={`reactant-fs-${selectedReaction.id}`} 
@@ -2228,7 +2228,7 @@ export default function Home() {
                               </div>
                               
                               {/* Bottom Info */}
-                              <div className="mt-4 flex flex-col items-center gap-1">
+                              <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
                                 <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reactant Compound</span>
                                 <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.reactant_sdf.replace("-", " ")}</span>
                                 {renderStructure2D(selectedReaction.reactant_sdf)}
@@ -2236,13 +2236,13 @@ export default function Home() {
                             </div>
 
                             {/* Plus Sign */}
-                            <div className="flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3">
+                            <div className="h-[460px] flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3">
                               +
                             </div>
 
                             {/* Reagent Column */}
-                            <div className="w-[24%] flex flex-col justify-between items-center min-h-[580px]">
-                              <div className="w-full flex-1 flex flex-col min-h-[500px] justify-center items-center">
+                            <div className="w-[24%] flex flex-col items-center">
+                              <div className="w-full h-[460px] flex flex-col justify-center items-center">
                                 <ReagentAtomViewer 
                                   symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
                                   valenceElectrons={REAGENT_MAP[selectedReaction.id]?.electrons || 1} 
@@ -2252,7 +2252,7 @@ export default function Home() {
                               </div>
                               
                               {/* Bottom Info */}
-                              <div className="mt-4 flex flex-col items-center gap-1">
+                              <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
                                 <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reagent Molecule</span>
                                 <span className="font-mono text-sm uppercase text-black/80 font-bold">
                                   {renderSubscripts(selectedReaction.reagents.split(",")[0])}
@@ -2261,7 +2261,7 @@ export default function Home() {
                             </div>
 
                             {/* Arrow */}
-                            <div className="flex flex-col items-center justify-center text-center select-none px-3">
+                            <div className="h-[460px] flex flex-col items-center justify-center text-center select-none px-3">
                               <div className="text-7xl font-light text-black/35 leading-none my-2">
                                 →
                               </div>
@@ -2273,8 +2273,8 @@ export default function Home() {
                         )}
 
                         {/* Product Column */}
-                        <div className={`flex flex-col justify-between items-center min-h-[580px] transition-all duration-300 ${sidePanelOpen ? "w-[85%] h-[80vh]" : "w-[35%]"}`}>
-                          <div className="w-full flex-1 flex flex-col min-h-[500px]">
+                        <div className={`flex flex-col items-center transition-all duration-300 ${sidePanelOpen ? "w-[85%]" : "w-[35%]"}`}>
+                          <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             {solvedReactions[selectedReaction.id] || user?.role === "teacher" ? (
                               <MoleculeViewer 
                                 sdfName={selectedReaction.product_sdf} 
@@ -2291,7 +2291,7 @@ export default function Home() {
                           </div>
                           
                           {/* Bottom Info */}
-                          <div className="mt-4 flex flex-col items-center gap-1">
+                          <div className="h-[110px] mt-4 flex flex-col items-center justify-start gap-1 text-center">
                             <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Product Compound</span>
                             <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.iupac_product_name}</span>
                             {renderStructure2D(selectedReaction.product_sdf)}

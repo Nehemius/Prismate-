@@ -167,6 +167,7 @@ export default function MoleculeViewer({ sdfName, viewerId, autoRotate = true, t
   }, []);
 
   const [isInteracting, setIsInteracting] = useState(false);
+  const releaseTimerRef = useRef<any>(null);
 
   // Animation Rotation Loop (Y-axis slow spin) - suspended during active user interaction
   useEffect(() => {
@@ -202,29 +203,38 @@ export default function MoleculeViewer({ sdfName, viewerId, autoRotate = true, t
     };
   }, [autoRotate, loading, isInteracting]);
 
-  // Release user interaction hook to resume autoRotate after a 3-second delay
+  const handleInteractionStart = () => {
+    setIsInteracting(true);
+    if (releaseTimerRef.current) {
+      clearTimeout(releaseTimerRef.current);
+      releaseTimerRef.current = null;
+    }
+  };
+
+  const handleInteractionEnd = () => {
+    if (releaseTimerRef.current) {
+      clearTimeout(releaseTimerRef.current);
+    }
+    releaseTimerRef.current = setTimeout(() => {
+      setIsInteracting(false);
+    }, 3000);
+  };
+
+  // Clean up timer on unmount
   useEffect(() => {
-    if (!isInteracting) return;
-
-    const handleRelease = () => {
-      const timer = setTimeout(() => {
-        setIsInteracting(false);
-      }, 3000);
-      return () => clearTimeout(timer);
-    };
-
-    window.addEventListener("mouseup", handleRelease);
-    window.addEventListener("touchend", handleRelease);
     return () => {
-      window.removeEventListener("mouseup", handleRelease);
-      window.removeEventListener("touchend", handleRelease);
+      if (releaseTimerRef.current) {
+        clearTimeout(releaseTimerRef.current);
+      }
     };
-  }, [isInteracting]);
+  }, []);
 
   return (
     <div 
-      onMouseDown={() => setIsInteracting(true)}
-      onTouchStart={() => setIsInteracting(true)}
+      onMouseDown={handleInteractionStart}
+      onTouchStart={handleInteractionStart}
+      onMouseUp={handleInteractionEnd}
+      onTouchEnd={handleInteractionEnd}
       className={`relative w-full flex-grow flex-shrink flex flex-col overflow-hidden transition-all ${
         transparent 
           ? "bg-transparent border-transparent" 
