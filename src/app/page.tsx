@@ -2212,11 +2212,17 @@ export default function Home() {
                       }}
                       className="flex-1 flex flex-col p-12 justify-center items-center h-screen cursor-pointer"
                     >
-                      {/* Equation container */}
-                      <div className={`w-full flex flex-row items-start justify-center transition-all duration-500 ${sidePanelOpen ? "gap-0" : "gap-6"}`}>
+                      {/* Equation container - glides smoothly as a single unit to the left on the GPU */}
+                      <div 
+                        style={{ 
+                          transform: sidePanelOpen ? 'translateX(-180px)' : 'translateX(0)', 
+                          transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' 
+                        }}
+                        className="w-full flex flex-row items-start justify-center gap-6"
+                      >
                         
                         {/* Reactant Column */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[35%] opacity-100"}`}>
+                        <div className="w-[35%] flex flex-col items-center">
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             <MoleculeViewer 
                               sdfName={selectedReaction.reactant_sdf} 
@@ -2235,12 +2241,12 @@ export default function Home() {
                         </div>
 
                         {/* Plus Sign */}
-                        <div className={`transition-all duration-500 ease-in-out flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
+                        <div className="h-[460px] flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3">
                           +
                         </div>
 
                         {/* Reagent Column */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[24%] opacity-100"}`}>
+                        <div className="w-[24%] flex flex-col items-center">
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             <ReagentAtomViewer 
                               symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
@@ -2260,7 +2266,7 @@ export default function Home() {
                         </div>
 
                         {/* Arrow */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center justify-center text-center select-none px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
+                        <div className="h-[460px] flex flex-col items-center justify-center text-center select-none px-3">
                           <div className="text-7xl font-light text-black/35 leading-none my-2">
                             →
                           </div>
@@ -2270,7 +2276,7 @@ export default function Home() {
                         </div>
 
                         {/* Product Column */}
-                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center ${sidePanelOpen ? "w-[65%]" : "w-[35%]"}`}>
+                        <div className="w-[35%] flex flex-col items-center">
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             {solvedReactions[selectedReaction.id] || user?.role === "teacher" ? (
                               <MoleculeViewer 
@@ -2298,154 +2304,148 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Right: Fullscreen Side Panel */}
-                    <AnimatePresence>
-                      {sidePanelOpen && (
-                        <motion.div
-                          initial={{ x: "100%", opacity: 0.8 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          exit={{ x: "100%", opacity: 0.8 }}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/95 text-white z-50 max-h-screen overflow-hidden shadow-2xl"
-                        >
-                          {/* Header */}
-                          <div className="p-4 border-b border-white/10 flex flex-col gap-3 bg-white/3">
-                            <div className="flex items-center justify-between">
-                              <div>
-                                <span className="text-[8px] uppercase tracking-widest font-mono text-white/40">Smart Panel Control</span>
-                                <h3 className="text-sm font-bold font-outfit tracking-wide text-white">{renderSubscripts(selectedReaction.name)}</h3>
-                              </div>
-                              <button 
-                                onClick={() => setSidePanelOpen(false)}
-                                className="px-3 py-1.5 border border-white/10 hover:bg-white/5 text-white/80 hover:text-white rounded-lg text-[10px] uppercase font-mono tracking-wider transition-colors"
-                              >
-                                Close
-                              </button>
-                            </div>
-                            <button
-                              onClick={() => {
-                                setFullscreenMode(false);
-                                setSidePanelOpen(false);
-                              }}
-                              className="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all"
-                            >
-                              Exit Fullscreen
-                            </button>
+                    {/* Right: Fullscreen Side Panel - Hardware-accelerated CSS transition (always mounted) */}
+                    <div
+                      className={`absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-[#080808] text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-500 ${
+                        sidePanelOpen ? "translate-x-0" : "translate-x-full"
+                      }`}
+                      style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
+                    >
+                      {/* Header */}
+                      <div className="p-4 border-b border-white/10 flex flex-col gap-3 bg-white/3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <span className="text-[8px] uppercase tracking-widest font-mono text-white/40">Smart Panel Control</span>
+                            <h3 className="text-sm font-bold font-outfit tracking-wide text-white">{renderSubscripts(selectedReaction.name)}</h3>
                           </div>
+                          <button 
+                            onClick={() => setSidePanelOpen(false)}
+                            className="px-3 py-1.5 border border-white/10 hover:bg-white/5 text-white/80 hover:text-white rounded-lg text-[10px] uppercase font-mono tracking-wider transition-colors"
+                          >
+                            Close
+                          </button>
+                        </div>
+                        <button
+                          onClick={() => {
+                            setFullscreenMode(false);
+                            setSidePanelOpen(false);
+                          }}
+                          className="w-full py-2 bg-red-600 hover:bg-red-700 text-white font-bold text-xs uppercase tracking-wider rounded-xl transition-all"
+                        >
+                          Exit Fullscreen
+                        </button>
+                      </div>
 
-                          {/* Scrollable Data Metrics */}
-                          <div className="flex-grow overflow-y-auto p-5 space-y-6">
-                            
-                            {/* 1. Balanced Equation */}
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Balanced Chemical Equation</span>
-                              <div className="p-3 bg-black border border-white/10 rounded-xl font-mono text-xs text-white select-text overflow-x-auto">
-                                {renderSubscripts(selectedReaction.balanced_equation)}
-                              </div>
-                            </div>
+                      {/* Scrollable Data Metrics */}
+                      <div className="flex-grow overflow-y-auto p-5 space-y-6">
+                        
+                        {/* 1. Balanced Equation */}
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Balanced Chemical Equation</span>
+                          <div className="p-3 bg-black border border-white/10 rounded-xl font-mono text-xs text-white select-text overflow-x-auto">
+                            {renderSubscripts(selectedReaction.balanced_equation)}
+                          </div>
+                        </div>
 
-                            {/* 2. Type of Reaction */}
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Type of Reaction</span>
-                              <span className="inline-block px-2.5 py-1 bg-white text-black font-mono font-bold text-[10px] rounded-lg">
-                                {selectedReaction.reaction_type}
-                              </span>
-                            </div>
+                        {/* 2. Type of Reaction */}
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Type of Reaction</span>
+                          <span className="inline-block px-2.5 py-1 bg-white text-black font-mono font-bold text-[10px] rounded-lg">
+                            {selectedReaction.reaction_type}
+                          </span>
+                        </div>
 
-                            {/* 3. Reagents / Conditions */}
-                            <div className="grid grid-cols-2 gap-3">
-                              <div className="p-3 bg-white/3 border border-white/5 rounded-xl">
-                                <span className="text-[8px] uppercase font-mono text-white/40 block">Operational Reagents</span>
-                                <span className="text-xs font-mono font-bold text-white/90 mt-1 block">{renderSubscripts(selectedReaction.reagents)}</span>
-                              </div>
-                              <div className="p-3 bg-white/3 border border-white/5 rounded-xl">
-                                <span className="text-[8px] uppercase font-mono text-white/40 block">Conditions</span>
-                                <span className="text-xs font-mono text-white/95 mt-1 block">{selectedReaction.conditions}</span>
-                              </div>
-                            </div>
+                        {/* 3. Reagents / Conditions */}
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="p-3 bg-white/3 border border-white/5 rounded-xl">
+                            <span className="text-[8px] uppercase font-mono text-white/40 block">Operational Reagents</span>
+                            <span className="text-xs font-mono font-bold text-white/90 mt-1 block">{renderSubscripts(selectedReaction.reagents)}</span>
+                          </div>
+                          <div className="p-3 bg-white/3 border border-white/5 rounded-xl">
+                            <span className="text-[8px] uppercase font-mono text-white/40 block">Conditions</span>
+                            <span className="text-xs font-mono text-white/95 mt-1 block">{selectedReaction.conditions}</span>
+                          </div>
+                        </div>
 
-                            {/* 4. Reaction Mechanisms */}
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Step-by-Step Reaction Mechanism</span>
-                              <p className="text-xs text-white/70 leading-relaxed font-sans select-text whitespace-pre-line">
-                                {renderSubscripts(selectedReaction.reaction_mechanisms)}
-                              </p>
-                            </div>
+                        {/* 4. Reaction Mechanisms */}
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Step-by-Step Reaction Mechanism</span>
+                          <p className="text-xs text-white/70 leading-relaxed font-sans select-text whitespace-pre-line">
+                            {renderSubscripts(selectedReaction.reaction_mechanisms)}
+                          </p>
+                        </div>
 
-                            {/* 5. Structural Effects */}
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Structural Effects & Stability</span>
-                              <p className="text-xs text-white/70 leading-relaxed font-sans select-text">
-                                {renderSubscripts(selectedReaction.structural_effects)}
-                              </p>
-                            </div>
+                        {/* 5. Structural Effects */}
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Structural Effects & Stability</span>
+                          <p className="text-xs text-white/70 leading-relaxed font-sans select-text">
+                            {renderSubscripts(selectedReaction.structural_effects)}
+                          </p>
+                        </div>
 
-                            {/* 6. IUPAC Derivation */}
-                            <div className="space-y-1.5">
-                              <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">IUPAC Nomenclature Derivation</span>
-                              <p className="text-xs text-white/70 leading-relaxed font-sans select-text bg-white/3 p-3 border border-white/5 rounded-xl">
-                                {renderSubscripts(selectedReaction.iupac_derivation)}
-                              </p>
-                            </div>
+                        {/* 6. IUPAC Derivation */}
+                        <div className="space-y-1.5">
+                          <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">IUPAC Nomenclature Derivation</span>
+                          <p className="text-xs text-white/70 leading-relaxed font-sans select-text bg-white/3 p-3 border border-white/5 rounded-xl">
+                            {renderSubscripts(selectedReaction.iupac_derivation)}
+                          </p>
+                        </div>
 
-                             {/* 7. Uses & Applications */}
-                             <div className="space-y-1.5">
-                               <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Uses & Applications</span>
-                               <p className="text-xs text-white/70 leading-relaxed font-sans select-text">
-                                 {renderSubscripts(selectedReaction.uses_applications)}
-                               </p>
+                         {/* 7. Uses & Applications */}
+                         <div className="space-y-1.5">
+                           <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block">Uses & Applications</span>
+                           <p className="text-xs text-white/70 leading-relaxed font-sans select-text">
+                             {renderSubscripts(selectedReaction.uses_applications)}
+                           </p>
+                         </div>
+
+                         {/* Divider line */}
+                         <div className="h-px bg-white/10 my-4" />
+
+                         {/* Take Concept Quiz Button (expanded inside the scroll list) */}
+                         <div className="space-y-3">
+                           <button
+                             onClick={handleStartQuiz}
+                             className="w-full py-3 rounded-xl bg-white hover:bg-neutral-50 text-black font-bold text-xs uppercase tracking-widest active:scale-97 transition-all flex items-center justify-center gap-2 shadow-lg animate-pulse"
+                           >
+                             <HelpCircle size={14} /> Take Concept Quiz
+                           </button>
+                         </div>
+
+                         {/* Atom Color Legend Section (beyond the quiz button) */}
+                         <div className="space-y-2 bg-white/5 border border-white/10 p-4 rounded-2xl">
+                           <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block mb-2">Atom Color Legend</span>
+                           <div className="grid grid-cols-2 gap-2">
+                             <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #555555 0%, #000000 100%)" }} />
+                               Carbon (C)
                              </div>
-
-                             {/* Divider line */}
-                             <div className="h-px bg-white/10 my-4" />
-
-                             {/* Take Concept Quiz Button (expanded inside the scroll list) */}
-                             <div className="space-y-3">
-                               <button
-                                 onClick={handleStartQuiz}
-                                 className="w-full py-3 rounded-xl bg-white hover:bg-neutral-50 text-black font-bold text-xs uppercase tracking-widest active:scale-97 transition-all flex items-center justify-center gap-2 shadow-lg animate-pulse"
-                               >
-                                 <HelpCircle size={14} /> Take Concept Quiz
-                               </button>
+                             <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                               <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ background: "#FFFFFF" }} />
+                               Hydrogen (H)
                              </div>
-
-                             {/* Atom Color Legend Section (beyond the quiz button) */}
-                             <div className="space-y-2 bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-md">
-                               <span className="text-[9px] uppercase tracking-widest font-mono text-white/40 block mb-2">Atom Color Legend</span>
-                               <div className="grid grid-cols-2 gap-2">
-                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
-                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #555555 0%, #000000 100%)" }} />
-                                   Carbon (C)
-                                 </div>
-                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
-                                   <span className="w-2.5 h-2.5 rounded-full border border-white/20" style={{ background: "#FFFFFF" }} />
-                                   Hydrogen (H)
-                                 </div>
-                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
-                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFA3A3 0%, #FF0D0D 100%)" }} />
-                                   Oxygen (O)
-                                 </div>
-                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
-                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #E67C7C 0%, #A62929 100%)" }} />
-                                   Bromine (Br)
-                                 </div>
-                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
-                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #A8FFA8 0%, #1FF01F 100%)" }} />
-                                   Chlorine (Cl)
-                                 </div>
-                                 <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
-                                   <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFE3E3 0%, #FFB5B5 100%)" }} />
-                                   Boron (B)
-                                 </div>
-                               </div>
+                             <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFA3A3 0%, #FF0D0D 100%)" }} />
+                               Oxygen (O)
                              </div>
-
+                             <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #E67C7C 0%, #A62929 100%)" }} />
+                               Bromine (Br)
+                             </div>
+                             <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #A8FFA8 0%, #1FF01F 100%)" }} />
+                               Chlorine (Cl)
+                             </div>
+                             <div className="flex items-center gap-1.5 bg-black/40 border border-white/5 px-2 py-1 rounded-lg text-[9px] font-bold font-mono text-white">
+                               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "radial-gradient(circle at 35% 35%, #FFE3E3 0%, #FFB5B5 100%)" }} />
+                               Boron (B)
+                             </div>
                            </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                         </div>
 
-                  </div>
+                       </div>
+                     </div>
+                   </div>
                 ) : (
                   /* STANDARD LAB WORKSPACE VIEW */
                   <>
