@@ -1658,11 +1658,11 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-black text-white flex flex-col font-sans select-none relative overflow-hidden">
-      {/* Background Liquid Glass Blobs */}
+      {/* Background Static Glow Accents (no animation = zero GPU cost) */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[10%] left-[10%] w-[350px] h-[350px] rounded-full bg-gradient-to-tr from-indigo-500/20 to-purple-500/20 blur-[120px] animate-blob" />
-        <div className="absolute bottom-[20%] right-[10%] w-[450px] h-[450px] rounded-full bg-gradient-to-br from-emerald-500/15 to-teal-500/20 blur-[130px] animate-blob animation-delay-2000" />
-        <div className="absolute top-[40%] left-[60%] w-[400px] h-[400px] rounded-full bg-gradient-to-r from-blue-500/10 to-violet-500/15 blur-[140px] animate-blob animation-delay-4000" />
+        <div className="absolute top-[10%] left-[10%] w-[250px] h-[250px] rounded-full bg-indigo-500/10 blur-[80px]" />
+        <div className="absolute bottom-[20%] right-[10%] w-[300px] h-[300px] rounded-full bg-emerald-500/8 blur-[80px]" />
+        <div className="absolute top-[40%] left-[60%] w-[280px] h-[280px] rounded-full bg-blue-500/8 blur-[80px]" />
       </div>
       {/* Toast Notification for new badge */}
       <AnimatePresence>
@@ -1951,7 +1951,15 @@ export default function Home() {
           {activeTab === "chemistry" && (
             selectedReaction === null ? (
               // Selection Dashboard (Full screen height, scrollable)
-              <div className="flex-1 flex flex-col overflow-y-auto p-8 max-w-7xl mx-auto w-full gap-8 bg-black">
+              <div 
+                    className="flex-1 flex flex-col overflow-y-auto p-8 max-w-7xl mx-auto w-full gap-8 bg-black"
+                    style={{
+                      transform: 'translate3d(0,0,0)',
+                      willChange: 'scroll-position',
+                      contain: 'paint',
+                      WebkitOverflowScrolling: 'touch'
+                    }}
+                  >
                 {/* Dashboard Title Section */}
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 border-b border-white/10 pb-6">
                   <div>
@@ -2225,22 +2233,14 @@ export default function Home() {
                           lastTapLayout.current = now;
                         }
                       }}
-                      className="flex-1 flex flex-col p-12 justify-center items-center h-screen cursor-pointer"
+                      className="flex-1 flex flex-col pt-20 pb-6 px-12 justify-center items-center h-screen cursor-pointer"
                     >
-                      {/* Equation container - scales and translates smoothly as a single unit on the GPU */}
-                      <div 
-                        style={{ 
-                          transform: sidePanelOpen ? 'scale(0.76) translateX(-220px)' : 'scale(1) translateX(0)', 
-                          transition: 'transform 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-                          transformOrigin: 'center left',
-                          willChange: 'transform'
-                        }}
-                        className="w-full flex flex-row items-start justify-center gap-6"
-                      >
+                      {/* Equation container - kept static as the left-aligned notes panel overlays the reactants */}
+                      <div className="w-full flex flex-row items-start justify-center gap-6">
                         
                         {/* Reactant Column */}
                         <div className="w-[35%] flex flex-col items-center">
-                          <div className="w-full h-[460px] flex flex-col justify-center items-center">
+                          <div className="w-full h-[390px] flex flex-col justify-center items-center">
                             <MoleculeViewer 
                               sdfName={selectedReaction.reactant_sdf} 
                               viewerId={`reactant-fs-${selectedReaction.id}`} 
@@ -2250,23 +2250,23 @@ export default function Home() {
                           </div>
                           
                           {/* Bottom Info - Glass Card */}
-                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex flex-col items-center justify-center gap-1 text-center shadow-lg">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 font-bold">Reactant Compound</span>
-                            <span className="font-mono text-sm uppercase text-white/80 font-bold">{selectedReaction.reactant_sdf.replace("-", " ")}</span>
+                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-black/[0.02] border border-black/5 rounded-2xl flex flex-col items-center justify-center gap-1 text-center shadow-sm">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reactant Compound</span>
+                            <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.reactant_sdf.replace("-", " ")}</span>
                             {renderStructure2D(selectedReaction.reactant_sdf)}
                           </div>
                         </div>
 
                         {/* Plus Sign - Glass Circle */}
-                        <div className="flex items-center justify-center px-3">
-                          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-4xl font-light text-white/50 shadow-md">
+                        <div className="h-[390px] flex items-center justify-center px-3">
+                          <div className="w-16 h-16 rounded-full bg-black/[0.02] border border-black/5 flex items-center justify-center text-4xl font-light text-black/40 shadow-sm">
                             +
                           </div>
                         </div>
 
                         {/* Reagent Column */}
                         <div className="w-[24%] flex flex-col items-center">
-                          <div className="w-full h-[460px] flex flex-col justify-center items-center">
+                          <div className="w-full h-[390px] flex flex-col justify-center items-center">
                             <ReagentAtomViewer 
                               symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
                               valenceElectrons={REAGENT_MAP[selectedReaction.id]?.electrons || 1} 
@@ -2276,27 +2276,27 @@ export default function Home() {
                           </div>
                           
                           {/* Bottom Info - Glass Card */}
-                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex flex-col items-center justify-center gap-1 text-center shadow-lg">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 font-bold">Reagent Molecule</span>
-                            <span className="font-mono text-sm uppercase text-white/80 font-bold">
+                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-black/[0.02] border border-black/5 rounded-2xl flex flex-col items-center justify-center gap-1 text-center shadow-sm">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Reagent Molecule</span>
+                            <span className="font-mono text-sm uppercase text-black/80 font-bold">
                               {renderSubscripts(selectedReaction.reagents.split(",")[0])}
                             </span>
                           </div>
                         </div>
 
                         {/* Arrow - Glass Circle */}
-                        <div className="flex flex-col items-center justify-center text-center select-none px-3">
-                          <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 backdrop-blur-md flex items-center justify-center text-3xl font-light text-white/50 shadow-md mb-2">
+                        <div className="h-[390px] flex flex-col items-center justify-center text-center select-none px-3">
+                          <div className="w-16 h-16 rounded-full bg-black/[0.02] border border-black/5 flex items-center justify-center text-3xl font-light text-black/40 shadow-sm mb-2">
                             →
                           </div>
-                          <span className="text-[11px] font-mono text-white/60 font-bold max-w-[150px] truncate" title={selectedReaction.conditions}>
+                          <span className="text-[11px] font-mono text-black/60 font-bold max-w-[150px] truncate" title={selectedReaction.conditions}>
                             {selectedReaction.conditions}
                           </span>
                         </div>
 
                         {/* Product Column */}
                         <div className="w-[35%] flex flex-col items-center">
-                          <div className="w-full h-[460px] flex flex-col justify-center items-center">
+                          <div className="w-full h-[390px] flex flex-col justify-center items-center">
                             {solvedReactions[selectedReaction.id] || user?.role === "teacher" ? (
                               <MoleculeViewer 
                                 sdfName={selectedReaction.product_sdf} 
@@ -2305,17 +2305,17 @@ export default function Home() {
                                 transparent={true}
                               />
                             ) : (
-                              <div className="w-full h-full flex flex-col items-center justify-center bg-white/5 rounded-3xl border border-dashed border-white/10 p-6 text-center backdrop-blur-sm">
-                                <span className="text-sm font-mono text-white/40 font-bold uppercase tracking-wider">Product Locked</span>
-                                <span className="text-xs font-mono text-white/30 mt-2">Solve the Molecular Builder guesser game in workspace view to unlock.</span>
+                              <div className="w-full h-full flex flex-col items-center justify-center bg-black/[0.03] rounded-3xl border border-dashed border-black/10 p-6 text-center backdrop-blur-sm">
+                                <span className="text-sm font-mono text-black/40 font-bold uppercase tracking-wider">Product Locked</span>
+                                <span className="text-xs font-mono text-black/30 mt-2">Solve the Molecular Builder guesser game in workspace view to unlock.</span>
                               </div>
                             )}
                           </div>
                           
                           {/* Bottom Info - Glass Card */}
-                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md flex flex-col items-center justify-center gap-1 text-center shadow-lg">
-                            <span className="text-[10px] font-mono uppercase tracking-widest text-white/40 font-bold">Product Compound</span>
-                            <span className="font-mono text-sm uppercase text-white/80 font-bold">{selectedReaction.iupac_product_name}</span>
+                          <div className="h-[110px] mt-4 w-full px-4 py-3 bg-black/[0.02] border border-black/5 rounded-2xl flex flex-col items-center justify-center gap-1 text-center shadow-sm">
+                            <span className="text-[10px] font-mono uppercase tracking-widest text-black/40 font-bold">Product Compound</span>
+                            <span className="font-mono text-sm uppercase text-black/80 font-bold">{selectedReaction.iupac_product_name}</span>
                             {renderStructure2D(selectedReaction.product_sdf)}
                           </div>
                         </div>
@@ -2323,10 +2323,10 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Right: Fullscreen Side Panel - Hardware-accelerated CSS transition */}
+                    {/* Left: Fullscreen Side Panel - Hardware-accelerated CSS transition overlay on the left */}
                     <div
-                      className={`absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/30 backdrop-blur-2xl text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-300 ${
-                        sidePanelOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
+                      className={`absolute left-0 top-0 bottom-0 h-full w-full lg:w-96 border-r border-white/5 flex flex-col bg-[#121212] text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-300 ${
+                        sidePanelOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none"
                       }`}
                       style={{ 
                         transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
@@ -2359,7 +2359,15 @@ export default function Home() {
                       </div>
 
                       {/* Scrollable Data Metrics */}
-                      <div className="flex-grow overflow-y-auto p-5 space-y-6">
+                      <div 
+                      className="flex-grow overflow-y-auto p-5 space-y-6"
+                      style={{
+                        transform: 'translate3d(0,0,0)',
+                        willChange: 'scroll-position',
+                        contain: 'paint',
+                        WebkitOverflowScrolling: 'touch'
+                      }}
+                    >
                         
                         {/* 1. Balanced Equation */}
                         <div className="space-y-1.5">
@@ -2507,59 +2515,60 @@ export default function Home() {
 
                       {/* 2D/3D Equation Panel */}
                       <div className="flex-1 relative flex flex-col gap-4 min-h-[300px] mt-4">
-                        <div className={`flex-grow flex flex-col lg:flex-row justify-center gap-6 bg-neutral-50 border border-black/5 rounded-2xl p-6 overflow-y-auto ${solvedReactions[selectedReaction.id] ? "items-center" : "items-center lg:items-start"}`}>
+                        <div className={`flex-grow flex flex-col lg:flex-row justify-center gap-6 bg-neutral-50 border border-black/5 rounded-2xl p-6 overflow-y-auto ${solvedReactions[selectedReaction.id] ? "items-center" : "items-center lg:items-start"}`}
+                          style={{
+                            transform: 'translate3d(0,0,0)',
+                            willChange: 'scroll-position',
+                            WebkitOverflowScrolling: 'touch'
+                          }}
+                        >
                           
-                          {/* Hide reactants side entirely when sidePanelOpen is active */}
-                          {!sidePanelOpen && (
-                            <>
-                              {/* Reactant Molecule (3D, white background) */}
-                              <div className="flex-1 w-full lg:w-[32%] min-h-[220px] max-h-[300px] flex flex-col gap-2 relative">
-                                <div className="absolute top-2 left-2 z-10 bg-white/80 border border-black/15 px-2 py-0.5 rounded backdrop-blur-md">
-                                  <span className="text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold">Reactant compound</span>
-                                </div>
-                                <MoleculeViewer 
-                                  sdfName={selectedReaction.reactant_sdf} 
-                                  viewerId={`reactant-${selectedReaction.id}`} 
-                                  autoRotate={autoRotate && !fullscreenMode} 
-                                />
-                                <div className="text-center font-mono text-[10px] text-black/60 mt-1 uppercase font-bold">
-                                  {renderSubscripts(selectedReaction.reactant_sdf.replace("-", " "))}
-                                </div>
-                              </div>
+                          {/* Reactant Molecule (3D, white background) */}
+                          <div className="flex-1 w-full lg:w-[32%] min-h-[220px] max-h-[300px] flex flex-col gap-2 relative">
+                            <div className="absolute top-2 left-2 z-10 bg-white/80 border border-black/15 px-2 py-0.5 rounded backdrop-blur-md">
+                              <span className="text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold">Reactant compound</span>
+                            </div>
+                            <MoleculeViewer 
+                              sdfName={selectedReaction.reactant_sdf} 
+                              viewerId={`reactant-${selectedReaction.id}`} 
+                              autoRotate={autoRotate && !fullscreenMode && !isTransitioning} 
+                            />
+                            <div className="text-center font-mono text-[10px] text-black/60 mt-1 uppercase font-bold">
+                              {renderSubscripts(selectedReaction.reactant_sdf.replace("-", " "))}
+                            </div>
+                          </div>
 
-                              {/* 2D Plus sign */}
-                              <div className={`text-4xl font-light text-black select-none font-outfit ${solvedReactions[selectedReaction.id] ? "" : "lg:self-start lg:mt-[130px]"}`}>
-                                +
-                              </div>
+                          {/* 2D Plus sign */}
+                          <div className={`text-4xl font-light text-black select-none font-outfit ${solvedReactions[selectedReaction.id] ? "" : "lg:self-start lg:mt-[130px]"}`}>
+                            +
+                          </div>
 
-                              {/* Reagent (Animated revolving atom viewer, white background) */}
-                              <div className="flex-1 w-full lg:w-[24%] min-h-[220px] max-h-[300px] flex flex-col gap-2 relative">
-                                <div className="absolute top-2 left-2 z-10 bg-white/80 border border-black/15 px-2 py-0.5 rounded backdrop-blur-md">
-                                  <span className="text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold">Reagent Atom</span>
-                                </div>
-                                <ReagentAtomViewer 
-                                  symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
-                                  valenceElectrons={REAGENT_MAP[selectedReaction.id]?.electrons || 1} 
-                                  reactionId={selectedReaction.id}
-                                />
-                                <div className="text-center font-mono text-[10px] text-black/60 mt-1 uppercase font-bold truncate max-w-[200px]" title={selectedReaction.reagents}>
-                                  {renderSubscripts(selectedReaction.reagents.split(",")[0])}
-                                </div>
-                              </div>
+                          {/* Reagent (Animated revolving atom viewer, white background) */}
+                          <div className="flex-1 w-full lg:w-[24%] min-h-[220px] max-h-[300px] flex flex-col gap-2 relative">
+                            <div className="absolute top-2 left-2 z-10 bg-white/80 border border-black/15 px-2 py-0.5 rounded backdrop-blur-md">
+                              <span className="text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold">Reagent Atom</span>
+                            </div>
+                            <ReagentAtomViewer 
+                              symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
+                              valenceElectrons={REAGENT_MAP[selectedReaction.id]?.electrons || 1} 
+                              reactionId={selectedReaction.id}
+                            />
+                            <div className="text-center font-mono text-[10px] text-black/60 mt-1 uppercase font-bold truncate max-w-[200px]" title={selectedReaction.reagents}>
+                              {renderSubscripts(selectedReaction.reagents.split(",")[0])}
+                            </div>
+                          </div>
 
-                              {/* 2D black arrow */}
-                              <div className={`flex flex-col items-center justify-center flex-shrink-0 text-center select-none ${solvedReactions[selectedReaction.id] ? "" : "lg:self-start lg:mt-[110px]"}`}>
-                                <div className="text-4xl font-light text-black leading-none my-1">
-                                  →
-                                </div>
-                                <span className="text-[9px] font-mono text-black/40 max-w-[120px] truncate" title={selectedReaction.conditions}>
-                                  {selectedReaction.conditions}
-                                </span>
-                              </div>
-                            </>
-                          )}
+                          {/* 2D black arrow */}
+                          <div className={`flex flex-col items-center justify-center flex-shrink-0 text-center select-none ${solvedReactions[selectedReaction.id] ? "" : "lg:self-start lg:mt-[110px]"}`}>
+                            <div className="text-4xl font-light text-black leading-none my-1">
+                              →
+                            </div>
+                            <span className="text-[9px] font-mono text-black/40 max-w-[120px] truncate" title={selectedReaction.conditions}>
+                              {selectedReaction.conditions}
+                            </span>
+                          </div>
 
-                          {/* Product Molecule (Or guesser) - Occupies left side if sidePanelOpen is true */}
+                          {/* Product Molecule (Or guesser) */}
                           {solvedReactions[selectedReaction.id] ? (
                             <div 
                               onDoubleClick={() => setSidePanelOpen(true)}
@@ -2572,11 +2581,7 @@ export default function Home() {
                                   lastTapProduct.current = now;
                                 }
                               }}
-                              className={`flex-col gap-2 relative cursor-pointer border rounded-2xl p-0.5 transition-all group flex ${
-                                sidePanelOpen 
-                                  ? "w-full lg:w-[85%] h-[70vh] border-black bg-black/5 shadow-lg shadow-black/5 scale-[1.02]" 
-                                  : "flex-1 w-full lg:w-[32%] min-h-[220px] max-h-[300px] border-transparent hover:border-black/20 hover:bg-black/3"
-                              }`}
+                              className="flex-1 w-full lg:w-[32%] min-h-[220px] max-h-[300px] border-transparent hover:border-black/20 hover:bg-black/3 flex flex-col gap-2 relative cursor-pointer border rounded-2xl p-0.5 group"
                             >
                               <div className="absolute top-2 left-2 z-10 bg-white/80 border border-black/15 px-2 py-0.5 rounded backdrop-blur-md flex items-center gap-1.5 transition-colors group-hover:border-black/30">
                                 <span className="text-[9px] font-mono uppercase tracking-widest text-black/70 font-bold">Product compound</span>
@@ -2597,7 +2602,7 @@ export default function Home() {
                               <MoleculeViewer 
                                 sdfName={selectedReaction.product_sdf} 
                                 viewerId={`product-${selectedReaction.id}`} 
-                                autoRotate={autoRotate && !fullscreenMode} 
+                                autoRotate={autoRotate && !fullscreenMode && !isTransitioning} 
                               />
                               <div className="text-center font-mono text-[10px] text-black/60 mt-1 uppercase font-bold">
                                 {renderSubscripts(selectedReaction.iupac_product_name)}
@@ -2711,16 +2716,16 @@ export default function Home() {
 
                     </div>
 
-                    {/* SLIDE-OUT INTERACTIVE SIDE PANEL (Dark thematic panel over white background workspace) */}
-                    <AnimatePresence>
-                      {sidePanelOpen && (
-                        <motion.div
-                          initial={{ x: "100%", opacity: 0.8 }}
-                          animate={{ x: 0, opacity: 1 }}
-                          exit={{ x: "100%", opacity: 0.8 }}
-                          transition={{ duration: 0.4, ease: "easeOut" }}
-                          className="w-full lg:w-96 border-l border-white/10 flex flex-col bg-black/95 text-white z-25 max-h-screen overflow-hidden flex-shrink-0"
-                        >
+                    {/* SLIDE-OUT INTERACTIVE SIDE PANEL - Hardware-accelerated CSS transition overlay on the left */}
+                    <div
+                      className={`absolute left-0 top-0 bottom-0 h-full w-full lg:w-96 border-r border-white/5 flex flex-col bg-[#121212] text-white z-40 max-h-screen overflow-hidden shadow-2xl transition-transform duration-300 ${
+                        sidePanelOpen ? "translate-x-0 pointer-events-auto" : "-translate-x-full pointer-events-none"
+                      }`}
+                      style={{ 
+                        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)',
+                        willChange: 'transform'
+                      }}
+                    >
                           {/* Header */}
                           <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/3">
                             <div>
@@ -2736,7 +2741,15 @@ export default function Home() {
                           </div>
 
                           {/* Scrollable Data Metrics */}
-                          <div className="flex-1 overflow-y-auto p-5 space-y-6">
+                          <div 
+                            className="flex-1 overflow-y-auto p-5 space-y-6"
+                            style={{
+                              transform: 'translate3d(0,0,0)',
+                              willChange: 'scroll-position',
+                              contain: 'paint',
+                              WebkitOverflowScrolling: 'touch'
+                            }}
+                          >
                             
                             {/* 1. Balanced Equation */}
                             <div className="space-y-1.5">
@@ -2843,9 +2856,7 @@ export default function Home() {
                             </div>
 
                           </div>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
+                        </div>
                   </>
                 )}
               </div>
@@ -2854,7 +2865,15 @@ export default function Home() {
 
           {/* TAB 2: ANONYMOUS Q&A */}
           {activeTab === "qa" && (
-            <div className="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-6 overflow-y-auto">
+            <div 
+              className="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-6 overflow-y-auto"
+              style={{
+                transform: 'translate3d(0,0,0)',
+                willChange: 'scroll-position',
+                contain: 'paint',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               {/* Question submission form (Students and Teachers) */}
               {(user.role === "student" || user.role === "teacher") && (
                 <div className="glass-panel p-6 rounded-3xl">
@@ -3064,7 +3083,15 @@ export default function Home() {
 
           {/* TAB 5: ACHIEVEMENTS */}
           {activeTab === "achievements" && (
-            <div className="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-6 overflow-y-auto">
+            <div 
+              className="flex-1 max-w-4xl w-full mx-auto p-6 flex flex-col gap-6 overflow-y-auto"
+              style={{
+                transform: 'translate3d(0,0,0)',
+                willChange: 'scroll-position',
+                contain: 'paint',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
               <div>
                 <h2 className="text-xl font-bold font-outfit tracking-tight text-white">Workspace Achievements</h2>
                 <p className="text-xs text-white/40 font-mono mt-1">Unlock badges by interacting with the laboratory mechanics.</p>

@@ -15,7 +15,6 @@
 }
 
 html, body {
-  scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -31,10 +30,9 @@ body {
   overflow-x: hidden;
 }
 
-/* Ensure all scrolling containers use smooth scrolling and touch inertia */
+/* Native fast scrolling with touch momentum on mobile */
 .overflow-y-auto, .overflow-y-scroll, .overflow-x-auto, .overflow-x-scroll {
-  scroll-behavior: smooth !important;
-  -webkit-overflow-scrolling: touch !important; /* Momentum scrolling on iOS/mobile devices */
+  -webkit-overflow-scrolling: touch !important;
 }
 
 /* Glassmorphism Styles */

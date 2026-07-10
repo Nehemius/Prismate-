@@ -126,9 +126,19 @@ export default function MoleculeViewer({ sdfName, viewerId, autoRotate = true, t
           );
         });
 
+        viewer.resize();
         viewer.zoomTo();
         viewer.render();
         setLoading(false);
+        setTimeout(() => {
+          if (viewerRef.current) {
+            try {
+              viewerRef.current.resize();
+              viewerRef.current.zoomTo();
+              viewerRef.current.render();
+            } catch {}
+          }
+        }, 150);
       } catch (err) {
         console.error("3Dmol render error:", err);
         if (active) {
@@ -178,10 +188,13 @@ export default function MoleculeViewer({ sdfName, viewerId, autoRotate = true, t
 
     if (!autoRotate || isInteracting) return;
 
+    let frameCount = 0;
     const spin = () => {
-      if (containerRef.current && containerRef.current.getBoundingClientRect().width > 0 && viewerRef.current) {
+      frameCount++;
+      // Only render every 2nd frame (30fps rotation is visually identical, saves 50% GPU)
+      if (frameCount % 2 === 0 && containerRef.current && containerRef.current.offsetWidth > 0 && viewerRef.current) {
         try {
-          viewerRef.current.rotate(0.5, "y"); // Rotate 0.5 degrees per frame on Y-axis
+          viewerRef.current.rotate(1, "y"); // 1 degree every 2 frames = same visual speed
           viewerRef.current.render();
         } catch {
           // Ignore
@@ -235,10 +248,10 @@ export default function MoleculeViewer({ sdfName, viewerId, autoRotate = true, t
       onTouchStart={handleInteractionStart}
       onMouseUp={handleInteractionEnd}
       onTouchEnd={handleInteractionEnd}
-      className={`relative w-full flex-grow flex-shrink flex flex-col overflow-hidden transition-all ${
+      className={`relative w-full flex-grow flex-shrink flex flex-col overflow-hidden ${
         transparent 
           ? "bg-transparent border-transparent" 
-          : "bg-white rounded-2xl border border-black/10 shadow-inner min-h-[220px]"
+          : "bg-white rounded-2xl border border-black/10 min-h-[220px]"
       }`}
     >
       {loading && (
