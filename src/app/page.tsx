@@ -2212,22 +2212,16 @@ export default function Home() {
                       }}
                       className="flex-1 flex flex-col p-12 justify-center items-center h-screen cursor-pointer"
                     >
-                      {/* Equation container - glides smoothly as a single unit to the left on the GPU */}
-                      <div 
-                        style={{ 
-                          transform: sidePanelOpen ? 'translateX(-180px)' : 'translateX(0)', 
-                          transition: 'transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)' 
-                        }}
-                        className="w-full flex flex-row items-start justify-center gap-6"
-                      >
+                      {/* Equation container */}
+                      <div className={`w-full flex flex-row items-start justify-center transition-all duration-500 ${sidePanelOpen ? "gap-0" : "gap-6"}`}>
                         
                         {/* Reactant Column */}
-                        <div className="w-[35%] flex flex-col items-center">
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[35%] opacity-100"}`}>
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             <MoleculeViewer 
                               sdfName={selectedReaction.reactant_sdf} 
                               viewerId={`reactant-fs-${selectedReaction.id}`} 
-                              autoRotate={autoRotate} 
+                              autoRotate={autoRotate && !sidePanelOpen} 
                               transparent={true}
                             />
                           </div>
@@ -2241,12 +2235,12 @@ export default function Home() {
                         </div>
 
                         {/* Plus Sign */}
-                        <div className="h-[460px] flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3">
+                        <div className={`transition-all duration-500 ease-in-out flex items-center justify-center text-7xl font-light text-black/35 select-none font-outfit px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"}`}>
                           +
                         </div>
 
                         {/* Reagent Column */}
-                        <div className="w-[24%] flex flex-col items-center">
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none" : "w-[24%] opacity-100"}`}>
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             <ReagentAtomViewer 
                               symbol={REAGENT_MAP[selectedReaction.id]?.symbol || "X"} 
@@ -2266,7 +2260,7 @@ export default function Home() {
                         </div>
 
                         {/* Arrow */}
-                        <div className="h-[460px] flex flex-col items-center justify-center text-center select-none px-3">
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center justify-center text-center select-none px-3 overflow-hidden ${sidePanelOpen ? "w-0 opacity-0 pointer-events-none animate-none" : "w-auto opacity-100"}`}>
                           <div className="text-7xl font-light text-black/35 leading-none my-2">
                             →
                           </div>
@@ -2276,7 +2270,7 @@ export default function Home() {
                         </div>
 
                         {/* Product Column */}
-                        <div className="w-[35%] flex flex-col items-center">
+                        <div className={`transition-all duration-500 ease-in-out flex flex-col items-center ${sidePanelOpen ? "w-[65%]" : "w-[35%]"}`}>
                           <div className="w-full h-[460px] flex flex-col justify-center items-center">
                             {solvedReactions[selectedReaction.id] || user?.role === "teacher" ? (
                               <MoleculeViewer 
@@ -2304,10 +2298,10 @@ export default function Home() {
                       </div>
                     </div>
 
-                    {/* Right: Fullscreen Side Panel - Hardware-accelerated CSS transition (always mounted) */}
+                    {/* Right: Fullscreen Side Panel - Hardware-accelerated CSS transition */}
                     <div
                       className={`absolute right-0 top-0 bottom-0 h-full w-full lg:w-96 border-l border-white/10 flex flex-col bg-[#080808] text-white z-50 max-h-screen overflow-hidden shadow-2xl transition-transform duration-500 ${
-                        sidePanelOpen ? "translate-x-0" : "translate-x-full"
+                        sidePanelOpen ? "translate-x-0 pointer-events-auto" : "translate-x-full pointer-events-none"
                       }`}
                       style={{ transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)' }}
                     >
