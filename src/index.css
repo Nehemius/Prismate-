@@ -1,0 +1,57 @@
+/* === Prismate Global Styles === */
+
+/* Font Faces */
+@font-face {
+  font-family: 'PrismateHeading';
+  src: url('./fonts/heading.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PrismateSubheading';
+  src: url('./fonts/sub-heading.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'PrismateContent';
+  src: url('./fonts/content.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* CSS Custom Properties */
+:root {
+  --font-heading: 'PrismateHeading', sans-serif;
+  --font-subheading: 'PrismateSubheading', sans-serif;
+  --font-content: 'PrismateContent', sans-serif;
+
+  --color-bg: #000000;
+  --color-fg: #F2F2F2;
+}
+
+/* Reset */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body, #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-fg);
+  font-family: var(--font-content);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
