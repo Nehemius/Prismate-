@@ -5,6 +5,7 @@ export type CountdownPhase = 3 | 2 | 1 | 'GO' | 'done';
 export interface CountdownSpec {
   word: string;
   caption?: string;
+  label?: string;
 }
 
 interface QuizCountdownProps {
@@ -18,15 +19,15 @@ const STEPS: CountdownPhase[] = [3, 2, 1, 'GO'];
 
 const PHASE_LABELS: Record<Exclude<CountdownPhase, 'done'>, { label: string; accent: string }> = {
   3: { label: 'GET READY', accent: '#F2F2F2' },
-  2: { label: 'SET YOUR MIND', accent: '#F2F2F2' },
-  1: { label: 'MAX FOCUS', accent: '#F2F2F2' },
+  2: { label: 'TIME CONTROL', accent: '#F2F2F2' },
+  1: { label: 'DIFFICULTY', accent: '#F2F2F2' },
   GO: { label: '', accent: '#FFFFFF' },
 };
 
 const DEFAULT_SPECS: [CountdownSpec, CountdownSpec, CountdownSpec] = [
-  { word: 'PHYSICS', caption: 'Electrostatics • Unit 1' },
-  { word: 'CHEMISTRY', caption: 'Organic Chemistry' },
-  { word: 'MATHEMATICS', caption: 'Vector Algebra & Calculus' },
+  { label: 'SUBJECT', word: 'PHYSICS', caption: 'Electrostatics • Unit 1' },
+  { label: 'TIME CONTROL', word: 'TIMED', caption: '25s Speed Bonus Active' },
+  { label: 'DIFFICULTY', word: 'CLASSIC', caption: '3 Hearts Allowed' },
 ];
 
 export const QuizCountdown: React.FC<QuizCountdownProps> = ({
@@ -217,7 +218,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
             animation: 'al-fade-up 0.5s ease-out forwards',
           }}
         >
-          {labels.label}
+          {spec?.label || labels.label}
         </div>
       )}
 

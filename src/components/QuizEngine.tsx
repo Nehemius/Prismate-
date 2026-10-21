@@ -675,9 +675,26 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
         runId={countdownRunId}
         onComplete={handleCountdownComplete}
         specs={[
-          { word: subject.toUpperCase(), caption: currentQ?.topic || 'Curriculum Evaluation' },
-          { word: 'FOCUS', caption: 'Read Options Thoroughly' },
-          { word: 'SPEED', caption: '25s Fast Answer Bonus' },
+          {
+            label: 'SUBJECT & TOPIC',
+            word: subject.toUpperCase(),
+            caption: currentQ?.topic || 'Curriculum Evaluation',
+          },
+          {
+            label: 'TIME CONTROL',
+            word: timeControl ? 'TIMED' : 'UNTIMED',
+            caption: timeControl ? '25 Seconds Speed Timer Active' : 'Relaxed Mode • No Timer',
+          },
+          {
+            label: 'DIFFICULTY',
+            word: difficulty.toUpperCase(),
+            caption:
+              difficulty === 'classic'
+                ? '3 Hearts Allowed'
+                : difficulty === 'expert'
+                ? '2 Hearts Allowed'
+                : '1 Heart Only • Sudden Death',
+          },
         ]}
       />
 
