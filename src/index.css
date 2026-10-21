@@ -72,3 +72,150 @@ body {
   box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(242, 242, 242, 0.30) !important;
 }
 
+/* ─── 3D Flashcard Transitions (Kokonut UI & Motion) ─── */
+.flashcard-perspective {
+  perspective: 1400px;
+  -webkit-perspective: 1400px;
+}
+
+.flashcard-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  -webkit-transform-style: preserve-3d;
+  transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.flashcard-flipped {
+  transform: rotateY(180deg);
+}
+
+.flashcard-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-sizing: border-box;
+}
+
+.flashcard-back {
+  transform: rotateY(180deg);
+}
+
+/* ─── Asphalt Legends Style Countdown Keyframes ─── */
+@keyframes al-number-pop {
+  0% { transform: scale(2.6) rotate(-6deg); opacity: 0; filter: blur(14px); }
+  18% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0px); }
+  78% { transform: scale(1.04) rotate(0deg); opacity: 1; }
+  100% { transform: scale(0.2) rotate(8deg); opacity: 0; filter: blur(10px); }
+}
+
+@keyframes al-go-pop {
+  0% { transform: scale(3.4) rotate(-10deg); opacity: 0; letter-spacing: 1.2em; filter: blur(18px); }
+  25% { transform: scale(0.92) rotate(2deg); opacity: 1; letter-spacing: 0.06em; filter: blur(0px); }
+  60% { transform: scale(1); letter-spacing: 0.08em; }
+  100% { transform: scale(1.08); opacity: 1; letter-spacing: 0.12em; }
+}
+
+@keyframes al-shake {
+  0%, 100% { transform: translate(0, 0); }
+  20% { transform: translate(-4px, 3px); }
+  40% { transform: translate(4px, -3px); }
+  60% { transform: translate(-3px, -2px); }
+  80% { transform: translate(3px, 2px); }
+}
+
+@keyframes al-ring-expand {
+  0% { transform: scale(0.2); opacity: 0.9; }
+  100% { transform: scale(2.8); opacity: 0; }
+}
+
+@keyframes al-flash {
+  0% { opacity: 0.85; }
+  100% { opacity: 0; }
+}
+
+@keyframes al-streak {
+  0% { transform: translateX(-120%) skewX(-18deg); opacity: 0; }
+  20% { opacity: 0.8; }
+  80% { opacity: 0.8; }
+  100% { transform: translateX(220%) skewX(-18deg); opacity: 0; }
+}
+
+@keyframes al-spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes al-bar-sweep {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+@keyframes al-fade-up {
+  0% { transform: translateY(12px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes al-fly-out {
+  0% { transform: translateX(-30px) scale(0.5) skewX(-12deg); opacity: 0; filter: blur(10px); letter-spacing: 0.4em; }
+  22% { transform: translateX(8px) scale(1) skewX(-8deg); opacity: 1; filter: blur(0px); letter-spacing: 0.08em; }
+  72% { transform: translateX(110px) scale(1); opacity: 1; }
+  100% { transform: translateX(210px) scale(1.08); opacity: 0; filter: blur(8px); }
+}
+
+@keyframes al-fly-out-streak {
+  0% { transform: scaleX(0) translateX(-20px); opacity: 0; }
+  30% { transform: scaleX(1) translateX(0); opacity: 0.9; }
+  100% { transform: scaleX(1) translateX(180px); opacity: 0; }
+}
+
+/* ─── Failure Withering & Timeout Keyframes ─── */
+@keyframes al-wither {
+  0% { transform: scale(1) rotate(0); opacity: 1; filter: blur(0) brightness(1) saturate(1); }
+  25% { transform: scale(1.02) rotate(-1deg); filter: brightness(1.15) saturate(0.5); }
+  55% { transform: scale(0.94) rotate(2deg) translateY(10px); opacity: 0.55; filter: blur(6px) brightness(0.6) saturate(0.12); }
+  100% { transform: scale(0.28) rotate(-5deg) translateY(70px); opacity: 0; filter: blur(24px) brightness(0.2) saturate(0); }
+}
+
+@keyframes al-red-flash {
+  0% { opacity: 0.55; }
+  100% { opacity: 0; }
+}
+
+@keyframes al-ash {
+  0% { transform: translate(0, 0) scale(1); opacity: 0.8; }
+  50% { opacity: 0.6; }
+  100% { transform: translate(var(--ash-x, 15px), -150px) scale(0.2); opacity: 0; }
+}
+
+@keyframes al-stamp {
+  0% { transform: scale(2.4) rotate(-14deg); opacity: 0; }
+  55% { transform: scale(0.9) rotate(-3deg); opacity: 1; }
+  75% { transform: scale(1.06) rotate(-6deg); }
+  100% { transform: scale(1) rotate(-5deg); opacity: 1; }
+}
+
+.animate-wither {
+  animation: al-wither 1.2s cubic-bezier(0.5, 0, 0.75, 0) forwards;
+}
+
+.animate-stamp {
+  animation: al-stamp 0.5s cubic-bezier(0.2, 1.5, 0.4, 1) forwards;
+}
+
+.al-grayscale {
+  filter: grayscale(1) brightness(0.5) contrast(1.15);
+  transition: filter 0.6s ease;
+}
+
+.al-option-blur {
+  filter: blur(7px);
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+
