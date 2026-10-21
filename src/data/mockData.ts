@@ -96,77 +96,28 @@ export const INITIAL_DIAGRAMS: SubjectDiagram[] = [
   },
 ];
 
+import {
+  PHYSICS_BB_QUESTIONS,
+  PHYSICS_FORMULA_QUESTIONS,
+  PHYSICS_UNIT_QUESTIONS,
+} from './physicsQuizBank';
+import {
+  CHEMISTRY_BB_QUESTIONS,
+  CHEMISTRY_FORMULA_QUESTIONS,
+} from './chemistryQuizBank';
+import {
+  MATH_BB_QUESTIONS,
+  MATH_FORMULA_QUESTIONS,
+} from './mathQuizBank';
+
 export const INITIAL_QUESTIONS: QuizQuestion[] = [
-  {
-    id: 'q-chem-1',
-    subject: 'chemistry',
-    topic: 'Solid State',
-    question: 'The percentage of free space in a body-centred cubic (BCC) unit cell is:',
-    options: ['32%', '68%', '26%', '74%'],
-    correctIndex: 0,
-    explanation: 'The packing efficiency of BCC is 68%. Therefore, free/empty space = 100 - 68 = 32%.',
-    category: 'bb',
-  },
-  {
-    id: 'q-chem-2',
-    subject: 'chemistry',
-    topic: 'Solutions',
-    question: 'Which of the following aqueous solutions exhibits the highest boiling point elevation?',
-    options: ['0.1 M BaCl₂', '0.1 M NaCl', '0.1 M Glucose', '0.1 M Urea'],
-    correctIndex: 0,
-    explanation: 'ΔTb = i·Kb·m. BaCl₂ dissociates into 3 ions (Ba²⁺ + 2Cl⁻), giving vant Hoff factor i = 3, highest of all choices.',
-    category: 'bb',
-  },
-  {
-    id: 'q-chem-3',
-    subject: 'chemistry',
-    topic: 'Electrochemistry',
-    question: 'Faraday’s constant represents the charge carried by:',
-    options: ['One mole of electrons', 'One electron', 'One mole of protons', 'One gram atom of hydrogen'],
-    correctIndex: 0,
-    explanation: 'F = N_A × e = 6.022 × 10²³ × 1.602 × 10⁻¹⁹ C ≈ 96485 C/mol of electrons.',
-    category: 'formula',
-  },
-  {
-    id: 'q-phys-1',
-    subject: 'physics',
-    topic: 'Electrostatics',
-    question: 'The electric flux through a Gaussian surface enclosing an electric dipole of dipole moment p is:',
-    options: ['Zero', 'q / ε₀', '2q / ε₀', 'p / ε₀'],
-    correctIndex: 0,
-    explanation: 'A dipole has net charge q_net = (+q) + (-q) = 0. By Gauss’s Law, Φ = q_net / ε₀ = 0.',
-    category: 'bb',
-  },
-  {
-    id: 'q-phys-2',
-    subject: 'physics',
-    topic: 'Current Electricity',
-    question: 'Kirchhoff’s junction rule (First Law) is a consequence of the conservation of:',
-    options: ['Electric charge', 'Energy', 'Linear momentum', 'Angular momentum'],
-    correctIndex: 0,
-    explanation: 'The junction law ΣI = 0 directly states that charge cannot accumulate at any junction (Conservation of Charge).',
-    category: 'pta',
-  },
-  {
-    id: 'q-math-1',
-    subject: 'mathematics',
-    topic: 'Matrices & Determinants',
-    question: 'If A is a square matrix of order 3 and |A| = 4, then |adj(A)| is equal to:',
-    options: ['16', '4', '64', '2'],
-    correctIndex: 0,
-    explanation: '|adj(A)| = |A|^(n-1). For n = 3, |adj(A)| = |A|^(3-1) = 4² = 16.',
-    category: 'bb',
-  },
-  {
-    id: 'q-math-2',
-    subject: 'mathematics',
-    topic: 'Complex Numbers',
-    question: 'The value of arg(i) in principal argument form is:',
-    options: ['π/2', 'π', '-π/2', '0'],
-    correctIndex: 0,
-    explanation: 'i = 0 + 1i lies on the positive imaginary axis. Hence principal argument is π/2.',
-    category: 'formula',
-  },
+  ...PHYSICS_BB_QUESTIONS,
+  ...PHYSICS_FORMULA_QUESTIONS,
+  ...PHYSICS_UNIT_QUESTIONS,
+  ...CHEMISTRY_BB_QUESTIONS,
+  ...CHEMISTRY_FORMULA_QUESTIONS,
+  ...MATH_BB_QUESTIONS,
+  ...MATH_FORMULA_QUESTIONS,
 ];
 
 export const INITIAL_PAPERS: QuestionPaperItem[] = [

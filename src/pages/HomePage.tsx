@@ -1,18 +1,39 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useApp } from '../context/AppContext';
-import { INITIAL_REACTIONS, INITIAL_DIAGRAMS, INITIAL_QUESTIONS } from '../data/mockData';
+import { INITIAL_DIAGRAMS, INITIAL_QUESTIONS } from '../data/mockData';
+import GridGuides from '../components/GridGuides';
+import BentoEditToolbar from '../components/BentoEditToolbar';
+import HomeWidgetDock from '../components/HomeWidgetDock';
+import GlowingTitle from '../components/GlowingTitle';
+import AnalogClock from '../components/AnalogClock';
+import ClockModal from '../components/home/ClockModal';
+import type { ClockConfig, AlarmItem } from '../components/home/ClockModal';
+import PomodoroModal from '../components/home/PomodoroModal';
+import type { PomodoroSettings } from '../components/home/PomodoroModal';
+import TasksQuotesModal from '../components/home/TasksQuotesModal';
+import type { TodoItem } from '../components/home/TasksQuotesModal';
+import ActiveQuizModal from '../components/home/ActiveQuizModal';
+import type { ActiveQuizFilter, SubjectFilter } from '../components/home/ActiveQuizModal';
+import HistoryModal from '../components/home/HistoryModal';
+import type { HistoryEntry } from '../components/home/HistoryModal';
+import StudyTubeModal from '../components/home/StudyTubeModal';
 
 /**
  * HomePage / "You" — Customizable 16 x 8 Bento Canvas
  *
  * SPECIFICATION & CORRECTIONS:
- *   - Bento grid occupies 100% of screen width and height (full screen, edge-to-edge).
- *   - Drag & Swap Repositioning Engine (§5.1):
- *       * When Edit Mode is active (triggered via Nav long-press/right-click), tiles are draggable.
- *       * Dropping on another tile swaps coordinates. Layout persists in localStorage.
- *   - All AI "slop" stripped: no redundant title banners, no filler lines.
- *   - Studytube: Distraction-free video lesson player modal.
- *   - Custom Picture: Upload custom motivational image via file picker.
+ *   - Edge-to-edge 16x8 Bento layout with Drag & Swap repositioning engine.
+ *   - Central title word ("WELCOME, <USER>" or "WELCOME, YOU") glows in real-time with wave particle density.
+ *   - Double-click triggers dedicated interactive modals:
+ *       * Cool Time / Clock: Digital vs Analog SVG, 12h/24h toggle, Cool Time countdown, Alarms.
+ *       * Pomodoro: mode duration, short/long break duration, break cycle count, presets.
+ *       * Quotes & Tasks: checklist task manager + quote editor / random STEM insights.
+ *       * Formula: advances to next formula.
+ *       * Diagram: advances to next diagram.
+ *       * Active Quiz: question source list (All, Weak, Strong, Study), statistics breakdown, auto-advances on answer.
+ *       * Mistakes / History: past attempts log + integrated reset box inside popup.
+ *       * Studytube: distraction-free YouTube lecture stream without shorts or related video feeds.
+ *       * Custom Picture: double-click triggers file picker; explicit "CHANGE IMAGE" button removed from tile face.
  */
 
 interface WidgetLayout {
@@ -53,7 +74,18 @@ const TILE_BASE: React.CSSProperties = {
 };
 
 export const HomePage: React.FC = () => {
-  const { loggedInUser, userAvatar, editModeScreen, setEditModeScreen } = useApp();
+  const {
+    loggedInUser,
+    userAvatar,
+    editModeScreen,
+    setEditModeScreen,
+    weaklist,
+    stronglist,
+    studylist,
+    addToList,
+    removeFromList,
+    isInList,
+  } = useApp();
   const isEditMode = editModeScreen === 'home';
 
   // Dynamic layout state with LocalStorage persistence (§5.1)
@@ -63,43 +95,209 @@ export const HomePage: React.FC = () => {
   });
 
   const draggedWidgetId = useRef<string | null>(null);
+  const [dragOverTargetId, setDragOverTargetId] = useState<string | null>(null);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
-  // Clock state
+  // ── 1. Clock & Cool Time State ─────────────────────────────────────────────
   const [currentTime, setCurrentTime] = useState(() => new Date());
   useEffect(() => {
     const t = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(t);
   }, []);
 
-  // Pomodoro timer state
-  const [pomoSeconds, setPomoSeconds] = useState(25 * 60);
+  const [clockConfig, setClockConfig] = useState<ClockConfig>(() => {
+    const saved = localStorage.getItem('prismate_clock_config');
+    return saved ? JSON.parse(saved) : { mode: 'digital', format: '24h' };
+  });
+  useEffect(() => {
+    localStorage.setItem('prismate_clock_config', JSON.stringify(clockConfig));
+  }, [clockConfig]);
+
+  const [alarms, setAlarms] = useState<AlarmItem[]>(() => {
+    const saved = localStorage.getItem('prismate_alarms');
+    return saved
+      ? JSON.parse(saved)
+      : [
+          { id: 'a1', time: '06:00', label: 'Electrostatics Formulas', enabled: true },
+          { id: 'a2', time: '17:30', label: 'Metallurgy Drill', enabled: true },
+        ];
+  });
+  useEffect(() => {
+    localStorage.setItem('prismate_alarms', JSON.stringify(alarms));
+  }, [alarms]);
+
+  const [coolTimeRemaining, setCoolTimeRemaining] = useState<number | null>(null);
+  useEffect(() => {
+    if (coolTimeRemaining === null || coolTimeRemaining <= 0) return;
+    const t = setInterval(() => {
+      setCoolTimeRemaining((s) => {
+        if (s === null || s <= 1) return null;
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(t);
+  }, [coolTimeRemaining]);
+
+  const [clockModalOpen, setClockModalOpen] = useState(false);
+
+  // ── 2. Pomodoro Timer State ────────────────────────────────────────────────
+  const [pomoSettings, setPomoSettings] = useState<PomodoroSettings>(() => {
+    const saved = localStorage.getItem('prismate_pomodoro_settings');
+    return saved
+      ? JSON.parse(saved)
+      : {
+          focusMinutes: 25,
+          shortBreakMinutes: 5,
+          longBreakMinutes: 15,
+          cyclesBeforeLongBreak: 4,
+        };
+  });
+  useEffect(() => {
+    localStorage.setItem('prismate_pomodoro_settings', JSON.stringify(pomoSettings));
+  }, [pomoSettings]);
+
+  const [pomoCycle, setPomoCycle] = useState(1);
+  const [pomoMode, setPomoMode] = useState<'focus' | 'shortBreak' | 'longBreak'>('focus');
+  const [pomoSeconds, setPomoSeconds] = useState(pomoSettings.focusMinutes * 60);
   const [pomoRunning, setPomoRunning] = useState(false);
+  const [pomoModalOpen, setPomoModalOpen] = useState(false);
+
   useEffect(() => {
     if (!pomoRunning) return;
     const t = setInterval(() => {
-      setPomoSeconds((s) => (s > 0 ? s - 1 : 0));
+      setPomoSeconds((s) => {
+        if (s > 1) return s - 1;
+        // Cycle transition
+        if (pomoMode === 'focus') {
+          if (pomoCycle >= pomoSettings.cyclesBeforeLongBreak) {
+            setPomoMode('longBreak');
+            setPomoCycle(1);
+            return pomoSettings.longBreakMinutes * 60;
+          } else {
+            setPomoMode('shortBreak');
+            setPomoCycle((c) => c + 1);
+            return pomoSettings.shortBreakMinutes * 60;
+          }
+        } else {
+          setPomoMode('focus');
+          return pomoSettings.focusMinutes * 60;
+        }
+      });
     }, 1000);
     return () => clearInterval(t);
-  }, [pomoRunning]);
+  }, [pomoRunning, pomoMode, pomoCycle, pomoSettings]);
 
-  // Rotator states
+  // ── 3. Tasks & Quote State ────────────────────────────────────────────────
+  const [todos, setTodos] = useState<TodoItem[]>(() => {
+    const saved = localStorage.getItem('prismate_todos');
+    return saved
+      ? JSON.parse(saved)
+      : [
+          { id: 't1', text: 'Electrostatics Gauss Law Problems', done: true },
+          { id: 't2', text: 'Metallurgy Froth Floatation Flowsheet', done: false },
+          { id: 't3', text: 'Matrix Inversion Method Drill', done: false },
+        ];
+  });
+  useEffect(() => {
+    localStorage.setItem('prismate_todos', JSON.stringify(todos));
+  }, [todos]);
+
+  const [customQuote, setCustomQuote] = useState<string>(() => {
+    return (
+      localStorage.getItem('prismate_custom_quote') ||
+      'Supercritical CO₂ acts as both gas and liquid simultaneously — currently replacing toxic organic solvents in modern green chemistry decaffeination.'
+    );
+  });
+  useEffect(() => {
+    localStorage.setItem('prismate_custom_quote', customQuote);
+  }, [customQuote]);
+
+  const [tasksQuotesModalOpen, setTasksQuotesModalOpen] = useState(false);
+
+  // ── 4. Rotators State (Formula & Diagram) ──────────────────────────────────
   const [formulaIdx, setFormulaIdx] = useState(0);
   const [diagIdx, setDiagIdx] = useState(0);
 
-  // Checklist
-  const [todos, setTodos] = useState([
-    { id: 't1', text: 'Cannizzaro Disproportionation Mechanism', done: true },
-    { id: 't2', text: 'PTA Chemistry Paper 1 Revision', done: false },
-    { id: 't3', text: 'Galvanic Cell EMF Calculation Drills', done: false },
-  ]);
+  const formulas = [
+    { name: 'Nernst Equation', eq: 'E = E° - (0.0591/n) log Q' },
+    { name: 'Bragg’s Law', eq: '2d sin θ = nλ' },
+    { name: 'Arrhenius Rate Law', eq: 'k = A · e^(-Ea / RT)' },
+    { name: 'Bohr Radius', eq: 'r_n = 0.529 · (n² / Z) Å' },
+    { name: 'Coulomb’s Law', eq: 'F = (1 / 4πε₀) · (|q₁q₂| / r²)' },
+    { name: 'Electric Flux', eq: 'Φ_E = ∮ E · dA = Q_enclosed / ε₀' },
+    { name: 'Matrix Inverse', eq: 'A⁻¹ = (1 / |A|) · adj(A)' },
+    { name: 'Cramer’s Rule', eq: 'x = Δx / Δ,  y = Δy / Δ,  z = Δz / Δ' },
+  ];
 
-  // Active quiz flash state
+  const currentFormula = formulas[formulaIdx % formulas.length];
+  const currentDiagram = INITIAL_DIAGRAMS[diagIdx % INITIAL_DIAGRAMS.length] || INITIAL_DIAGRAMS[0];
+
+  // ── 5. Active Quiz State ──────────────────────────────────────────────────
+  const [activeFilter, setActiveFilter] = useState<ActiveQuizFilter>('all');
+  const [subjectFilter, setSubjectFilter] = useState<SubjectFilter>('all');
+  const [activeQuizIdx, setActiveQuizIdx] = useState(0);
   const [activeQuizAnswered, setActiveQuizAnswered] = useState<number | null>(null);
+  const [totalQuizAnswered, setTotalQuizAnswered] = useState(0);
+  const [activeQuizModalOpen, setActiveQuizModalOpen] = useState(false);
 
-  // Studytube video modal state (§5.2)
-  const [studyVideoOpen, setStudyVideoOpen] = useState(false);
+  const filteredQuizQuestions = useMemo(() => {
+    const list = INITIAL_QUESTIONS.filter((q) => {
+      if (subjectFilter !== 'all' && q.subject !== subjectFilter) {
+        return false;
+      }
+      if (activeFilter === 'weaklist') {
+        return isInList('weaklist', q.question);
+      }
+      if (activeFilter === 'stronglist') {
+        return isInList('stronglist', q.question);
+      }
+      if (activeFilter === 'studylist') {
+        return isInList('studylist', q.question);
+      }
+      return true;
+    });
+    return list.length > 0 ? list : INITIAL_QUESTIONS;
+  }, [activeFilter, subjectFilter, isInList]);
 
-  // Custom Picture upload state (§5.2)
+  const currentQuizQ = filteredQuizQuestions[activeQuizIdx % filteredQuizQuestions.length];
+
+  // ── 6. Mistakes & History State ───────────────────────────────────────────
+  const [historyEntries, setHistoryEntries] = useState<HistoryEntry[]>(() => {
+    const saved = localStorage.getItem('prismate_quiz_history');
+    return saved
+      ? JSON.parse(saved)
+      : [
+          {
+            id: 'h-1',
+            question:
+              'Two identical point charges of magnitude -q are fixed as shown in the figure. A third charge +q placed midway...',
+            correctAnswer: 'B_1 and B_2',
+            userAnswer: 'B_1 and B_2',
+            isCorrect: true,
+            subject: 'PHYSICS',
+            timestamp: '09:15 AM',
+          },
+          {
+            id: 'h-2',
+            question: 'In the Hall-Héroult process, which flux is added to alumina?',
+            correctAnswer: 'Cryolite (Na₃AlF₆)',
+            userAnswer: 'Fluorspar (CaF₂)',
+            isCorrect: false,
+            subject: 'CHEMISTRY',
+            timestamp: '09:22 AM',
+          },
+        ];
+  });
+  useEffect(() => {
+    localStorage.setItem('prismate_quiz_history', JSON.stringify(historyEntries));
+  }, [historyEntries]);
+
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+
+  // ── 7. Studytube State ────────────────────────────────────────────────────
+  const [studyTubeModalOpen, setStudyTubeModalOpen] = useState(false);
+
+  // ── 8. Custom Picture State ───────────────────────────────────────────────
   const [customPictureUrl, setCustomPictureUrl] = useState<string | null>(() => {
     return localStorage.getItem('prismate_custom_picture') || null;
   });
@@ -118,27 +316,114 @@ export const HomePage: React.FC = () => {
     }
   };
 
-  const formulas = [
-    { name: 'Nernst Equation', eq: 'E = E° - (0.0591/n) log Q' },
-    { name: 'Bragg’s Law', eq: '2d sin θ = nλ' },
-    { name: 'Arrhenius Rate Law', eq: 'k = A · e^(-Ea / RT)' },
-    { name: 'Bohr Radius', eq: 'r_n = 0.529 · (n² / Z) Å' },
-  ];
+  // ── Active Quiz Answer Selection Handler with Auto-Advance ────────────────
+  const handleActiveQuizOption = (optIdx: number) => {
+    if (activeQuizAnswered !== null) return;
+    setActiveQuizAnswered(optIdx);
 
-  const currentFormula = formulas[formulaIdx];
-  const currentDiagram = INITIAL_DIAGRAMS[diagIdx] || INITIAL_DIAGRAMS[0];
+    const isCorrect = optIdx === currentQuizQ.correctIndex;
 
-  // Drag & Swap handlers (§5.1)
-  const handleDragStart = (id: string) => {
-    if (!isEditMode) return;
-    draggedWidgetId.current = id;
+    if (isCorrect) {
+      addToList('stronglist', {
+        subject: (currentQuizQ.subject || 'chemistry') as any,
+        category: 'question',
+        title: currentQuizQ.question,
+        content: `Answer: ${currentQuizQ.options[currentQuizQ.correctIndex]}`,
+        source: 'Home Active Quiz',
+      });
+    } else {
+      addToList('weaklist', {
+        subject: (currentQuizQ.subject || 'chemistry') as any,
+        category: 'question',
+        title: currentQuizQ.question,
+        content: `Answer: ${currentQuizQ.options[currentQuizQ.correctIndex]}`,
+        source: 'Home Active Quiz',
+      });
+    }
+
+    const newHistory: HistoryEntry = {
+      id: 'hist-' + Date.now(),
+      question: currentQuizQ.question,
+      correctAnswer: currentQuizQ.options[currentQuizQ.correctIndex],
+      userAnswer: currentQuizQ.options[optIdx],
+      isCorrect,
+      subject: (currentQuizQ.subject || 'chemistry').toUpperCase(),
+      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    };
+    setHistoryEntries((prev) => [newHistory, ...prev]);
+    setTotalQuizAnswered((c) => c + 1);
+
+    // Auto-advance to the next question after 600ms
+    setTimeout(() => {
+      setActiveQuizIdx((idx) => (idx + 1) % filteredQuizQuestions.length);
+      setActiveQuizAnswered(null);
+    }, 600);
   };
 
-  const handleDrop = (targetId: string) => {
-    if (!isEditMode || !draggedWidgetId.current || draggedWidgetId.current === targetId) return;
+  // Reset History & Weaklist Handler
+  const handleResetHistory = () => {
+    setHistoryEntries([]);
+    localStorage.removeItem('prismate_quiz_history');
+    // Clear weaklist items
+    weaklist.forEach((item) => {
+      removeFromList('weaklist', item.id);
+    });
+  };
+
+  // ── Drag & Swap handlers with full HTML5 dataTransfer & dock support (§5.1)
+  const handleDragStart = (e: React.DragEvent, id: string) => {
+    if (!isEditMode) return;
+    draggedWidgetId.current = id;
+    setActiveDragId(id);
+    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverTargetId !== id) {
+      setDragOverTargetId(id);
+    }
+  };
+
+  const handleDragLeave = (_e: React.DragEvent, id: string) => {
+    if (dragOverTargetId === id) {
+      setDragOverTargetId(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    setDragOverTargetId(null);
+    setActiveDragId(null);
+    if (!isEditMode) return;
+
+    const rawData = e.dataTransfer.getData('text/plain') || draggedWidgetId.current;
+    if (!rawData) return;
+
+    if (rawData.startsWith('new:')) {
+      const newWidgetId = rawData.replace('new:', '');
+      setLayout((prev) => {
+        if (prev.some((w) => w.id === newWidgetId)) return prev;
+        const targetIdx = prev.findIndex((w) => w.id === targetId);
+        if (targetIdx === -1) return prev;
+        const targetCoord = { gridColumn: prev[targetIdx].gridColumn, gridRow: prev[targetIdx].gridRow };
+        const next = prev.filter((w) => w.id !== targetId);
+        next.push({ id: newWidgetId, ...targetCoord });
+        localStorage.setItem('prismate_home_widget_layout', JSON.stringify(next));
+        return next;
+      });
+      draggedWidgetId.current = null;
+      return;
+    }
+
+    const sourceId = rawData;
+    if (sourceId === targetId) return;
 
     setLayout((prev) => {
-      const sourceIdx = prev.findIndex((w) => w.id === draggedWidgetId.current);
+      const sourceIdx = prev.findIndex((w) => w.id === sourceId);
       const targetIdx = prev.findIndex((w) => w.id === targetId);
       if (sourceIdx === -1 || targetIdx === -1) return prev;
 
@@ -156,55 +441,207 @@ export const HomePage: React.FC = () => {
     draggedWidgetId.current = null;
   };
 
-  const getWidgetPos = (id: string) => {
-    const item = layout.find((w) => w.id === id);
-    return item ? { gridColumn: item.gridColumn, gridRow: item.gridRow } : {};
+  const resizeWidget = (id: string, colDelta: number, rowDelta: number) => {
+    setLayout((prev) => {
+      const next = prev.map((w) => {
+        if (w.id !== id) return w;
+        let [cStart, cEnd] = w.gridColumn.split('/').map((s) => parseInt(s.trim()));
+        let [rStart, rEnd] = w.gridRow.split('/').map((s) => parseInt(s.trim()));
+        if (isNaN(cEnd)) cEnd = cStart + 4;
+        if (isNaN(rEnd)) rEnd = rStart + 3;
+
+        let newStartCol = cStart;
+        let newEndCol = cEnd + colDelta;
+        let newStartRow = rStart;
+        let newEndRow = rEnd + rowDelta;
+
+        if (newEndCol > 17) {
+          const overflow = newEndCol - 17;
+          newEndCol = 17;
+          newStartCol = Math.max(1, newStartCol - overflow);
+        }
+        if (newEndCol - newStartCol < 2) {
+          if (colDelta < 0) newEndCol = newStartCol + 2;
+        }
+
+        if (newEndRow > 9) {
+          const overflow = newEndRow - 9;
+          newEndRow = 9;
+          newStartRow = Math.max(1, newStartRow - overflow);
+        }
+        if (newEndRow - newStartRow < 1) {
+          newEndRow = newStartRow + 1;
+        }
+
+        return {
+          ...w,
+          gridColumn: `${newStartCol} / ${newEndCol}`,
+          gridRow: `${newStartRow} / ${newEndRow}`,
+        };
+      });
+      localStorage.setItem('prismate_home_widget_layout', JSON.stringify(next));
+      return next;
+    });
   };
 
-  const tileStyle = (extra?: React.CSSProperties): React.CSSProperties => ({
-    ...TILE_BASE,
-    borderColor: isEditMode ? 'rgba(242,242,242,0.40)' : TILE_BASE.borderColor,
-    borderStyle: isEditMode ? 'dashed' : 'solid',
-    cursor: isEditMode ? 'grab' : 'default',
-    ...extra,
-  });
+  const moveWidget = (id: string, colShift: number, rowShift: number) => {
+    setLayout((prev) => {
+      const next = prev.map((w) => {
+        if (w.id !== id) return w;
+        const [cStart, cEnd] = w.gridColumn.split('/').map((s) => parseInt(s.trim()));
+        const [rStart, rEnd] = w.gridRow.split('/').map((s) => parseInt(s.trim()));
+        const cSpan = (isNaN(cEnd) ? cStart + 4 : cEnd) - cStart;
+        const rSpan = (isNaN(rEnd) ? rStart + 3 : rEnd) - rStart;
+        const newStartCol = Math.max(1, Math.min(17 - cSpan, cStart + colShift));
+        const newStartRow = Math.max(1, Math.min(9 - rSpan, rStart + rowShift));
+        return {
+          ...w,
+          gridColumn: `${newStartCol} / ${newStartCol + cSpan}`,
+          gridRow: `${newStartRow} / ${newStartRow + rSpan}`,
+        };
+      });
+      localStorage.setItem('prismate_home_widget_layout', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const removeWidget = (id: string) => {
+    if (id === 'welcome') return;
+    setLayout((prev) => {
+      const next = prev.filter((w) => w.id !== id);
+      localStorage.setItem('prismate_home_widget_layout', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const addWidget = (id: string, colSpan = 2, rowSpan = 2) => {
+    setLayout((prev) => {
+      if (prev.some((w) => w.id === id)) return prev;
+      let startCol = 1;
+      let startRow = 1;
+      let found = false;
+      for (let r = 1; r <= 8 - rowSpan + 1; r++) {
+        for (let c = 1; c <= 16 - colSpan + 1; c++) {
+          const collides = prev.some((w) => {
+            const [wCs, wCe] = w.gridColumn.split('/').map((s) => parseInt(s.trim()));
+            const [wRs, wRe] = w.gridRow.split('/').map((s) => parseInt(s.trim()));
+            const colOverlap = !(c + colSpan <= wCs || c >= wCe);
+            const rowOverlap = !(r + rowSpan <= wRs || r >= wRe);
+            return colOverlap && rowOverlap;
+          });
+          if (!collides) {
+            startCol = c;
+            startRow = r;
+            found = true;
+            break;
+          }
+        }
+        if (found) break;
+      }
+      if (!found) {
+        startCol = 1;
+        startRow = 1;
+      }
+      const next = [
+        ...prev,
+        {
+          id,
+          gridColumn: `${startCol} / ${startCol + colSpan}`,
+          gridRow: `${startRow} / ${startRow + rowSpan}`,
+        },
+      ];
+      localStorage.setItem('prismate_home_widget_layout', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleResetLayout = () => {
+    setLayout(DEFAULT_HOME_LAYOUT);
+    localStorage.setItem('prismate_home_widget_layout', JSON.stringify(DEFAULT_HOME_LAYOUT));
+  };
+
+  const getWidgetPos = (id: string): React.CSSProperties => {
+    const item = layout.find((w) => w.id === id);
+    if (!item) return { display: 'none' };
+    return {
+      gridColumn: item.gridColumn,
+      gridRow: item.gridRow,
+    };
+  };
+
+  const tileStyle = (id: string, extra?: React.CSSProperties): React.CSSProperties => {
+    const isTarget = dragOverTargetId === id;
+    const isDrag = activeDragId === id;
+    return {
+      ...TILE_BASE,
+      borderColor: isTarget ? '#F2F2F2' : isEditMode ? 'rgba(242,242,242,0.35)' : 'rgba(242,242,242,0.10)',
+      background: isTarget
+        ? 'linear-gradient(135deg, rgba(32,32,32,0.95), rgba(48,48,48,0.85))'
+        : 'linear-gradient(135deg, rgba(16,16,16,0.85), rgba(28,28,28,0.72))',
+      opacity: isDrag ? 0.4 : 1,
+      cursor: isEditMode ? 'grab' : 'pointer',
+      boxShadow: isTarget
+        ? '0 0 20px rgba(242,242,242,0.2), inset 0 1px 0 0 rgba(242,242,242,0.4)'
+        : 'inset 0 1px 0 0 rgba(242,242,242,0.22)',
+      ...extra,
+    };
+  };
 
   return (
     <div
-      className="prismate-home-canvas"
       style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 50,
         width: '100vw',
         height: '100vh',
-        background: '#000000',
-        position: 'relative',
         overflow: 'hidden',
-        color: '#F2F2F2',
-        boxSizing: 'border-box',
+        background: 'transparent',
         display: 'flex',
         flexDirection: 'column',
       }}
     >
-      <style>{`
-        @media (max-aspect-ratio: 4/3), (max-height: 580px) {
-          .prismate-home-canvas {
-            overflow-y: auto !important;
-          }
-          .prismate-home-grid {
-            min-height: 840px !important;
-            height: auto !important;
-          }
-        }
-        @media (max-width: 768px) {
-          .prismate-home-grid {
-            display: flex !important;
-            flex-direction: column !important;
-            min-height: auto !important;
-          }
-          .prismate-home-grid > div {
-            min-height: 140px !important;
-          }
-        }
-      `}</style>
+      {/* ── Edit Mode Trigger Header Button ──────────────────────────────── */}
+      {!isEditMode && (
+        <button
+          onClick={() => setEditModeScreen('home')}
+          title="Customize Bento Canvas Tiles"
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '24px',
+            zIndex: 900,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'rgba(15,15,15,0.75)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(242,242,242,0.22)',
+            borderRadius: '20px',
+            padding: '7px 16px',
+            color: 'rgba(242,242,242,0.85)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: '11px',
+            letterSpacing: '1.5px',
+            cursor: 'pointer',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(25,25,25,0.92)';
+            e.currentTarget.style.color = '#FFFFFF';
+            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.45)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(15,15,15,0.75)';
+            e.currentTarget.style.color = 'rgba(242,242,242,0.85)';
+            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.22)';
+          }}
+        >
+          <span>✎</span>
+          <span>EDIT CANVAS</span>
+        </button>
+      )}
 
       {/* ── Edit Mode Floating Indicator Banner ──────────────────────────── */}
       {isEditMode && (
@@ -217,11 +654,12 @@ export const HomePage: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            background: 'rgba(20,20,20,0.85)',
+            background: 'rgba(20,20,20,0.92)',
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(242,242,242,0.3)',
             borderRadius: '24px',
             padding: '6px 16px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
           }}
         >
           <span
@@ -232,13 +670,10 @@ export const HomePage: React.FC = () => {
               color: '#F2F2F2',
             }}
           >
-            EDIT MODE: DRAG TILES TO REPOSITION
+            EDIT MODE: DRAG TILES OR USE CONTROLS
           </span>
           <button
-            onClick={() => {
-              setLayout(DEFAULT_HOME_LAYOUT);
-              localStorage.removeItem('prismate_home_widget_layout');
-            }}
+            onClick={handleResetLayout}
             style={{
               background: 'none',
               border: 'none',
@@ -246,6 +681,7 @@ export const HomePage: React.FC = () => {
               fontSize: '10px',
               cursor: 'pointer',
               textDecoration: 'underline',
+              fontFamily: 'var(--font-subheading)',
             }}
           >
             RESET
@@ -257,10 +693,11 @@ export const HomePage: React.FC = () => {
               color: '#000000',
               border: 'none',
               borderRadius: '12px',
-              padding: '4px 10px',
+              padding: '4px 12px',
               fontFamily: 'var(--font-heading)',
               fontSize: '10px',
               cursor: 'pointer',
+              fontWeight: 'bold',
             }}
           >
             DONE
@@ -281,6 +718,7 @@ export const HomePage: React.FC = () => {
       <div
         className="prismate-home-grid"
         style={{
+          position: 'relative',
           flex: 1,
           width: '100%',
           height: '100%',
@@ -292,515 +730,964 @@ export const HomePage: React.FC = () => {
           boxSizing: 'border-box',
         }}
       >
-        {/* 1. Geometric Clock (Clean, no redundant title banner) */}
-        <div
-          style={getWidgetPos('clock')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('clock')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('clock')}
-        >
-          <div style={tileStyle({ justifyContent: 'center', alignItems: 'center' })}>
-            <h2
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(30px, 2.6vw, 44px)',
-                letterSpacing: '3px',
-                margin: 0,
-                lineHeight: 1,
-              }}
-            >
-              {currentTime.toLocaleTimeString([], { hour12: false })}
-            </h2>
-            <span
-              style={{
-                fontFamily: 'var(--font-content)',
-                fontSize: '12px',
-                color: 'rgba(242,242,242,0.45)',
-                marginTop: '10px',
-                letterSpacing: '1px',
-                textTransform: 'uppercase',
-              }}
-            >
-              {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-            </span>
-          </div>
-        </div>
+        {isEditMode && <GridGuides />}
 
-        {/* 2. Pomodoro Timer (Functional, no redundant title banner) */}
-        <div
-          style={getWidgetPos('pomodoro')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('pomodoro')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('pomodoro')}
-        >
-          <div style={tileStyle({ justifyContent: 'center', alignItems: 'center', gap: '16px' })}>
-            <h3
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: 'clamp(28px, 2.4vw, 40px)',
-                letterSpacing: '3px',
-                margin: 0,
-                lineHeight: 1,
-              }}
+        {/* 1. Cool Time / Clock Widget */}
+        {layout.some((w) => w.id === 'clock') && (
+          <div
+            style={{ ...getWidgetPos('clock'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'clock')}
+            onDragOver={(e) => handleDragOver(e, 'clock')}
+            onDragLeave={(e) => handleDragLeave(e, 'clock')}
+            onDrop={(e) => handleDrop(e, 'clock')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="clock"
+                label="Cool Time"
+                gridColumn={layout.find((w) => w.id === 'clock')?.gridColumn || '1 / 5'}
+                gridRow={layout.find((w) => w.id === 'clock')?.gridRow || '1 / 4'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'clock';
+                  setActiveDragId('clock');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setClockModalOpen(true)}
+              style={tileStyle('clock', { justifyContent: 'center', alignItems: 'center' })}
             >
-              {Math.floor(pomoSeconds / 60).toString().padStart(2, '0')}:{(pomoSeconds % 60).toString().padStart(2, '0')}
-            </h3>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <button
-                onClick={() => setPomoRunning((r) => !r)}
-                style={{
-                  background: pomoRunning ? 'rgba(242,242,242,0.1)' : '#F2F2F2',
-                  color: pomoRunning ? '#F2F2F2' : '#000000',
-                  border: 'none',
-                  borderRadius: '6px',
-                  padding: '8px 16px',
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  letterSpacing: '1px',
-                }}
-              >
-                {pomoRunning ? 'PAUSE' : 'START'}
-              </button>
-              <button
-                onClick={() => {
-                  setPomoRunning(false);
-                  setPomoSeconds(25 * 60);
-                }}
-                style={{
-                  background: 'transparent',
-                  color: '#F2F2F2',
-                  border: '1px solid rgba(242,242,242,0.2)',
-                  borderRadius: '6px',
-                  padding: '8px 14px',
-                  fontFamily: 'var(--font-subheading)',
-                  fontSize: '11px',
-                  cursor: 'pointer',
-                  letterSpacing: '1px',
-                }}
-              >
-                RESET
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* 3. Daily Checklist (Pure functional tasks) */}
-        <div
-          style={getWidgetPos('todos')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('todos')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('todos')}
-        >
-          <div style={tileStyle({ justifyContent: 'center', overflowY: 'auto' })}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {todos.map((todo) => (
-                <div
-                  key={todo.id}
-                  onClick={() =>
-                    setTodos((list) =>
-                      list.map((t) => (t.id === todo.id ? { ...t, done: !t.done } : t))
-                    )
-                  }
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '10px',
-                    fontFamily: 'var(--font-content)',
-                    fontSize: '13px',
-                    color: todo.done ? 'rgba(242,242,242,0.30)' : '#F2F2F2',
-                    textDecoration: todo.done ? 'line-through' : 'none',
-                    cursor: 'pointer',
-                    userSelect: 'none',
-                  }}
-                >
+              {coolTimeRemaining !== null ? (
+                <div style={{ textAlign: 'center' }}>
                   <span
                     style={{
-                      fontSize: '14px',
-                      color: todo.done ? '#F2F2F2' : 'rgba(242,242,242,0.4)',
+                      fontFamily: 'var(--font-subheading)',
+                      fontSize: '10px',
+                      letterSpacing: '1.5px',
+                      color: '#EB104B',
+                      display: 'block',
+                      marginBottom: '6px',
                     }}
                   >
-                    {todo.done ? '☑' : '☐'}
+                    ● COOL TIME ACTIVE
                   </span>
-                  <span>{todo.text}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 4. Daily STEM Insight (Clean quote/insight) */}
-        <div
-          style={getWidgetPos('pulse')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('pulse')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('pulse')}
-        >
-          <div style={tileStyle({ justifyContent: 'center' })}>
-            <p
-              style={{
-                fontFamily: 'var(--font-content)',
-                fontSize: 'clamp(12px, 0.95vw, 14px)',
-                lineHeight: 1.6,
-                color: 'rgba(242,242,242,0.85)',
-                margin: 0,
-                fontStyle: 'italic',
-              }}
-            >
-              "Supercritical CO₂ acts as both gas and liquid simultaneously — currently replacing toxic organic solvents in modern green chemistry decaffeination."
-            </p>
-          </div>
-        </div>
-
-        {/* 5. Formula Rotator (Clean mathematical display) */}
-        <div
-          style={getWidgetPos('formula')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('formula')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('formula')}
-        >
-          <div
-            style={tileStyle({
-              cursor: isEditMode ? 'grab' : 'pointer',
-              justifyContent: 'center',
-              alignItems: 'center',
-              textAlign: 'center',
-            })}
-            onClick={() => !isEditMode && setFormulaIdx((i) => (i + 1) % formulas.length)}
-          >
-            <h4
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '14px',
-                color: 'rgba(242,242,242,0.6)',
-                margin: '0 0 6px',
-                letterSpacing: '1px',
-              }}
-            >
-              {currentFormula.name}
-            </h4>
-            <div
-              style={{
-                fontFamily: 'monospace',
-                fontSize: '15px',
-                color: '#F2F2F2',
-                background: 'rgba(0,0,0,0.4)',
-                padding: '8px 12px',
-                borderRadius: '6px',
-                border: '1px solid rgba(242,242,242,0.1)',
-                display: 'inline-block',
-              }}
-            >
-              {currentFormula.eq}
-            </div>
-          </div>
-        </div>
-
-        {/* 6. CENTRE WELCOME BLOCK (4 × 2 units per §5.1) */}
-        <div
-          style={getWidgetPos('welcome')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('welcome')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('welcome')}
-        >
-          <div
-            style={tileStyle({
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '24px',
-              background: 'linear-gradient(135deg, rgba(22,22,22,0.95), rgba(12,12,12,0.88))',
-              borderColor: 'rgba(242,242,242,0.22)',
-            })}
-          >
-            <div
-              style={{
-                width: '56px',
-                height: '56px',
-                borderRadius: '50%',
-                background: '#F2F2F2',
-                color: '#000000',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontFamily: 'var(--font-heading)',
-                fontSize: '22px',
-                flexShrink: 0,
-              }}
-            >
-              {userAvatar || (loggedInUser ? loggedInUser[0] : 'U')}
-            </div>
-            <div>
-              <h2
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: 'clamp(20px, 2vw, 28px)',
-                  letterSpacing: '3px',
-                  margin: 0,
-                  color: '#F2F2F2',
-                }}
-              >
-                WELCOME, {loggedInUser?.toUpperCase()}
-              </h2>
-            </div>
-          </div>
-        </div>
-
-        {/* 7. Diagram Rotator (Clean visual diagram) */}
-        <div
-          style={getWidgetPos('diagram')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('diagram')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('diagram')}
-        >
-          <div
-            style={tileStyle({
-              cursor: isEditMode ? 'grab' : 'pointer',
-              justifyContent: 'center',
-              alignItems: 'center',
-              textAlign: 'center',
-            })}
-            onClick={() => !isEditMode && setDiagIdx((i) => (i + 1) % INITIAL_DIAGRAMS.length)}
-          >
-            <h4
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '15px',
-                letterSpacing: '2px',
-                color: '#F2F2F2',
-                margin: '0 0 4px',
-              }}
-            >
-              {currentDiagram.title}
-            </h4>
-            <span
-              style={{
-                fontFamily: 'var(--font-content)',
-                fontSize: '12px',
-                color: 'rgba(242,242,242,0.45)',
-              }}
-            >
-              {currentDiagram.chapter}
-            </span>
-          </div>
-        </div>
-
-        {/* 8. Active Quiz Flash (Functional question & options) */}
-        <div
-          style={getWidgetPos('quiz')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('quiz')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('quiz')}
-        >
-          <div style={tileStyle({ justifyContent: 'center' })}>
-            <p
-              style={{
-                fontFamily: 'var(--font-content)',
-                fontSize: '13px',
-                margin: '0 0 12px',
-                lineHeight: 1.45,
-                color: '#F2F2F2',
-              }}
-            >
-              {INITIAL_QUESTIONS[0].question}
-            </p>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-              {INITIAL_QUESTIONS[0].options.map((opt, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveQuizAnswered(idx)}
-                  style={{
-                    background:
-                      activeQuizAnswered === idx
-                        ? idx === INITIAL_QUESTIONS[0].correctIndex
-                          ? '#F2F2F2'
-                          : '#EB104B'
-                        : 'rgba(242,242,242,0.06)',
-                    color: activeQuizAnswered === idx && idx === INITIAL_QUESTIONS[0].correctIndex ? '#000000' : '#F2F2F2',
-                    border: '1px solid rgba(242,242,242,0.15)',
-                    borderRadius: '8px',
-                    padding: '8px 12px',
-                    fontFamily: 'var(--font-content)',
-                    fontSize: '12px',
-                    cursor: 'pointer',
-                    textAlign: 'left',
-                  }}
-                >
-                  {opt}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* 9. History Widget (Clean item list) */}
-        <div
-          style={getWidgetPos('history')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('history')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('history')}
-        >
-          <div style={tileStyle({ justifyContent: 'center', overflowY: 'auto' })}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {INITIAL_REACTIONS.slice(0, 3).map((r) => (
-                <div key={r.id}>
-                  <span
+                  <h2
                     style={{
                       fontFamily: 'var(--font-heading)',
-                      fontSize: '12px',
-                      letterSpacing: '1px',
-                      display: 'block',
-                      color: '#F2F2F2',
+                      fontSize: 'clamp(32px, 2.8vw, 46px)',
+                      letterSpacing: '3px',
+                      margin: 0,
+                      lineHeight: 1,
+                      color: coolTimeRemaining <= 10 ? '#EB104B' : '#F2F2F2',
                     }}
                   >
-                    {r.name}
-                  </span>
+                    {Math.floor(coolTimeRemaining / 60)
+                      .toString()
+                      .padStart(2, '0')}
+                    :{(coolTimeRemaining % 60).toString().padStart(2, '0')}
+                  </h2>
+                </div>
+              ) : clockConfig.mode === 'analog' ? (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <AnalogClock time={currentTime} size={110} />
                   <span
                     style={{
                       fontFamily: 'var(--font-content)',
                       fontSize: '11px',
                       color: 'rgba(242,242,242,0.4)',
+                      marginTop: '6px',
+                      letterSpacing: '1px',
                     }}
                   >
-                    {r.chapter}
+                    {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
                   </span>
                 </div>
-              ))}
+              ) : (
+                <>
+                  <h2
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: 'clamp(28px, 2.5vw, 42px)',
+                      letterSpacing: '3px',
+                      margin: 0,
+                      lineHeight: 1,
+                    }}
+                  >
+                    {currentTime.toLocaleTimeString([], {
+                      hour12: clockConfig.format === '12h',
+                      hour: '2-digit',
+                      minute: '2-digit',
+                      second: '2-digit',
+                    })}
+                  </h2>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-content)',
+                      fontSize: '12px',
+                      color: 'rgba(242,242,242,0.45)',
+                      marginTop: '10px',
+                      letterSpacing: '1px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {currentTime.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
+                    {alarms.some((a) => a.enabled) && ' • 🔔 ALARMS SET'}
+                  </span>
+                </>
+              )}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* 10. Studytube / Focus Player (§5.2) */}
-        <div
-          style={getWidgetPos('studytube')}
-          draggable={isEditMode}
-          onDragStart={() => handleDragStart('studytube')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('studytube')}
-        >
+        {/* 2. Pomodoro Timer Widget */}
+        {layout.some((w) => w.id === 'pomodoro') && (
           <div
-            onClick={() => !isEditMode && setStudyVideoOpen(true)}
-            style={tileStyle({
-              justifyContent: 'center',
-              alignItems: 'center',
-              background: customPictureUrl
-                ? `linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.7)), url(${customPictureUrl}) center/cover`
-                : 'rgba(10,10,10,0.95)',
-              cursor: isEditMode ? 'grab' : 'pointer',
-            })}
+            style={{ ...getWidgetPos('pomodoro'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'pomodoro')}
+            onDragOver={(e) => handleDragOver(e, 'pomodoro')}
+            onDragLeave={(e) => handleDragLeave(e, 'pomodoro')}
+            onDrop={(e) => handleDrop(e, 'pomodoro')}
           >
-            <span
-              style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '13px',
-                letterSpacing: '2px',
-                color: 'rgba(242,242,242,0.8)',
-              }}
-            >
-              ▶ PLAY: TN CHEMISTRY LECTURES
-            </span>
-            <span
-              style={{
-                fontFamily: 'var(--font-content)',
-                fontSize: '10px',
-                color: 'rgba(242,242,242,0.4)',
-                marginTop: '6px',
-              }}
-            >
-              Click for distraction-free study stream
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* ── Studytube Distraction-Free Modal (§5.2) ───────────────────────── */}
-      {studyVideoOpen && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setStudyVideoOpen(false);
-          }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9500,
-            background: 'rgba(0, 0, 0, 0.92)',
-            backdropFilter: 'blur(10px)',
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px',
-          }}
-        >
-          <div
-            style={{
-              width: 'min(900px, 92vw)',
-              background: '#0a0a0a',
-              border: '1px solid rgba(242,242,242,0.2)',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              boxShadow: '0 20px 60px rgba(0,0,0,0.9)',
-            }}
-          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="pomodoro"
+                label="Pomodoro"
+                gridColumn={layout.find((w) => w.id === 'pomodoro')?.gridColumn || '5 / 9'}
+                gridRow={layout.find((w) => w.id === 'pomodoro')?.gridRow || '1 / 4'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'pomodoro';
+                  setActiveDragId('pomodoro');
+                }}
+              />
+            )}
             <div
-              style={{
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                padding: '16px 24px',
-                borderBottom: '1px solid rgba(242,242,242,0.1)',
-              }}
+              onDoubleClick={() => !isEditMode && setPomoModalOpen(true)}
+              style={tileStyle('pomodoro', { justifyContent: 'center', alignItems: 'center', gap: '14px' })}
+            >
+              <div style={{ textAlign: 'center' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-subheading)',
+                    fontSize: '10px',
+                    letterSpacing: '1.5px',
+                    color: pomoMode === 'focus' ? 'rgba(242,242,242,0.5)' : '#EB104B',
+                    textTransform: 'uppercase',
+                    display: 'block',
+                    marginBottom: '4px',
+                  }}
+                >
+                  {pomoMode === 'focus'
+                    ? `FOCUS • CYCLE ${pomoCycle}/${pomoSettings.cyclesBeforeLongBreak}`
+                    : pomoMode === 'shortBreak'
+                    ? 'SHORT BREAK'
+                    : 'LONG BREAK'}
+                </span>
+                <h3
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: 'clamp(28px, 2.4vw, 40px)',
+                    letterSpacing: '3px',
+                    margin: 0,
+                    lineHeight: 1,
+                  }}
+                >
+                  {Math.floor(pomoSeconds / 60)
+                    .toString()
+                    .padStart(2, '0')}
+                  :{(pomoSeconds % 60).toString().padStart(2, '0')}
+                </h3>
+              </div>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button
+                  onClick={() => setPomoRunning((r) => !r)}
+                  style={{
+                    background: pomoRunning ? 'rgba(242,242,242,0.1)' : '#F2F2F2',
+                    color: pomoRunning ? '#F2F2F2' : '#000000',
+                    border: 'none',
+                    borderRadius: '6px',
+                    padding: '6px 14px',
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    letterSpacing: '1px',
+                  }}
+                >
+                  {pomoRunning ? 'PAUSE' : 'START'}
+                </button>
+                <button
+                  onClick={() => {
+                    setPomoRunning(false);
+                    setPomoSeconds(
+                      pomoMode === 'focus'
+                        ? pomoSettings.focusMinutes * 60
+                        : pomoMode === 'shortBreak'
+                        ? pomoSettings.shortBreakMinutes * 60
+                        : pomoSettings.longBreakMinutes * 60
+                    );
+                  }}
+                  style={{
+                    background: 'transparent',
+                    color: '#F2F2F2',
+                    border: '1px solid rgba(242,242,242,0.2)',
+                    borderRadius: '6px',
+                    padding: '6px 12px',
+                    fontFamily: 'var(--font-subheading)',
+                    fontSize: '11px',
+                    cursor: 'pointer',
+                    letterSpacing: '1px',
+                  }}
+                >
+                  RESET
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 3. Daily Checklist (Todos) */}
+        {layout.some((w) => w.id === 'todos') && (
+          <div
+            style={{ ...getWidgetPos('todos'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'todos')}
+            onDragOver={(e) => handleDragOver(e, 'todos')}
+            onDragLeave={(e) => handleDragLeave(e, 'todos')}
+            onDrop={(e) => handleDrop(e, 'todos')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="todos"
+                label="Quote & Tasks"
+                gridColumn={layout.find((w) => w.id === 'todos')?.gridColumn || '9 / 13'}
+                gridRow={layout.find((w) => w.id === 'todos')?.gridRow || '1 / 4'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'todos';
+                  setActiveDragId('todos');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setTasksQuotesModalOpen(true)}
+              style={tileStyle('todos', { justifyContent: 'flex-start', overflowY: 'auto' })}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '11px',
+                    letterSpacing: '1.5px',
+                    color: 'rgba(242,242,242,0.4)',
+                  }}
+                >
+                  TASKS • DOUBLE CLICK TO EDIT
+                </span>
+                <span style={{ fontSize: '11px', color: '#F2F2F2', fontFamily: 'monospace' }}>
+                  {todos.filter((t) => t.done).length}/{todos.length}
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {todos.slice(0, 3).map((todo) => (
+                  <div
+                    key={todo.id}
+                    onClick={() => {
+                      setTodos((prev) =>
+                        prev.map((t) => (t.id === todo.id ? { ...t, done: !t.done } : t))
+                      );
+                    }}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '10px',
+                      fontFamily: 'var(--font-content)',
+                      fontSize: '13px',
+                      color: todo.done ? 'rgba(242,242,242,0.30)' : '#F2F2F2',
+                      textDecoration: todo.done ? 'line-through' : 'none',
+                      cursor: 'pointer',
+                      userSelect: 'none',
+                    }}
+                  >
+                    <span style={{ fontSize: '14px', color: todo.done ? '#F2F2F2' : 'rgba(242,242,242,0.4)' }}>
+                      {todo.done ? '☑' : '☐'}
+                    </span>
+                    <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {todo.text}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 4. Daily STEM Insight / Quote */}
+        {layout.some((w) => w.id === 'pulse') && (
+          <div
+            style={{ ...getWidgetPos('pulse'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'pulse')}
+            onDragOver={(e) => handleDragOver(e, 'pulse')}
+            onDragLeave={(e) => handleDragLeave(e, 'pulse')}
+            onDrop={(e) => handleDrop(e, 'pulse')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="pulse"
+                label="STEM Pulse"
+                gridColumn={layout.find((w) => w.id === 'pulse')?.gridColumn || '13 / 17'}
+                gridRow={layout.find((w) => w.id === 'pulse')?.gridRow || '1 / 4'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'pulse';
+                  setActiveDragId('pulse');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setTasksQuotesModalOpen(true)}
+              style={tileStyle('pulse', { justifyContent: 'center' })}
             >
               <span
                 style={{
                   fontFamily: 'var(--font-heading)',
+                  fontSize: '10px',
+                  letterSpacing: '1.5px',
+                  color: 'rgba(242,242,242,0.4)',
+                  marginBottom: '8px',
+                  display: 'block',
+                }}
+              >
+                STEM PULSE • DOUBLE CLICK TO EDIT
+              </span>
+              <p
+                style={{
+                  fontFamily: 'var(--font-content)',
+                  fontSize: '12px',
+                  lineHeight: 1.5,
+                  margin: 0,
+                  color: 'rgba(242,242,242,0.85)',
+                  fontStyle: 'italic',
+                }}
+              >
+                "{customQuote}"
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* 5. Formula Rotator Widget */}
+        {layout.some((w) => w.id === 'formula') && (
+          <div
+            style={{ ...getWidgetPos('formula'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'formula')}
+            onDragOver={(e) => handleDragOver(e, 'formula')}
+            onDragLeave={(e) => handleDragLeave(e, 'formula')}
+            onDrop={(e) => handleDrop(e, 'formula')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="formula"
+                label="Formula Rotator"
+                gridColumn={layout.find((w) => w.id === 'formula')?.gridColumn || '1 / 5'}
+                gridRow={layout.find((w) => w.id === 'formula')?.gridRow || '4 / 6'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'formula';
+                  setActiveDragId('formula');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setFormulaIdx((i) => (i + 1) % formulas.length)}
+              style={tileStyle('formula', {
+                cursor: isEditMode ? 'grab' : 'pointer',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+              })}
+            >
+              <h4
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '13px',
+                  color: 'rgba(242,242,242,0.6)',
+                  margin: '0 0 6px',
+                  letterSpacing: '1px',
+                }}
+              >
+                {currentFormula.name}
+              </h4>
+              <div
+                style={{
+                  fontFamily: 'monospace',
                   fontSize: '14px',
+                  color: '#F2F2F2',
+                  background: 'rgba(0,0,0,0.4)',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  border: '1px solid rgba(242,242,242,0.1)',
+                  display: 'inline-block',
+                }}
+              >
+                {currentFormula.eq}
+              </div>
+              <span
+                style={{
+                  fontSize: '10px',
+                  color: 'rgba(242,242,242,0.3)',
+                  marginTop: '6px',
+                  fontFamily: 'var(--font-subheading)',
+                }}
+              >
+                Double-click for next formula
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 6. CENTRE WELCOME BLOCK (with Particle Glow Reactive Title) */}
+        {layout.some((w) => w.id === 'welcome') && (
+          <div
+            style={{ ...getWidgetPos('welcome'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'welcome')}
+            onDragOver={(e) => handleDragOver(e, 'welcome')}
+            onDragLeave={(e) => handleDragLeave(e, 'welcome')}
+            onDrop={(e) => handleDrop(e, 'welcome')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="welcome"
+                label="Welcome Centre"
+                gridColumn={layout.find((w) => w.id === 'welcome')?.gridColumn || '5 / 11'}
+                gridRow={layout.find((w) => w.id === 'welcome')?.gridRow || '4 / 6'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={undefined}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'welcome';
+                  setActiveDragId('welcome');
+                }}
+              />
+            )}
+            <div
+              style={tileStyle('welcome', {
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '24px',
+                background: 'linear-gradient(135deg, rgba(22,22,22,0.95), rgba(12,12,12,0.88))',
+                borderColor: 'rgba(242,242,242,0.22)',
+              })}
+            >
+              <div
+                style={{
+                  width: '56px',
+                  height: '56px',
+                  borderRadius: '50%',
+                  background: '#F2F2F2',
+                  color: '#000000',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '22px',
+                  flexShrink: 0,
+                }}
+              >
+                {userAvatar || (loggedInUser ? loggedInUser[0] : 'U')}
+              </div>
+              <div>
+                <GlowingTitle
+                  text={loggedInUser ? `WELCOME, ${loggedInUser.toUpperCase()}` : 'WELCOME, YOU'}
+                  fontSize="clamp(20px, 2vw, 30px)"
+                  letterSpacing="3px"
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 7. Diagram Rotator Widget */}
+        {layout.some((w) => w.id === 'diagram') && (
+          <div
+            style={{ ...getWidgetPos('diagram'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'diagram')}
+            onDragOver={(e) => handleDragOver(e, 'diagram')}
+            onDragLeave={(e) => handleDragLeave(e, 'diagram')}
+            onDrop={(e) => handleDrop(e, 'diagram')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="diagram"
+                label="Diagram Rotator"
+                gridColumn={layout.find((w) => w.id === 'diagram')?.gridColumn || '11 / 17'}
+                gridRow={layout.find((w) => w.id === 'diagram')?.gridRow || '4 / 6'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'diagram';
+                  setActiveDragId('diagram');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setDiagIdx((i) => (i + 1) % INITIAL_DIAGRAMS.length)}
+              style={tileStyle('diagram', {
+                cursor: isEditMode ? 'grab' : 'pointer',
+                justifyContent: 'center',
+                alignItems: 'center',
+                textAlign: 'center',
+              })}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '11px',
+                  letterSpacing: '1px',
+                  color: 'rgba(242,242,242,0.4)',
+                  marginBottom: '6px',
+                }}
+              >
+                DIAGRAM ROTATOR ({diagIdx + 1}/{INITIAL_DIAGRAMS.length})
+              </span>
+              <div
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '14px',
+                  color: '#F2F2F2',
+                  letterSpacing: '1px',
+                  marginBottom: '4px',
+                }}
+              >
+                {currentDiagram.title}
+              </div>
+              <span style={{ fontSize: '10px', color: 'rgba(242,242,242,0.4)', textTransform: 'uppercase' }}>
+                {currentDiagram.subject} • Double-click for next diagram
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* 8. Active Quiz Widget (Answering Auto-Advances) */}
+        {layout.some((w) => w.id === 'quiz') && (
+          <div
+            style={{ ...getWidgetPos('quiz'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'quiz')}
+            onDragOver={(e) => handleDragOver(e, 'quiz')}
+            onDragLeave={(e) => handleDragLeave(e, 'quiz')}
+            onDrop={(e) => handleDrop(e, 'quiz')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="quiz"
+                label="Active Quiz"
+                gridColumn={layout.find((w) => w.id === 'quiz')?.gridColumn || '1 / 7'}
+                gridRow={layout.find((w) => w.id === 'quiz')?.gridRow || '6 / 9'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'quiz';
+                  setActiveDragId('quiz');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setActiveQuizModalOpen(true)}
+              style={tileStyle('quiz', { justifyContent: 'center' })}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '10px',
+                    letterSpacing: '1.5px',
+                    color: 'rgba(242,242,242,0.45)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  ACTIVE DRILL ({activeFilter.toUpperCase()} • {subjectFilter.toUpperCase()})
+                </span>
+                <span style={{ fontSize: '10px', color: 'rgba(242,242,242,0.4)', fontFamily: 'monospace' }}>
+                  {activeQuizIdx + 1}/{filteredQuizQuestions.length}
+                </span>
+              </div>
+              <p
+                style={{
+                  fontFamily: 'var(--font-content)',
+                  fontSize: '12px',
+                  margin: '0 0 10px',
+                  lineHeight: 1.4,
+                  color: '#F2F2F2',
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                }}
+              >
+                {currentQuizQ.question}
+              </p>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                {currentQuizQ.options.map((opt, idx) => {
+                  const isChecked = activeQuizAnswered !== null;
+                  const isThisCorrect = idx === currentQuizQ.correctIndex;
+                  const isThisSelected = activeQuizAnswered === idx;
+
+                  let btnBg = 'rgba(242,242,242,0.06)';
+                  let btnColor = '#F2F2F2';
+
+                  if (isChecked) {
+                    if (isThisCorrect) {
+                      btnBg = '#F2F2F2';
+                      btnColor = '#000000';
+                    } else if (isThisSelected) {
+                      btnBg = '#EB104B';
+                      btnColor = '#FFFFFF';
+                    }
+                  }
+
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => handleActiveQuizOption(idx)}
+                      style={{
+                        background: btnBg,
+                        color: btnColor,
+                        border: '1px solid rgba(242,242,242,0.15)',
+                        borderRadius: '6px',
+                        padding: '6px 10px',
+                        fontFamily: 'var(--font-content)',
+                        fontSize: '11px',
+                        cursor: 'pointer',
+                        textAlign: 'left',
+                        whiteSpace: 'nowrap',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        transition: 'all 0.15s ease',
+                      }}
+                    >
+                      {opt}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 9. Mistakes / History Widget */}
+        {layout.some((w) => w.id === 'history') && (
+          <div
+            style={{ ...getWidgetPos('history'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'history')}
+            onDragOver={(e) => handleDragOver(e, 'history')}
+            onDragLeave={(e) => handleDragLeave(e, 'history')}
+            onDrop={(e) => handleDrop(e, 'history')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="history"
+                label="History"
+                gridColumn={layout.find((w) => w.id === 'history')?.gridColumn || '7 / 12'}
+                gridRow={layout.find((w) => w.id === 'history')?.gridRow || '6 / 9'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'history';
+                  setActiveDragId('history');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setHistoryModalOpen(true)}
+              style={tileStyle('history', { justifyContent: 'flex-start', overflowY: 'auto' })}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '10px',
+                    letterSpacing: '1.5px',
+                    color: 'rgba(242,242,242,0.4)',
+                  }}
+                >
+                  PAST MISTAKES • DOUBLE-CLICK
+                </span>
+                <span style={{ fontSize: '10px', color: '#EB104B', fontFamily: 'monospace' }}>
+                  {weaklist.length} issues
+                </span>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                {historyEntries.slice(0, 2).map((h) => (
+                  <div key={h.id} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '10px',
+                          color: h.isCorrect ? '#F2F2F2' : '#EB104B',
+                        }}
+                      >
+                        {h.isCorrect ? '✓ CORRECT' : '✗ MISTAKE'} • {h.subject}
+                      </span>
+                      <span style={{ fontSize: '9px', color: 'rgba(242,242,242,0.3)', fontFamily: 'monospace' }}>
+                        {h.timestamp}
+                      </span>
+                    </div>
+                    <span
+                      style={{
+                        fontFamily: 'var(--font-content)',
+                        fontSize: '11px',
+                        color: 'rgba(242,242,242,0.7)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}
+                    >
+                      {h.question}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 10. Studytube Distraction-Free Widget */}
+        {layout.some((w) => w.id === 'studytube') && (
+          <div
+            style={{ ...getWidgetPos('studytube'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'studytube')}
+            onDragOver={(e) => handleDragOver(e, 'studytube')}
+            onDragLeave={(e) => handleDragLeave(e, 'studytube')}
+            onDrop={(e) => handleDrop(e, 'studytube')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="studytube"
+                label="Studytube"
+                gridColumn={layout.find((w) => w.id === 'studytube')?.gridColumn || '12 / 17'}
+                gridRow={layout.find((w) => w.id === 'studytube')?.gridRow || '6 / 9'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'studytube';
+                  setActiveDragId('studytube');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && setStudyTubeModalOpen(true)}
+              style={tileStyle('studytube', {
+                justifyContent: 'center',
+                alignItems: 'center',
+                background: customPictureUrl
+                  ? `linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.85)), url(${customPictureUrl}) center/cover`
+                  : 'linear-gradient(135deg, rgba(20,20,20,0.9), rgba(10,10,10,0.8))',
+              })}
+            >
+              <span
+                style={{
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '13px',
                   letterSpacing: '2px',
                   color: '#F2F2F2',
                 }}
               >
-                STUDYTUBE • DISTRACTION-FREE LECTURE
+                ▶ PLAY: STUDY TUBE
               </span>
-              <button
-                onClick={() => setStudyVideoOpen(false)}
+              <span
                 style={{
-                  background: 'none',
-                  border: 'none',
-                  color: '#F2F2F2',
-                  fontSize: '16px',
-                  cursor: 'pointer',
+                  fontFamily: 'var(--font-content)',
+                  fontSize: '11px',
+                  color: 'rgba(242,242,242,0.45)',
+                  marginTop: '4px',
                 }}
               >
-                ✕
-              </button>
-            </div>
-            {/* Embedded Clean Video Player Container */}
-            <div style={{ position: 'relative', width: '100%', paddingBottom: '56.25%', background: '#000000' }}>
-              <iframe
-                title="TN Chemistry Video Lesson"
-                src="https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=0&rel=0&modestbranding=1"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  border: 'none',
-                }}
-              />
+                Zero-distraction Class 12 lectures
+              </span>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* 11. Custom Picture Widget (No "CHANGE IMAGE" button text on tile face) */}
+        {layout.some((w) => w.id === 'custom_pic') && (
+          <div
+            style={{ ...getWidgetPos('custom_pic'), position: 'relative' }}
+            draggable={isEditMode}
+            onDragStart={(e) => handleDragStart(e, 'custom_pic')}
+            onDragOver={(e) => handleDragOver(e, 'custom_pic')}
+            onDragLeave={(e) => handleDragLeave(e, 'custom_pic')}
+            onDrop={(e) => handleDrop(e, 'custom_pic')}
+          >
+            {isEditMode && (
+              <BentoEditToolbar
+                id="custom_pic"
+                label="Custom Picture"
+                gridColumn={layout.find((w) => w.id === 'custom_pic')?.gridColumn || '1 / 5'}
+                gridRow={layout.find((w) => w.id === 'custom_pic')?.gridRow || '1 / 4'}
+                onResize={resizeWidget}
+                onMove={moveWidget}
+                onRemove={removeWidget}
+                onDragStart={() => {
+                  draggedWidgetId.current = 'custom_pic';
+                  setActiveDragId('custom_pic');
+                }}
+              />
+            )}
+            <div
+              onDoubleClick={() => !isEditMode && fileInputRef.current?.click()}
+              style={tileStyle('custom_pic', { padding: 0, overflow: 'hidden' })}
+            >
+              {customPictureUrl ? (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    backgroundImage: `url(${customPictureUrl})`,
+                    backgroundSize: 'cover',
+                    backgroundPosition: 'center',
+                  }}
+                />
+              ) : (
+                <div
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'rgba(10,10,10,0.85)',
+                    padding: '16px',
+                    textAlign: 'center',
+                  }}
+                >
+                  <span style={{ fontSize: '28px', marginBottom: '8px' }}>🖼</span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-heading)',
+                      fontSize: '12px',
+                      letterSpacing: '1px',
+                      color: '#F2F2F2',
+                    }}
+                  >
+                    CUSTOM PICTURE
+                  </span>
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-content)',
+                      fontSize: '10px',
+                      color: 'rgba(242,242,242,0.4)',
+                      marginTop: '4px',
+                    }}
+                  >
+                    Double-click to choose image file
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ── All Double-Click Popups & Modals ───────────────────────────────── */}
+      <ClockModal
+        isOpen={clockModalOpen}
+        onClose={() => setClockModalOpen(false)}
+        config={clockConfig}
+        onUpdateConfig={setClockConfig}
+        alarms={alarms}
+        onUpdateAlarms={setAlarms}
+        coolTimeRemaining={coolTimeRemaining}
+        onStartCoolTime={(secs) => {
+          setCoolTimeRemaining(secs);
+          setClockModalOpen(false);
+        }}
+        onStopCoolTime={() => setCoolTimeRemaining(null)}
+      />
+
+      <PomodoroModal
+        isOpen={pomoModalOpen}
+        onClose={() => setPomoModalOpen(false)}
+        settings={pomoSettings}
+        onUpdateSettings={setPomoSettings}
+        currentCycle={pomoCycle}
+        currentMode={pomoMode}
+        onResetCycle={() => {
+          setPomoCycle(1);
+          setPomoMode('focus');
+          setPomoSeconds(pomoSettings.focusMinutes * 60);
+          setPomoRunning(false);
+        }}
+      />
+
+      <TasksQuotesModal
+        isOpen={tasksQuotesModalOpen}
+        onClose={() => setTasksQuotesModalOpen(false)}
+        todos={todos}
+        onUpdateTodos={setTodos}
+        quote={customQuote}
+        onUpdateQuote={setCustomQuote}
+      />
+
+      <ActiveQuizModal
+        isOpen={activeQuizModalOpen}
+        onClose={() => setActiveQuizModalOpen(false)}
+        activeFilter={activeFilter}
+        onSelectFilter={setActiveFilter}
+        subjectFilter={subjectFilter}
+        onSelectSubjectFilter={setSubjectFilter}
+        weaklist={weaklist}
+        stronglist={stronglist}
+        studylist={studylist}
+        totalAnswered={totalQuizAnswered}
+      />
+
+      <HistoryModal
+        isOpen={historyModalOpen}
+        onClose={() => setHistoryModalOpen(false)}
+        history={historyEntries}
+        weaklist={weaklist}
+        onResetHistory={handleResetHistory}
+      />
+
+      <StudyTubeModal
+        isOpen={studyTubeModalOpen}
+        onClose={() => setStudyTubeModalOpen(false)}
+      />
+
+      {/* ── Bottom Starter Widgets Dock (§5.1) ───────────────────────────── */}
+      {isEditMode && (
+        <HomeWidgetDock
+          activeWidgetIds={layout.map((w) => w.id)}
+          onAddWidget={addWidget}
+          onCloseEditMode={() => setEditModeScreen(null)}
+          onResetLayout={handleResetLayout}
+        />
       )}
     </div>
   );

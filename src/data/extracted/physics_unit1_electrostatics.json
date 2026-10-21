@@ -1,0 +1,1047 @@
+{
+  "subject": "physics",
+  "sourceFile": "Tamil Nadu Class 12 Physics Volume 1 & 2",
+  "unitsCovered": [1],
+  "bookBackQuestions": [
+    {
+      "id": "phy-u1-bb-01",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 71,
+      "question": "Two identical point charges of magnitude -q are fixed as shown in the figure below. A third charge +q is placed midway between the two charges at the point P. Suppose this charge +q is displaced a small distance from the point P in the directions indicated by the arrows, in which direction(s) will +q be stable with respect to the displacement?",
+      "options": [
+        "A_1 and A_2",
+        "B_1 and B_2",
+        "both directions",
+        "No stable"
+      ],
+      "correctIndex": 1,
+      "explanation": "Along B_1 and B_2, the attractive forces due to both -q charges have components pulling +q back towards P, providing a restoring force, whereas along A_1 and A_2 the net force pulls it further towards the nearer negative charge.",
+      "requiresDiagram": true
+    },
+    {
+      "id": "phy-u1-bb-02",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 71,
+      "question": "Which charge configuration produces a uniform electric field?",
+      "options": [
+        "point charge",
+        "uniformly charged infinite line",
+        "uniformly charged infinite plane",
+        "uniformly charged spherical shell"
+      ],
+      "correctIndex": 2,
+      "explanation": "The electric field due to a uniformly charged infinite plane sheet is E = \\frac{\\sigma}{2\\varepsilon_0}, which is independent of distance and therefore uniform.",
+      "requiresDiagram": false
+    },
+    {
+      "id": "phy-u1-bb-03",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 71,
+      "question": "What is the ratio of the charges |q_1 / q_2| for the following electric field line pattern?",
+      "options": [
+        "\\frac{1}{5}",
+        "\\frac{25}{11}",
+        "5",
+        "\\frac{11}{25}"
+      ],
+      "correctIndex": 3,
+      "explanation": "The number of field lines terminating or originating is directly proportional to charge magnitude. For q_1, number of lines is 11; for q_2, number of lines is 25. Hence |q_1 / q_2| = 11/25.",
+      "requiresDiagram": true
+    },
+    {
+      "id": "phy-u1-bb-04",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 71,
+      "question": "An electric dipole is placed at an alignment angle of 30^\\circ with an electric field of 2 \\times 10^5\\text{ N C}^{-1}. It experiences a torque equal to 8\\text{ N m}. The charge on the dipole if the dipole length is 1\\text{ cm} is",
+      "options": [
+        "4\\text{ mC}",
+        "8\\text{ mC}",
+        "5\\text{ mC}",
+        "7\\text{ mC}"
+      ],
+      "correctIndex": 1,
+      "explanation": "\\tau = pE\\sin\\theta = q(2a)E\\sin 30^\\circ \\implies 8 = q(10^{-2})(2\\times 10^5)(0.5) = q(1000) \\implies q = 8\\times 10^{-3}\\text{ C} = 8\\text{ mC}.",
+      "requiresDiagram": false
+    },
+    {
+      "id": "phy-u1-bb-05",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 71,
+      "question": "Four Gaussian surfaces are given below with charges inside each Gaussian surface. Rank the electric flux through each Gaussian surface in increasing order.",
+      "options": [
+        "D < C < B < A",
+        "A < B = C < D",
+        "C < A = B < D",
+        "D > C > B > A"
+      ],
+      "correctIndex": 0,
+      "explanation": "By Gauss's law, \\Phi_E = Q_{\\text{encl}}/\\varepsilon_0. Net charges: A has +2q - q + q = +2q; B has +q; C has 0; D has -q. Thus \\Phi_D < \\Phi_C < \\Phi_B < \\Phi_A.",
+      "requiresDiagram": true
+    },
+    {
+      "id": "phy-u1-bb-06",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 71,
+      "question": "The total electric flux for the following closed surface which is kept inside water is (relative permittivity \\varepsilon_r = 80)",
+      "options": [
+        "\\frac{80q}{\\varepsilon_0}",
+        "\\frac{q}{40\\varepsilon_0}",
+        "\\frac{q}{80\\varepsilon_0}",
+        "\\frac{q}{160\\varepsilon_0}"
+      ],
+      "correctIndex": 1,
+      "explanation": "Enclosed charge Q_{\\text{encl}} = +q + 2q - q = +2q. Inside a medium of permittivity \\varepsilon = \\varepsilon_r \\varepsilon_0 = 80\\varepsilon_0, \\Phi_E = \\frac{2q}{80\\varepsilon_0} = \\frac{q}{40\\varepsilon_0}.",
+      "requiresDiagram": true
+    },
+    {
+      "id": "phy-u1-bb-07",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 72,
+      "question": "Two identical conducting balls having positive charges q_1 and q_2 are separated by a centre to centre distance r. If they are made to touch each other and then separated to the same distance, the force between them will be",
+      "options": [
+        "less than before",
+        "same as before",
+        "more than before",
+        "zero"
+      ],
+      "correctIndex": 2,
+      "explanation": "Initial force F_1 \\propto q_1 q_2. After contact, each carries charge (q_1 + q_2)/2, so F_2 \\propto \\left(\\frac{q_1 + q_2}{2}\\right)^2. Since the arithmetic mean is greater than or equal to the geometric mean, \\left(\\frac{q_1+q_2}{2}\\right)^2 > q_1 q_2 for unequal charges.",
+      "requiresDiagram": false
+    },
+    {
+      "id": "phy-u1-bb-08",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 72,
+      "question": "Rank the electrostatic potential energies for the given system of charges in increasing order: (a) q and -q at r, (b) -q and -q at r, (c) -q and -2q at r, (d) q and -2q at 2r.",
+      "options": [
+        "1 = 4 < 2 < 3",
+        "2 = 4 < 3 < 1",
+        "2 = 3 < 1 < 4",
+        "3 < 1 < 2 < 4"
+      ],
+      "correctIndex": 0,
+      "explanation": "U = k \\frac{q_1 q_2}{r}. (a) U_1 = -k q^2/r; (b) U_2 = +k q^2/r; (c) U_3 = +2k q^2/r; (d) U_4 = k \\frac{q(-2q)}{2r} = -k q^2/r. Hence U_1 = U_4 < U_2 < U_3.",
+      "requiresDiagram": true
+    },
+    {
+      "id": "phy-u1-bb-09",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 72,
+      "question": "An electric field \\vec{E} = 10x\\,\\hat{i} exists in a certain region of space. Then the potential difference V = V_o - V_A, where V_o is the potential at the origin and V_A is the potential at x = 2\\text{ m} is:",
+      "options": [
+        "10\\text{ V}",
+        "-20\\text{ V}",
+        "+20\\text{ V}",
+        "-10\\text{ V}"
+      ],
+      "correctIndex": 2,
+      "explanation": "V_A - V_o = -\\int_0^2 E_x dx = -\\int_0^2 10x dx = -10\\left[\\frac{x^2}{2}\\right]_0^2 = -20\\text{ V}. Therefore V = V_o - V_A = +20\\text{ V}.",
+      "requiresDiagram": false
+    },
+    {
+      "id": "phy-u1-bb-10",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 72,
+      "question": "A thin conducting spherical shell of radius R has a charge Q which is uniformly distributed on its surface. The correct plot for electrostatic potential due to this spherical shell is",
+      "options": [
+        "Potential starts from 0 at r=0 and increases linearly to R",
+        "Potential is constant from r=0 to R, then decreases as 1/r",
+        "Potential is parabolic inside and linear outside",
+        "Potential increases linearly inside and decreases linearly outside"
+      ],
+      "correctIndex": 1,
+      "explanation": "Inside the spherical shell, electric field is zero, so the potential remains constant at V = \\frac{1}{4\\pi\\varepsilon_0}\\frac{Q}{R} from r = 0 to r = R, and for r > R, V \\propto \\frac{1}{r}.",
+      "requiresDiagram": true
+    },
+    {
+      "id": "phy-u1-bb-11",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 72,
+      "question": "Two points A and B are maintained at a potential of 7 V and -4 V respectively. The work done in moving 50 electrons from A to B is",
+      "options": [
+        "8.80 \\times 10^{-17}\\text{ J}",
+        "-8.80 \\times 10^{-17}\\text{ J}",
+        "4.40 \\times 10^{-17}\\text{ J}",
+        "5.80 \\times 10^{-17}\\text{ J}"
+      ],
+      "correctIndex": 0,
+      "explanation": "W = q(V_B - V_A) = (-50 \\times 1.6 \\times 10^{-19}\\text{ C})(-4\\text{ V} - 7\\text{ V}) = (-8.0 \\times 10^{-18})(-11) = 8.80 \\times 10^{-17}\\text{ J}.",
+      "requiresDiagram": false
+    },
+    {
+      "id": "phy-u1-bb-12",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 72,
+      "question": "If voltage applied on a capacitor is increased from V to 2V, choose the correct conclusion.",
+      "options": [
+        "Q remains the same, C is doubled",
+        "Q is doubled, C doubled",
+        "C remains same, Q doubled",
+        "Both Q and C remain same"
+      ],
+      "correctIndex": 2,
+      "explanation": "Capacitance C depends only on geometric factors and medium between the plates. When voltage is doubled, Q = CV doubles while C remains unchanged.",
+      "requiresDiagram": false
+    },
+    {
+      "id": "phy-u1-bb-13",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 73,
+      "question": "A parallel plate capacitor stores a charge Q at a voltage V. Suppose the area of the parallel plate capacitor and the distance between the plates are each doubled then which is the quantity that will change?",
+      "options": [
+        "Capacitance",
+        "Charge",
+        "Voltage",
+        "Energy density"
+      ],
+      "correctIndex": 3,
+      "explanation": "C = \\varepsilon_0 (2A)/(2d) = C (unchanged), so Q and V remain unchanged. But energy density u_E = \\frac{1}{2}\\varepsilon_0 E^2 = \\frac{1}{2}\\varepsilon_0 (V/d)^2 decreases by a factor of 4 because d is doubled.",
+      "requiresDiagram": false
+    },
+    {
+      "id": "phy-u1-bb-14",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 73,
+      "question": "Three capacitors are connected in triangle as shown in the figure. The equivalent capacitance between the points A and C is (where top branch has two 2 \\mu\\text{F} in series, and bottom branch has 1 \\mu\\text{F})",
+      "options": [
+        "1\\text{ }\\mu\\text{F}",
+        "2\\text{ }\\mu\\text{F}",
+        "3\\text{ }\\mu\\text{F}",
+        "\\frac{1}{4}\\text{ }\\mu\\text{F}"
+      ],
+      "correctIndex": 1,
+      "explanation": "The two 2 \\mu\\text{F} capacitors along paths AB and BC are in series across AC: C_s = (2 \\times 2)/(2 + 2) = 1 \\mu\\text{F}. This is in parallel with the 1 \\mu\\text{F} capacitor between A and C: C_{AC} = 1 + 1 = 2 \\mu\\text{F}.",
+      "requiresDiagram": true
+    },
+    {
+      "id": "phy-u1-bb-15",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "sourcePage": 73,
+      "question": "Two metallic spheres of radii 1 cm and 3 cm are given charges of -1 \\times 10^{-2}\\text{ C} and 5 \\times 10^{-2}\\text{ C} respectively. If these are connected by a conducting wire, the final charge on the bigger sphere is",
+      "options": [
+        "3 \\times 10^{-2}\\text{ C}",
+        "4 \\times 10^{-2}\\text{ C}",
+        "1 \\times 10^{-2}\\text{ C}",
+        "2 \\times 10^{-2}\\text{ C}"
+      ],
+      "correctIndex": 0,
+      "explanation": "Total charge Q = -1 \\times 10^{-2} + 5 \\times 10^{-2} = 4 \\times 10^{-2}\\text{ C}. Since potentials equalize, q_2 = Q \\frac{r_2}{r_1 + r_2} = (4 \\times 10^{-2})\\frac{3}{1+3} = 3 \\times 10^{-2}\\text{ C}.",
+      "requiresDiagram": false
+    }
+  ],
+  "formulaBank": [
+    {
+      "id": "phy-u1-f01-charge-quantisation",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Quantisation of Electric Charge",
+      "sourcePage": 4,
+      "lhs": "q",
+      "rhs": "ne",
+      "latex": "q = ne",
+      "siUnit": "C",
+      "dimensionalFormula": "[A T]",
+      "symbols": {
+        "q": "Total electric charge",
+        "n": "Integer (0, \\pm 1, \\pm 2, ...)",
+        "e": "Elementary charge (1.602 \\times 10^{-19} C)"
+      },
+      "formulaQuestion": {
+        "question": "Which relation represents the quantisation of electric charge?",
+        "options": [
+          "q = ne",
+          "q = \\frac{n}{e}",
+          "q = \\frac{e}{n}",
+          "q = n^2 e"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of electric charge?",
+        "options": ["Coulomb (C)", "Ampere (A)", "Volt (V)", "Farad (F)"],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f02-coulombs-law",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Coulomb's Inverse Square Law",
+      "sourcePage": 4,
+      "lhs": "F",
+      "rhs": "\\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r^2}",
+      "latex": "F = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r^2}",
+      "siUnit": "N",
+      "dimensionalFormula": "[M L T^{-2}]",
+      "symbols": {
+        "F": "Electrostatic force",
+        "q_1, q_2": "Point charges",
+        "r": "Distance between charges",
+        "\\varepsilon_0": "Permittivity of free space"
+      },
+      "formulaQuestion": {
+        "question": "What is the magnitude of the electrostatic force between two point charges in vacuum?",
+        "options": [
+          "F = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r^2}",
+          "F = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r}",
+          "F = 4\\pi\\varepsilon_0 \\frac{q_1 q_2}{r^2}",
+          "F = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1^2 q_2^2}{r^2}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of permittivity of free space (\\varepsilon_0)?",
+        "options": [
+          "C^2 N^{-1} m^{-2}",
+          "N m^2 C^{-2}",
+          "N C^{-1}",
+          "C m"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f03-electric-field-point-charge",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Field due to a Point Charge",
+      "sourcePage": 12,
+      "lhs": "E",
+      "rhs": "\\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r^2}",
+      "latex": "E = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r^2}",
+      "siUnit": "N C^{-1} \\text{ or } V m^{-1}",
+      "dimensionalFormula": "[M L T^{-3} A^{-1}]",
+      "symbols": {
+        "E": "Electric field intensity",
+        "q": "Source charge",
+        "r": "Distance from source charge",
+        "\\varepsilon_0": "Permittivity of free space"
+      },
+      "formulaQuestion": {
+        "question": "The magnitude of the electric field at a distance r from a point charge q in vacuum is given by:",
+        "options": [
+          "E = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r^2}",
+          "E = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r}",
+          "E = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q^2}{r^2}",
+          "E = 4\\pi\\varepsilon_0 \\frac{q}{r^2}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of electric field intensity?",
+        "options": [
+          "N C^{-1}",
+          "N m",
+          "J C^{-1}",
+          "C m^{-1}"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f04-electric-dipole-moment",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Dipole Moment",
+      "sourcePage": 20,
+      "lhs": "p",
+      "rhs": "2qa",
+      "latex": "p = 2qa",
+      "siUnit": "C m",
+      "dimensionalFormula": "[M^0 L T A]",
+      "symbols": {
+        "p": "Magnitude of electric dipole moment",
+        "q": "Magnitude of either charge",
+        "2a": "Separation distance between the charges"
+      },
+      "formulaQuestion": {
+        "question": "The magnitude of the electric dipole moment of an electric dipole is defined as:",
+        "options": [
+          "p = 2qa",
+          "p = \\frac{q}{2a}",
+          "p = \\frac{2q}{a}",
+          "p = 2q^2 a"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of electric dipole moment?",
+        "options": ["coulomb metre (C m)", "coulomb per metre (C/m)", "newton per coulomb (N/C)", "joule per coulomb (J/C)"],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f05-field-dipole-axial",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Field on the Axial Line of a Dipole (r >> a)",
+      "sourcePage": 22,
+      "lhs": "E_{\\text{axial}}",
+      "rhs": "\\frac{1}{4\\pi\\varepsilon_0} \\frac{2p}{r^3}",
+      "latex": "E_{\\text{axial}} = \\frac{1}{4\\pi\\varepsilon_0} \\frac{2p}{r^3}",
+      "siUnit": "N C^{-1}",
+      "dimensionalFormula": "[M L T^{-3} A^{-1}]",
+      "symbols": {
+        "E_{\\text{axial}}": "Electric field along axial line",
+        "p": "Electric dipole moment",
+        "r": "Distance from centre of dipole"
+      },
+      "formulaQuestion": {
+        "question": "For a short electric dipole (r >> a), the electric field at a point on the axial line is:",
+        "options": [
+          "E = \\frac{1}{4\\pi\\varepsilon_0}\\frac{2p}{r^3}",
+          "E = \\frac{1}{4\\pi\\varepsilon_0}\\frac{p}{r^3}",
+          "E = \\frac{1}{4\\pi\\varepsilon_0}\\frac{2p}{r^2}",
+          "E = \\frac{1}{4\\pi\\varepsilon_0}\\frac{p}{r^2}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "How does the electric field of a short dipole vary with distance r along the axial line?",
+        "options": [
+          "E \\propto \\frac{1}{r^3}",
+          "E \\propto \\frac{1}{r^2}",
+          "E \\propto \\frac{1}{r}",
+          "E \\propto r^3"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f06-field-dipole-equatorial",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Field on Equatorial Plane of a Dipole (r >> a)",
+      "sourcePage": 23,
+      "lhs": "E_{\\text{equatorial}}",
+      "rhs": "-\\frac{1}{4\\pi\\varepsilon_0} \\frac{p}{r^3}",
+      "latex": "\\vec{E}_{\\text{tot}} = -\\frac{1}{4\\pi\\varepsilon_0} \\frac{\\vec{p}}{r^3}",
+      "siUnit": "N C^{-1}",
+      "dimensionalFormula": "[M L T^{-3} A^{-1}]",
+      "symbols": {
+        "E_{\\text{equatorial}}": "Electric field on equatorial plane",
+        "p": "Electric dipole moment",
+        "r": "Distance from centre of dipole"
+      },
+      "formulaQuestion": {
+        "question": "For a short dipole at large distances, the magnitude of the electric field at an equatorial point is related to the axial field at the same distance by:",
+        "options": [
+          "E_{\\text{axial}} = 2 E_{\\text{equatorial}}",
+          "E_{\\text{axial}} = E_{\\text{equatorial}}",
+          "E_{\\text{equatorial}} = 2 E_{\\text{axial}}",
+          "E_{\\text{axial}} = 4 E_{\\text{equatorial}}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the direction of the electric field at any point on the equatorial line of an electric dipole?",
+        "options": [
+          "Opposite to the dipole moment vector",
+          "Along the dipole moment vector",
+          "Perpendicular to the dipole axis",
+          "Radially outward from the center"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f07-torque-dipole",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Torque on a Dipole in Uniform Electric Field",
+      "sourcePage": 24,
+      "lhs": "\\tau",
+      "rhs": "pE\\sin\\theta",
+      "latex": "\\vec{\\tau} = \\vec{p} \\times \\vec{E}",
+      "siUnit": "N m",
+      "dimensionalFormula": "[M L^2 T^{-2}]",
+      "symbols": {
+        "\\tau": "Torque",
+        "p": "Electric dipole moment",
+        "E": "Electric field",
+        "\\theta": "Angle between p and E"
+      },
+      "formulaQuestion": {
+        "question": "The torque acting on an electric dipole of moment \\vec{p} placed in a uniform electric field \\vec{E} is:",
+        "options": [
+          "\\vec{\\tau} = \\vec{p} \\times \\vec{E}",
+          "\\vec{\\tau} = \\vec{p} \\cdot \\vec{E}",
+          "\\vec{\\tau} = \\vec{E} \\times \\vec{p}",
+          "\\vec{\\tau} = pE \\hat{r}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of torque?",
+        "options": ["N m", "N m^{-1}", "J s", "N C^{-1}"],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f08-potential-energy-dipole",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Potential Energy of a Dipole in a Uniform Electric Field",
+      "sourcePage": 36,
+      "lhs": "U",
+      "rhs": "-pE\\cos\\theta",
+      "latex": "U = -\\vec{p} \\cdot \\vec{E}",
+      "siUnit": "J",
+      "dimensionalFormula": "[M L^2 T^{-2}]",
+      "symbols": {
+        "U": "Electrostatic potential energy",
+        "p": "Dipole moment",
+        "E": "Electric field",
+        "\\theta": "Orientation angle between p and E"
+      },
+      "formulaQuestion": {
+        "question": "The potential energy stored in an electric dipole placed in a uniform electric field is:",
+        "options": [
+          "U = -\\vec{p} \\cdot \\vec{E}",
+          "U = \\vec{p} \\times \\vec{E}",
+          "U = pE\\sin\\theta",
+          "U = \\frac{pE}{2}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "At what orientation is the potential energy of a dipole in a uniform electric field minimum (most stable)?",
+        "options": [
+          "\\theta = 0^\\circ",
+          "\\theta = 90^\\circ",
+          "\\theta = 180^\\circ",
+          "\\theta = 270^\\circ"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f09-potential-point-charge",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Potential due to a Point Charge",
+      "sourcePage": 27,
+      "lhs": "V",
+      "rhs": "\\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r}",
+      "latex": "V = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r}",
+      "siUnit": "V \\text{ or } J C^{-1}",
+      "dimensionalFormula": "[M L^2 T^{-3} A^{-1}]",
+      "symbols": {
+        "V": "Electrostatic potential",
+        "q": "Source charge",
+        "r": "Distance from source charge"
+      },
+      "formulaQuestion": {
+        "question": "The electric potential V at a distance r from an isolated point charge q is:",
+        "options": [
+          "V = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r}",
+          "V = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q}{r^2}",
+          "V = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q^2}{r}",
+          "V = 4\\pi\\varepsilon_0 \\frac{q}{r}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "Which of the following is an equivalent unit for the volt (V)?",
+        "options": [
+          "J C^{-1}",
+          "N C^{-1}",
+          "J m^{-1}",
+          "C V^{-1}"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f10-field-potential-gradient",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Relation between Electric Field and Potential",
+      "sourcePage": 32,
+      "lhs": "E",
+      "rhs": "-\\frac{dV}{dx}",
+      "latex": "E = -\\frac{dV}{dx}",
+      "siUnit": "V m^{-1} \\text{ or } N C^{-1}",
+      "dimensionalFormula": "[M L T^{-3} A^{-1}]",
+      "symbols": {
+        "E": "Electric field",
+        "dV/dx": "Potential gradient",
+        "-": "Sign indicating E points in direction of decreasing V"
+      },
+      "formulaQuestion": {
+        "question": "The relationship between electric field E and electrostatic potential V is expressed as:",
+        "options": [
+          "E = -\\frac{dV}{dx}",
+          "E = \\frac{dV}{dx}",
+          "V = -\\frac{dE}{dx}",
+          "E = -\\int V dx"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "The SI unit of potential gradient is:",
+        "options": [
+          "V m^{-1}",
+          "V m",
+          "V C^{-1}",
+          "J m^{-1}"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f11-potential-energy-system",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Potential Energy of Two Point Charges",
+      "sourcePage": 33,
+      "lhs": "U",
+      "rhs": "\\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r}",
+      "latex": "U = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r}",
+      "siUnit": "J",
+      "dimensionalFormula": "[M L^2 T^{-2}]",
+      "symbols": {
+        "U": "Electrostatic potential energy",
+        "q_1, q_2": "Point charges",
+        "r": "Distance between charges"
+      },
+      "formulaQuestion": {
+        "question": "What is the electrostatic potential energy of two point charges q_1 and q_2 separated by a distance r in free space?",
+        "options": [
+          "U = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r}",
+          "U = \\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r^2}",
+          "U = -\\frac{1}{4\\pi\\varepsilon_0} \\frac{q_1 q_2}{r^2}",
+          "U = 4\\pi\\varepsilon_0 \\frac{q_1 q_2}{r}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "1 electron volt (eV) converted into joules is:",
+        "options": [
+          "1.602 \\times 10^{-19}\\text{ J}",
+          "1.602 \\times 10^{-21}\\text{ J}",
+          "9.11 \\times 10^{-31}\\text{ J}",
+          "6.626 \\times 10^{-34}\\text{ J}"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f12-electric-flux",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Flux",
+      "sourcePage": 37,
+      "lhs": "\\Phi_E",
+      "rhs": "EA\\cos\\theta",
+      "latex": "\\Phi_E = \\vec{E} \\cdot \\vec{A} = EA\\cos\\theta",
+      "siUnit": "N m^2 C^{-1}",
+      "dimensionalFormula": "[M L^3 T^{-3} A^{-1}]",
+      "symbols": {
+        "\\Phi_E": "Electric flux",
+        "E": "Electric field",
+        "A": "Surface area",
+        "\\theta": "Angle between electric field and normal to the area"
+      },
+      "formulaQuestion": {
+        "question": "The electric flux through a flat surface of area A in a uniform electric field E is given by:",
+        "options": [
+          "\\Phi_E = EA\\cos\\theta",
+          "\\Phi_E = EA\\sin\\theta",
+          "\\Phi_E = \\frac{E}{A}\\cos\\theta",
+          "\\Phi_E = \\frac{A}{E}\\cos\\theta"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of electric flux?",
+        "options": [
+          "N m^2 C^{-1}",
+          "N m C^{-1}",
+          "N C^{-1}",
+          "N m^2 C"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f13-gauss-law",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Gauss's Law",
+      "sourcePage": 40,
+      "lhs": "\\Phi_E",
+      "rhs": "\\frac{Q_{\\text{encl}}}{\\varepsilon_0}",
+      "latex": "\\oint \\vec{E} \\cdot d\\vec{A} = \\frac{Q_{\\text{encl}}}{\\varepsilon_0}",
+      "siUnit": "N m^2 C^{-1}",
+      "dimensionalFormula": "[M L^3 T^{-3} A^{-1}]",
+      "symbols": {
+        "\\Phi_E": "Total electric flux through closed surface",
+        "Q_{\\text{encl}}": "Net charge enclosed by the closed surface",
+        "\\varepsilon_0": "Permittivity of free space"
+      },
+      "formulaQuestion": {
+        "question": "According to Gauss's law, the total electric flux linked with any closed surface is:",
+        "options": [
+          "\\Phi_E = \\frac{Q_{\\text{encl}}}{\\varepsilon_0}",
+          "\\Phi_E = \\varepsilon_0 Q_{\\text{encl}}",
+          "\\Phi_E = \\frac{\\varepsilon_0}{Q_{\\text{encl}}}",
+          "\\Phi_E = 4\\pi\\varepsilon_0 Q_{\\text{encl}}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "If the net charge enclosed by a closed Gaussian surface is zero, what is the total electric flux crossing it?",
+        "options": [
+          "Zero",
+          "\\infty",
+          "1",
+          "Depends on surface shape"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f14-field-infinite-wire",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Field due to an Infinitely Long Charged Wire",
+      "sourcePage": 43,
+      "lhs": "E",
+      "rhs": "\\frac{\\lambda}{2\\pi\\varepsilon_0 r}",
+      "latex": "E = \\frac{1}{2\\pi\\varepsilon_0} \\frac{\\lambda}{r}",
+      "siUnit": "N C^{-1}",
+      "dimensionalFormula": "[M L T^{-3} A^{-1}]",
+      "symbols": {
+        "E": "Electric field",
+        "\\lambda": "Linear charge density",
+        "r": "Perpendicular distance from wire"
+      },
+      "formulaQuestion": {
+        "question": "The electric field produced by an infinitely long straight wire of uniform linear charge density \\lambda at distance r is:",
+        "options": [
+          "E = \\frac{\\lambda}{2\\pi\\varepsilon_0 r}",
+          "E = \\frac{\\lambda}{4\\pi\\varepsilon_0 r^2}",
+          "E = \\frac{\\lambda}{2\\pi\\varepsilon_0 r^2}",
+          "E = \\frac{2\\lambda}{\\pi\\varepsilon_0 r}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of linear charge density (\\lambda)?",
+        "options": [
+          "C m^{-1}",
+          "C m^{-2}",
+          "C m^{-3}",
+          "C m"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f15-field-infinite-sheet",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electric Field due to an Infinite Charged Plane Sheet",
+      "sourcePage": 44,
+      "lhs": "E",
+      "rhs": "\\frac{\\sigma}{2\\varepsilon_0}",
+      "latex": "E = \\frac{\\sigma}{2\\varepsilon_0}",
+      "siUnit": "N C^{-1}",
+      "dimensionalFormula": "[M L T^{-3} A^{-1}]",
+      "symbols": {
+        "E": "Electric field",
+        "\\sigma": "Surface charge density",
+        "\\varepsilon_0": "Permittivity of free space"
+      },
+      "formulaQuestion": {
+        "question": "The electric field due to an infinite plane sheet of charge with uniform surface charge density \\sigma is:",
+        "options": [
+          "E = \\frac{\\sigma}{2\\varepsilon_0}",
+          "E = \\frac{\\sigma}{\\varepsilon_0}",
+          "E = \\frac{2\\sigma}{\\varepsilon_0}",
+          "E = \\frac{\\sigma}{4\\pi\\varepsilon_0}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of surface charge density (\\sigma)?",
+        "options": [
+          "C m^{-2}",
+          "C m^{-1}",
+          "C m^{-3}",
+          "C m"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f16-capacitance-definition",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Capacitance of a Capacitor",
+      "sourcePage": 54,
+      "lhs": "C",
+      "rhs": "\\frac{Q}{V}",
+      "latex": "C = \\frac{Q}{V}",
+      "siUnit": "F \\text{ or } C V^{-1}",
+      "dimensionalFormula": "[M^{-1} L^{-2} T^4 A^2]",
+      "symbols": {
+        "C": "Capacitance",
+        "Q": "Magnitude of charge on either plate",
+        "V": "Potential difference between plates"
+      },
+      "formulaQuestion": {
+        "question": "The capacitance of a capacitor is defined by the formula:",
+        "options": [
+          "C = \\frac{Q}{V}",
+          "C = QV",
+          "C = \\frac{V}{Q}",
+          "C = \\frac{Q^2}{V}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of capacitance?",
+        "options": ["farad (F)", "coulomb (C)", "volt (V)", "henry (H)"],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f17-capacitance-parallel-plate",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Capacitance of a Parallel Plate Capacitor",
+      "sourcePage": 55,
+      "lhs": "C",
+      "rhs": "\\frac{\\varepsilon_0 A}{d}",
+      "latex": "C = \\frac{\\varepsilon_0 A}{d}",
+      "siUnit": "F",
+      "dimensionalFormula": "[M^{-1} L^{-2} T^4 A^2]",
+      "symbols": {
+        "C": "Capacitance",
+        "A": "Area of each plate",
+        "d": "Separation distance between plates",
+        "\\varepsilon_0": "Permittivity of free space"
+      },
+      "formulaQuestion": {
+        "question": "The capacitance of a parallel plate capacitor in air or vacuum is given by:",
+        "options": [
+          "C = \\frac{\\varepsilon_0 A}{d}",
+          "C = \\frac{\\varepsilon_0 d}{A}",
+          "C = \\frac{A}{\\varepsilon_0 d}",
+          "C = \\varepsilon_0 A d"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "If the space between the plates of a parallel plate capacitor is filled with a dielectric of relative permittivity \\varepsilon_r, the capacitance becomes:",
+        "options": [
+          "\\varepsilon_r C_0",
+          "\\frac{C_0}{\\varepsilon_r}",
+          "C_0 + \\varepsilon_r",
+          "C_0 - \\varepsilon_r"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f18-energy-capacitor",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Energy Stored in a Capacitor",
+      "sourcePage": 56,
+      "lhs": "U_E",
+      "rhs": "\\frac{1}{2}CV^2",
+      "latex": "U_E = \\frac{1}{2}CV^2 = \\frac{Q^2}{2C} = \\frac{1}{2}QV",
+      "siUnit": "J",
+      "dimensionalFormula": "[M L^2 T^{-2}]",
+      "symbols": {
+        "U_E": "Stored electrostatic potential energy",
+        "C": "Capacitance",
+        "V": "Potential difference",
+        "Q": "Charge on capacitor"
+      },
+      "formulaQuestion": {
+        "question": "Which of the following expressions represents the energy stored in a charged capacitor?",
+        "options": [
+          "U = \\frac{1}{2}CV^2",
+          "U = \\frac{1}{2}C^2 V",
+          "U = 2CV^2",
+          "U = \\frac{1}{2}\\frac{C}{V^2}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "Where is the energy stored in a charged capacitor?",
+        "options": [
+          "In the electric field between the plates",
+          "On the surface of the positive plate only",
+          "Inside the metallic conductor",
+          "In the connecting wires"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f19-energy-density-field",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Electrostatic Energy Density",
+      "sourcePage": 56,
+      "lhs": "u_E",
+      "rhs": "\\frac{1}{2}\\varepsilon_0 E^2",
+      "latex": "u_E = \\frac{1}{2}\\varepsilon_0 E^2",
+      "siUnit": "J m^{-3}",
+      "dimensionalFormula": "[M L^{-1} T^{-2}]",
+      "symbols": {
+        "u_E": "Energy stored per unit volume",
+        "\\varepsilon_0": "Permittivity of free space",
+        "E": "Electric field"
+      },
+      "formulaQuestion": {
+        "question": "The energy density (energy per unit volume) in an electric field in vacuum is:",
+        "options": [
+          "u_E = \\frac{1}{2}\\varepsilon_0 E^2",
+          "u_E = \\varepsilon_0 E^2",
+          "u_E = \\frac{1}{2}\\frac{E^2}{\\varepsilon_0}",
+          "u_E = 2\\varepsilon_0 E^2"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "What is the SI unit of electrostatic energy density?",
+        "options": [
+          "J m^{-3}",
+          "J m^{-2}",
+          "N m^{-2}",
+          "W m^{-3}"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f20-capacitors-series",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Capacitors in Series Combination",
+      "sourcePage": 61,
+      "lhs": "\\frac{1}{C_s}",
+      "rhs": "\\frac{1}{C_1} + \\frac{1}{C_2} + \\frac{1}{C_3}",
+      "latex": "\\frac{1}{C_s} = \\frac{1}{C_1} + \\frac{1}{C_2} + \\frac{1}{C_3}",
+      "siUnit": "F",
+      "dimensionalFormula": "[M^{-1} L^{-2} T^4 A^2]",
+      "symbols": {
+        "C_s": "Equivalent capacitance in series",
+        "C_1, C_2, C_3": "Individual capacitances"
+      },
+      "formulaQuestion": {
+        "question": "The equivalent capacitance C_s of three capacitors C_1, C_2, C_3 connected in series is given by:",
+        "options": [
+          "\\frac{1}{C_s} = \\frac{1}{C_1} + \\frac{1}{C_2} + \\frac{1}{C_3}",
+          "C_s = C_1 + C_2 + C_3",
+          "C_s = \\frac{C_1 C_2 C_3}{C_1 + C_2 + C_3}",
+          "\\frac{1}{C_s} = C_1 + C_2 + C_3"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "In a series combination of capacitors, which quantity remains the same across each capacitor?",
+        "options": [
+          "Charge",
+          "Voltage",
+          "Energy",
+          "Capacitance"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f21-capacitors-parallel",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Capacitors in Parallel Combination",
+      "sourcePage": 62,
+      "lhs": "C_p",
+      "rhs": "C_1 + C_2 + C_3",
+      "latex": "C_p = C_1 + C_2 + C_3",
+      "siUnit": "F",
+      "dimensionalFormula": "[M^{-1} L^{-2} T^4 A^2]",
+      "symbols": {
+        "C_p": "Equivalent capacitance in parallel",
+        "C_1, C_2, C_3": "Individual capacitances"
+      },
+      "formulaQuestion": {
+        "question": "The equivalent capacitance C_p of three capacitors connected in parallel is:",
+        "options": [
+          "C_p = C_1 + C_2 + C_3",
+          "\\frac{1}{C_p} = \\frac{1}{C_1} + \\frac{1}{C_2} + \\frac{1}{C_3}",
+          "C_p = \\frac{C_1 + C_2 + C_3}{3}",
+          "C_p = (C_1 C_2 C_3)^{1/3}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "In a parallel combination of capacitors, which quantity remains the same across each capacitor?",
+        "options": [
+          "Voltage",
+          "Charge",
+          "Energy",
+          "Current"
+        ],
+        "correctIndex": 0
+      }
+    },
+    {
+      "id": "phy-u1-f22-corona-discharge",
+      "unit": 1,
+      "chapter": "Electrostatics",
+      "concept": "Action of Points / Surface Charge Density Relation",
+      "sourcePage": 63,
+      "lhs": "\\sigma r",
+      "rhs": "\\text{constant}",
+      "latex": "\\sigma r = \\text{constant}",
+      "siUnit": "C m^{-1}",
+      "dimensionalFormula": "[M^0 L^{-1} T A]",
+      "symbols": {
+        "\\sigma": "Surface charge density",
+        "r": "Radius of curvature of conductor"
+      },
+      "formulaQuestion": {
+        "question": "For a charged conductor in electrostatic equilibrium, the surface charge density \\sigma and radius of curvature r are related as:",
+        "options": [
+          "\\sigma r = \\text{constant}",
+          "\\frac{\\sigma}{r} = \\text{constant}",
+          "\\sigma r^2 = \\text{constant}",
+          "\\frac{\\sigma}{r^2} = \\text{constant}"
+        ],
+        "correctIndex": 0
+      },
+      "unitQuestion": {
+        "question": "The action of points or corona discharge is utilized in which of the following devices?",
+        "options": [
+          "Van de Graaff generator and lightning arrester",
+          "Cyclotron",
+          "Transformer",
+          "Moving coil galvanometer"
+        ],
+        "correctIndex": 0
+      }
+    }
+  ]
+}

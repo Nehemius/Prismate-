@@ -236,18 +236,19 @@ export const NavDock: React.FC = () => {
             <button
               key={item.id}
               onClick={() => handleItemClick(item.id)}
+              onDoubleClick={isEditable ? () => setPromptTarget(item.id) : undefined}
               onContextMenu={isEditable ? (e) => handleItemContextMenu(e, item.id) : undefined}
               onPointerDown={isEditable ? () => handleItemPointerDown(item.id) : undefined}
               onPointerUp={isEditable ? handleItemPointerUp : undefined}
               onPointerLeave={isEditable ? handleItemPointerUp : undefined}
               aria-label={
                 isEditable
-                  ? `Switch to ${item.label} (Long-press or Right-click for Edit Mode)`
+                  ? `Switch to ${item.label} (Double-click, Long-press, or Right-click for Edit Mode)`
                   : `Switch to ${item.label}`
               }
               title={
                 isEditable
-                  ? `${item.label} (Right-click or Long-press for Edit Mode)`
+                  ? `${item.label} (Double-click, Right-click, or Long-press for Edit Mode)`
                   : item.label
               }
               style={{
@@ -255,7 +256,7 @@ export const NavDock: React.FC = () => {
                 height: '52px',
                 borderRadius: '20px',
                 background: isActive ? '#F2F2F2' : 'transparent',
-                border: isItemInEditMode ? '1.5px dashed #EB104B' : 'none',
+                border: isItemInEditMode ? '1.5px dashed #F2F2F2' : 'none',
                 color: isActive ? '#000000' : 'rgba(242, 242, 242, 0.75)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -294,6 +295,50 @@ export const NavDock: React.FC = () => {
             </button>
           );
         })}
+
+        {/* Discrete Edit Shortcut Button (§12 accessible alternative) */}
+        {currentScreen !== 'profile' && (
+          <button
+            onClick={() => setPromptTarget(currentScreen)}
+            aria-label={editModeScreen === currentScreen ? 'Exit Edit Mode' : 'Enter Edit Mode'}
+            title={
+              editModeScreen === currentScreen
+                ? 'Exit Edit Mode'
+                : 'Edit Layout (Double-click or Long-press also supported)'
+            }
+            style={{
+              marginTop: '4px',
+              width: '44px',
+              height: '32px',
+              borderRadius: '12px',
+              background: editModeScreen === currentScreen ? '#F2F2F2' : 'rgba(242, 242, 242, 0.08)',
+              border: '1px solid rgba(242, 242, 242, 0.22)',
+              color: editModeScreen === currentScreen ? '#000000' : 'rgba(242, 242, 242, 0.75)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              fontFamily: 'var(--font-heading)',
+              fontSize: '11px',
+              letterSpacing: '0.5px',
+              transition: 'all 0.2s ease',
+            }}
+            onMouseEnter={(e) => {
+              if (editModeScreen !== currentScreen) {
+                e.currentTarget.style.background = 'rgba(242, 242, 242, 0.2)';
+                e.currentTarget.style.color = '#F2F2F2';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (editModeScreen !== currentScreen) {
+                e.currentTarget.style.background = 'rgba(242, 242, 242, 0.08)';
+                e.currentTarget.style.color = 'rgba(242, 242, 242, 0.75)';
+              }
+            }}
+          >
+            ✎
+          </button>
+        )}
       </nav>
 
       {/* ── Edit Mode Confirmation Modal (§5.1, §6.1, PRISMATE_FIXES.md §1.2) */}

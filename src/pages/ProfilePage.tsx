@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { ScreenType, ListType } from '../types/prismate';
 import { useApp } from '../context/AppContext';
+import { isSupabaseConfigured } from '../lib/supabase';
 
 /**
  * ProfilePage — Conventional Settings & Master List Manager
@@ -312,6 +313,57 @@ export const ProfilePage: React.FC = () => {
             <option value="physics" style={{ background: '#000' }}>PHYSICS</option>
             <option value="mathematics" style={{ background: '#000' }}>MATHEMATICS</option>
           </select>
+        </div>
+
+        {/* Supabase Connection Status */}
+        <div
+          style={{
+            background: 'rgba(242,242,242,0.04)',
+            border: '1px solid rgba(242,242,242,0.14)',
+            borderRadius: '8px',
+            padding: '12px 14px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+          }}
+        >
+          <div>
+            <p
+              style={{
+                fontFamily: 'var(--font-subheading)',
+                fontSize: '11px',
+                color: 'rgba(242,242,242,0.5)',
+                letterSpacing: '1px',
+                margin: 0,
+              }}
+            >
+              DATABASE ENGINE
+            </p>
+            <p
+              style={{
+                fontFamily: 'var(--font-content)',
+                fontSize: '12px',
+                color: isSupabaseConfigured ? '#F2F2F2' : 'rgba(242,242,242,0.7)',
+                margin: '2px 0 0',
+              }}
+            >
+              {isSupabaseConfigured ? 'Supabase PostgreSQL' : 'Local Storage (Offline)'}
+            </p>
+          </div>
+          <span
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: '10px',
+              letterSpacing: '1px',
+              color: isSupabaseConfigured ? '#000000' : '#F2F2F2',
+              background: isSupabaseConfigured ? '#F2F2F2' : 'rgba(242,242,242,0.12)',
+              border: '1px solid rgba(242,242,242,0.25)',
+              padding: '4px 8px',
+              borderRadius: '4px',
+            }}
+          >
+            {isSupabaseConfigured ? 'CONNECTED' : 'LOCAL CACHE'}
+          </span>
         </div>
 
         {/* Log Out */}

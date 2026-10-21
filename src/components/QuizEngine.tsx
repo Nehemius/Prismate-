@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { QuizQuestion, DifficultyLevel, ListType } from '../types/prismate';
 import { useApp } from '../context/AppContext';
 import UniversalLoader from './UniversalLoader';
+import { fetchQuestionsFromSupabase } from '../lib/supabase';
 
 /**
  * Universal Quiz Engine Component
@@ -25,6 +26,50 @@ interface QuizEngineProps {
 }
 
 type QuizPhase = 'setup' | 'loading' | 'countdown' | 'playing' | 'wither' | 'gameover';
+
+/** Cleanly format LaTeX symbols and math equations into readable unicode typography */
+function formatMathText(text: string): string {
+  if (!text) return '';
+  return text
+    .replace(/\\text\{([^}]+)\}/g, '$1')
+    .replace(/\\times/g, '×')
+    .replace(/\\cdot/g, '·')
+    .replace(/\\varepsilon_0/g, 'ε₀')
+    .replace(/\\varepsilon_r/g, 'εᵣ')
+    .replace(/\\varepsilon/g, 'ε')
+    .replace(/\\sigma/g, 'σ')
+    .replace(/\\pi/g, 'π')
+    .replace(/\\lambda/g, 'λ')
+    .replace(/\\mu/g, 'μ')
+    .replace(/\\tau/g, 'τ')
+    .replace(/\\theta/g, 'θ')
+    .replace(/\\Phi_E/g, 'Φ_E')
+    .replace(/\\Phi/g, 'Φ')
+    .replace(/\\vec\{([^}]+)\}/g, '$1⃗')
+    .replace(/\\hat\{([^}]+)\}/g, '$1̂')
+    .replace(/\\frac\{([^}]+)\}\{([^}]+)\}/g, '($1 / $2)')
+    .replace(/\\left\(/g, '(')
+    .replace(/\\right\)/g, ')')
+    .replace(/\\int_0\^2/g, '∫₀²')
+    .replace(/\\oint/g, '∮')
+    .replace(/\\propto/g, '∝')
+    .replace(/\\implies/g, '⟹')
+    .replace(/\\pm/g, '±')
+    .replace(/\\infty/g, '∞')
+    .replace(/\^\\circ/g, '°')
+    .replace(/\^2/g, '²')
+    .replace(/\^3/g, '³')
+    .replace(/\^4/g, '⁴')
+    .replace(/\^5/g, '⁵')
+    .replace(/\^\{-1\}/g, '⁻¹')
+    .replace(/\^\{-2\}/g, '⁻²')
+    .replace(/\^\{-3\}/g, '⁻³')
+    .replace(/\^\{-19\}/g, '⁻¹⁹')
+    .replace(/\^\{-21\}/g, '⁻²¹')
+    .replace(/\^\{-31\}/g, '⁻³¹')
+    .replace(/\^\{-34\}/g, '⁻³⁴')
+    .replace(/\\,/g, ' ');
+}
 
 // ─── 2D Canvas Particle-Wither Dissolve (§9.4) ──────────────────────────────
 const WitherCanvas: React.FC = () => {
@@ -95,6 +140,21 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
 }) => {
   const { addToList, isInList } = useApp();
 
+  // Loaded questions with Supabase live fetch and offline local fallback
+  const [loadedQuestions, setLoadedQuestions] = useState<QuizQuestion[]>(questions);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetchQuestionsFromSupabase(subject).then((remoteQuestions) => {
+      if (isMounted && remoteQuestions && remoteQuestions.length > 0) {
+        setLoadedQuestions(remoteQuestions);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [subject]);
+
   // Setup state
   const [selectedFilter, setSelectedFilter] = useState<'all' | ListType>('all');
   const [timeControl, setTimeControl] = useState(true);
@@ -113,14 +173,16 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
   const [wrongQuestionIds, setWrongQuestionIds] = useState<string[]>([]);
 
   const timerRef = useRef<number | null>(null);
+  const heartsRef = useRef<number>(3);
+  const isAnswerCheckedRef = useRef<boolean>(false);
 
   // Filter questions based on selection
-  const filteredQuestions = questions.filter((q) => {
+  const filteredQuestions = loadedQuestions.filter((q) => {
     if (selectedFilter === 'all') return true;
     return isInList(selectedFilter, q.question);
   });
 
-  const activeQuestions = filteredQuestions.length > 0 ? filteredQuestions : questions;
+  const activeQuestions = filteredQuestions.length > 0 ? filteredQuestions : loadedQuestions;
   const currentQ = activeQuestions[currentIndex];
 
   // Start sequence (§9.2: Loader with metadata -> Countdown -> Gameplay)
@@ -128,6 +190,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
     const h = difficulty === 'classic' ? 3 : difficulty === 'expert' ? 2 : 1;
     setHearts(h);
     setMaxHearts(h);
+    heartsRef.current = h;
+    isAnswerCheckedRef.current = false;
     setScore(0);
     setCurrentIndex(0);
     setWrongQuestionIds([]);
@@ -153,57 +217,74 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
     }
   }, [phase, countdown]);
 
-  const handleOptionSelect = useCallback((index: number) => {
-    if (isAnswerChecked) return;
-    setSelectedAnswer(index);
-    setIsAnswerChecked(true);
+  const handleOptionSelect = useCallback(
+    (index: number) => {
+      if (isAnswerCheckedRef.current) return;
+      isAnswerCheckedRef.current = true;
+      setSelectedAnswer(index);
+      setIsAnswerChecked(true);
 
-    const isCorrect = index === currentQ.correctIndex;
+      const isCorrect = index === currentQ.correctIndex;
 
-    if (isCorrect) {
-      setScore((s) => s + 100 + timeLeft * 5);
-      addToList('stronglist', {
-        subject,
-        category: 'question',
-        title: currentQ.question,
-        content: `Answer: ${currentQ.options[currentQ.correctIndex]}`,
-        source: `${title} (${currentQ.topic})`,
-      });
-    } else {
-      setWrongQuestionIds((prev) => [...prev, currentQ.id]);
-      setHearts((h) => {
-        const nextH = h - 1;
-        if (nextH <= 0) {
+      if (isCorrect) {
+        setScore((s) => s + 100 + timeLeft * 5);
+        addToList('stronglist', {
+          subject,
+          category: 'question',
+          title: currentQ.question,
+          content: `Answer: ${currentQ.options[currentQ.correctIndex]}`,
+          source: `${title} (${currentQ.topic})`,
+        });
+
+        setTimeout(() => {
+          if (currentIndex + 1 < activeQuestions.length) {
+            setCurrentIndex((idx) => idx + 1);
+            setSelectedAnswer(null);
+            isAnswerCheckedRef.current = false;
+            setIsAnswerChecked(false);
+            setTimeLeft(25);
+          } else {
+            setPhase('wither');
+            setTimeout(() => setPhase('gameover'), 1200);
+          }
+        }, 1000);
+      } else {
+        setWrongQuestionIds((prev) => [...prev, currentQ.id]);
+        const remainingHearts = heartsRef.current - 1;
+        heartsRef.current = remainingHearts;
+        setHearts(remainingHearts);
+
+        addToList('weaklist', {
+          subject,
+          category: 'question',
+          title: currentQ.question,
+          content: `Answer: ${currentQ.options[currentQ.correctIndex]}`,
+          source: `${title} (${currentQ.topic})`,
+        });
+
+        if (remainingHearts <= 0) {
           setTimeout(() => {
             setPhase('wither');
             setTimeout(() => setPhase('gameover'), 1200);
           }, 350);
-        }
-        return nextH;
-      });
-      addToList('weaklist', {
-        subject,
-        category: 'question',
-        title: currentQ.question,
-        content: `Answer: ${currentQ.options[currentQ.correctIndex]}`,
-        source: `${title} (${currentQ.topic})`,
-      });
-    }
-
-    setTimeout(() => {
-      if (hearts > 1 || isCorrect) {
-        if (currentIndex + 1 < activeQuestions.length) {
-          setCurrentIndex((idx) => idx + 1);
-          setSelectedAnswer(null);
-          setIsAnswerChecked(false);
-          setTimeLeft(25);
         } else {
-          setPhase('wither');
-          setTimeout(() => setPhase('gameover'), 1200);
+          setTimeout(() => {
+            if (currentIndex + 1 < activeQuestions.length) {
+              setCurrentIndex((idx) => idx + 1);
+              setSelectedAnswer(null);
+              isAnswerCheckedRef.current = false;
+              setIsAnswerChecked(false);
+              setTimeLeft(25);
+            } else {
+              setPhase('wither');
+              setTimeout(() => setPhase('gameover'), 1200);
+            }
+          }, 1100);
         }
       }
-    }, 1100);
-  }, [isAnswerChecked, currentQ, timeLeft, addToList, subject, title, hearts, currentIndex, activeQuestions.length]);
+    },
+    [currentQ, timeLeft, addToList, subject, title, currentIndex, activeQuestions.length]
+  );
 
   // Gameplay question countdown
   useEffect(() => {
@@ -581,6 +662,25 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
           </div>
 
           {/* Question Body */}
+          {currentQ.requiresDiagram && (
+            <div style={{ marginBottom: '12px' }}>
+              <span
+                style={{
+                  display: 'inline-block',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '11px',
+                  letterSpacing: '1.5px',
+                  color: 'rgba(242,242,242,0.85)',
+                  background: 'rgba(242,242,242,0.1)',
+                  border: '1px solid rgba(242,242,242,0.25)',
+                  padding: '4px 10px',
+                  borderRadius: '6px',
+                }}
+              >
+                FIGURE REQUIRED (REFER TO TEXTBOOK PG {currentQ.sourcePage ?? 71})
+              </span>
+            </div>
+          )}
           <h2
             style={{
               fontFamily: 'var(--font-content)',
@@ -591,7 +691,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               fontWeight: 500,
             }}
           >
-            {currentQ.question}
+            {formatMathText(currentQ.question)}
           </h2>
 
           {/* Options Grid (4 options in content font §9.3) */}
@@ -647,7 +747,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                   >
                     {['A', 'B', 'C', 'D'][idx]}.
                   </span>
-                  {opt}
+                  {formatMathText(opt)}
                 </button>
               );
             })}
@@ -664,7 +764,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                 lineHeight: 1.5,
               }}
             >
-              💡 {currentQ.explanation}
+              💡 {formatMathText(currentQ.explanation)}
             </p>
           )}
         </div>

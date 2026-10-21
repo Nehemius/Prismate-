@@ -43,10 +43,13 @@ const MainAppContent: React.FC = () => {
     defaultStartupScreen,
     globalLoader,
     triggerLoader,
+    inApp,
+    setInApp,
   } = useApp();
 
-  const [phase, setPhase] = useState<AppPhase>('loading');
-  const [inApp, setInApp] = useState(false);
+  const [phase, setPhase] = useState<AppPhase>(() => {
+    return inApp ? 'idle' : 'loading';
+  });
   const [loginModalOpen, setLoginModalOpen] = useState(false);
   const [waveCharge, setWaveCharge] = useState(0);
   const [tapBlinkVisible, setTapBlinkVisible] = useState(true);
@@ -69,12 +72,12 @@ const MainAppContent: React.FC = () => {
 
   // Phase 1 -> 2: After launch loader completes (2.0s)
   useEffect(() => {
-    if (phase !== 'loading') return;
+    if (phase !== 'loading' || inApp) return;
     const timer = setTimeout(() => {
       setPhase('prism-enter');
     }, 2000);
     return () => clearTimeout(timer);
-  }, [phase]);
+  }, [phase, inApp]);
 
   // Phase 2: Prism appears at exact center of screen
   useEffect(() => {
@@ -179,30 +182,35 @@ const MainAppContent: React.FC = () => {
     return () => cancelAnimationFrame(chargeRafRef.current);
   }, [phase, inApp]);
 
-  // When user logs out from inside the app, return to login screen
-  useEffect(() => {
-    if (!loggedInUser && inApp) {
-      setInApp(false);
-    }
-  }, [loggedInUser, inApp]);
-
   // TAP TO BEGIN: Triggers continuous loader and enters app
   const handleTapToBegin = useCallback(() => {
     if (!loggedInUser) {
       setLoginModalOpen(true);
     } else {
-      // Continuous loading transition into selected startup screen
       triggerLoader(950, () => {
         setInApp(true);
       });
       setCurrentScreen(defaultStartupScreen || 'chemistry');
     }
-  }, [loggedInUser, triggerLoader, setCurrentScreen, defaultStartupScreen]);
+  }, [loggedInUser, triggerLoader, setCurrentScreen, defaultStartupScreen, setInApp]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#000000' }}>
       {/* ── Continuous Universal Loader (Never resets, shared across entire app) */}
       <UniversalLoader visible={phase === 'loading' || globalLoader} />
+
+      {/* ── Global Wave Canvas (Flows in login and across all workspaces §3) */}
+      <WaveCanvas
+        ref={waveCanvasRef}
+        active={true}
+        style={{
+          position: 'fixed',
+          inset: 0,
+          zIndex: inApp ? 1 : 0,
+          pointerEvents: 'none',
+          opacity: inApp ? 0.38 : 1,
+        }}
+      />
 
       {/* ── Full Application Workspaces (Mounted when inApp is true) ─────── */}
       {inApp && (
@@ -222,11 +230,6 @@ const MainAppContent: React.FC = () => {
       {/* ── Login Screen (Hidden when inApp is true) ──────────────────────── */}
       {!inApp && (
         <>
-          {/* Motion.dev particle flow field background */}
-          <WaveCanvas
-            ref={waveCanvasRef}
-            active={phase !== 'loading'}
-          />
 
           {/* PRISMATE Logo Container */}
           <div
@@ -369,6 +372,10 @@ const MainAppContent: React.FC = () => {
             onLogin={(user) => {
               login(user);
               setLoginModalOpen(false);
+              triggerLoader(950, () => {
+                setInApp(true);
+              });
+              setCurrentScreen(defaultStartupScreen || 'chemistry');
             }}
           />
         </>

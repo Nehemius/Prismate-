@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import type { ScreenType, ListType, ListItem } from '../types/prismate';
 import { INITIAL_LIST_ITEMS } from '../data/mockData';
+import { syncListItemToSupabase, removeListItemFromSupabase } from '../lib/supabase';
 
 interface AppContextType {
   currentScreen: ScreenType;
@@ -27,14 +28,36 @@ interface AppContextType {
   isInList: (type: ListType, title: string) => boolean;
   globalLoader: boolean;
   triggerLoader: (durationMs?: number, onComplete?: () => void) => void;
+  inApp: boolean;
+  setInApp: (val: boolean) => void;
 }
 
 const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentScreen, setCurrentScreenState] = useState<ScreenType>('chemistry');
+  const [inApp, setInAppState] = useState<boolean>(() => {
+    return localStorage.getItem('prismate_in_app') === 'true';
+  });
+
+  const setInApp = useCallback((val: boolean) => {
+    setInAppState(val);
+    if (val) {
+      localStorage.setItem('prismate_in_app', 'true');
+    } else {
+      localStorage.removeItem('prismate_in_app');
+    }
+  }, []);
+
+  const [currentScreen, setCurrentScreenState] = useState<ScreenType>(() => {
+    const hash = window.location.hash.replace('#', '') as ScreenType;
+    if (['home', 'chemistry', 'physics', 'mathematics', 'profile'].includes(hash)) {
+      return hash;
+    }
+    const saved = localStorage.getItem('prismate_current_screen') as ScreenType | null;
+    return saved || 'chemistry';
+  });
   const [loggedInUser, setLoggedInUser] = useState<string | null>(() => {
-    return localStorage.getItem('prismate_active_user') || 'Aqua √X';
+    return localStorage.getItem('prismate_active_user') || null;
   });
   const [userAvatar, setUserAvatarState] = useState<string>(() => {
     return localStorage.getItem('prismate_user_avatar') || 'A';
@@ -71,9 +94,42 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   // Sync state to LocalStorage
   useEffect(() => {
-    if (loggedInUser) localStorage.setItem('prismate_active_user', loggedInUser);
-    else localStorage.removeItem('prismate_active_user');
+    if (loggedInUser) {
+      localStorage.setItem('prismate_active_user', loggedInUser);
+    } else {
+      localStorage.removeItem('prismate_active_user');
+    }
   }, [loggedInUser]);
+
+  useEffect(() => {
+    localStorage.setItem('prismate_current_screen', currentScreen);
+  }, [currentScreen]);
+
+  // Handle Android back button & browser back/forward without kicking to login
+  useEffect(() => {
+    if (inApp) {
+      const hash = window.location.hash.replace('#', '') || currentScreen;
+      window.history.replaceState({ screen: hash, inApp: true }, '', '#' + hash);
+    }
+
+    const handlePopState = (e: PopStateEvent) => {
+      if (e.state && e.state.screen) {
+        setCurrentScreenState(e.state.screen);
+        localStorage.setItem('prismate_current_screen', e.state.screen);
+      } else {
+        const hash = window.location.hash.replace('#', '') as ScreenType;
+        if (['home', 'chemistry', 'physics', 'mathematics', 'profile'].includes(hash)) {
+          setCurrentScreenState(hash);
+          localStorage.setItem('prismate_current_screen', hash);
+        } else if (inApp) {
+          // Stay inside the active session
+          window.history.pushState({ screen: currentScreen, inApp: true }, '', '#' + currentScreen);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, [inApp, currentScreen]);
 
   useEffect(() => {
     localStorage.setItem('prismate_user_avatar', userAvatar);
@@ -111,20 +167,29 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     (screen: ScreenType) => {
       triggerLoader(750, () => {
         setCurrentScreenState(screen);
+        localStorage.setItem('prismate_current_screen', screen);
+        window.history.pushState({ screen, inApp: true }, '', '#' + screen);
         setIsEditMode(false);
       });
     },
     [triggerLoader, setIsEditMode]
   );
 
-  const login = useCallback((username: string) => {
-    setLoggedInUser(username);
-  }, []);
+  const login = useCallback(
+    (username: string) => {
+      setLoggedInUser(username);
+      localStorage.setItem('prismate_active_user', username);
+      setInApp(true);
+    },
+    [setInApp]
+  );
 
   const logout = useCallback(() => {
     setLoggedInUser(null);
+    localStorage.removeItem('prismate_active_user');
+    setInApp(false);
     setIsEditMode(false);
-  }, [setIsEditMode]);
+  }, [setInApp, setIsEditMode]);
 
   const updateUsername = useCallback((name: string) => {
     setLoggedInUser(name);
@@ -151,13 +216,19 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     if (type === 'weaklist') setWeaklist((prev) => [newItem, ...prev.filter((i) => i.title !== itemData.title)]);
     if (type === 'stronglist') setStronglist((prev) => [newItem, ...prev.filter((i) => i.title !== itemData.title)]);
     if (type === 'studylist') setStudylist((prev) => [newItem, ...prev.filter((i) => i.title !== itemData.title)]);
-  }, []);
+
+    // Sync to Supabase in background
+    syncListItemToSupabase(loggedInUser || 'default_user', type, newItem).catch(() => {});
+  }, [loggedInUser]);
 
   const removeFromList = useCallback((type: ListType, itemId: string) => {
     if (type === 'weaklist') setWeaklist((prev) => prev.filter((i) => i.id !== itemId));
     if (type === 'stronglist') setStronglist((prev) => prev.filter((i) => i.id !== itemId));
     if (type === 'studylist') setStudylist((prev) => prev.filter((i) => i.id !== itemId));
-  }, []);
+
+    // Remove from Supabase in background
+    removeListItemFromSupabase(loggedInUser || 'default_user', type, itemId).catch(() => {});
+  }, [loggedInUser]);
 
   const isInList = useCallback(
     (type: ListType, title: string) => {
@@ -194,6 +265,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         isInList,
         globalLoader,
         triggerLoader,
+        inApp,
+        setInApp,
       }}
     >
       {children}

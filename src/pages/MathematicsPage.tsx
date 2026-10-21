@@ -4,6 +4,9 @@ import PapersModal from '../components/PapersModal';
 import QuizEngine from '../components/QuizEngine';
 import { INITIAL_QUESTIONS } from '../data/mockData';
 import { useApp } from '../context/AppContext';
+import GridGuides from '../components/GridGuides';
+import BentoEditToolbar from '../components/BentoEditToolbar';
+import GlowingTitle from '../components/GlowingTitle';
 
 /**
  * MathematicsPage — Tamil Nadu Class 11/12 Mathematics workspace.
@@ -76,12 +79,16 @@ const TILE_BASE: React.CSSProperties = {
 interface TileProps {
   block: MathBlock;
   isEditMode?: boolean;
+  isTargetHovered?: boolean;
+  isDragging?: boolean;
   onActivate: (id: string) => void;
 }
 
 const MathTile: React.FC<TileProps> = ({
   block,
   isEditMode,
+  isTargetHovered,
+  isDragging,
   onActivate,
 }) => {
   const [hovered, setHovered] = useState(false);
@@ -93,16 +100,23 @@ const MathTile: React.FC<TileProps> = ({
       aria-label={block.label}
       style={{
         ...TILE_BASE,
-        borderColor: isEditMode
+        borderColor: isTargetHovered
+          ? '#F2F2F2'
+          : isEditMode
           ? 'rgba(242,242,242,0.40)'
           : hovered
           ? 'rgba(242,242,242,0.30)'
           : 'rgba(242,242,242,0.10)',
-        borderStyle: isEditMode ? 'dashed' : 'solid',
+        borderStyle: isTargetHovered ? 'solid' : isEditMode ? 'dashed' : 'solid',
+        borderWidth: isTargetHovered ? '2px' : '1px',
+        boxShadow: isTargetHovered
+          ? '0 0 24px rgba(242,242,242,0.35), inset 0 1px 0 0 rgba(242,242,242,0.3)'
+          : TILE_BASE.boxShadow,
+        opacity: isDragging ? 0.35 : 1,
         background: hovered
           ? 'linear-gradient(135deg, rgba(26,26,26,0.92), rgba(38,38,38,0.78))'
           : (TILE_BASE.background as string),
-        transform: hovered ? 'translateY(-2px)' : 'none',
+        transform: hovered && !isEditMode ? 'translateY(-2px)' : 'none',
         cursor: isEditMode ? 'grab' : 'pointer',
       }}
       onMouseEnter={() => setHovered(true)}
@@ -115,6 +129,38 @@ const MathTile: React.FC<TileProps> = ({
         }
       }}
     >
+      {/* Drop Swap Indicator Overlay */}
+      {isTargetHovered && (
+        <div
+          style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.72)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 30,
+            pointerEvents: 'none',
+            borderRadius: '20px',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--font-heading)',
+              fontSize: '11px',
+              letterSpacing: '2px',
+              color: '#F2F2F2',
+              border: '1px solid #F2F2F2',
+              padding: '6px 14px',
+              borderRadius: '6px',
+              background: '#000000',
+            }}
+          >
+            ⇄ DROP TO SWAP
+          </span>
+        </div>
+      )}
+
       <div
         aria-hidden="true"
         style={{
@@ -174,18 +220,7 @@ const CentreTitleBlock: React.FC = () => (
       background: 'linear-gradient(135deg, rgba(20,20,20,0.95), rgba(10,10,10,0.85))',
     }}
   >
-    <h1
-      style={{
-        fontFamily: 'var(--font-heading)',
-        fontSize: 'clamp(22px, 2.4vw, 38px)',
-        color: '#F2F2F2',
-        letterSpacing: '6px',
-        textAlign: 'center',
-        fontWeight: 'normal',
-      }}
-    >
-      MATHEMATICS
-    </h1>
+    <GlowingTitle text="MATHEMATICS" fontSize="clamp(22px, 2.4vw, 38px)" />
   </div>
 );
 
@@ -201,17 +236,43 @@ export const MathematicsPage: React.FC = () => {
   });
 
   const draggedBlockId = useRef<string | null>(null);
+  const [dragOverTargetId, setDragOverTargetId] = useState<string | null>(null);
+  const [activeDragId, setActiveDragId] = useState<string | null>(null);
 
-  const handleDragStart = (id: string) => {
+  const handleDragStart = (e: React.DragEvent, id: string) => {
     if (!isEditMode) return;
     draggedBlockId.current = id;
+    setActiveDragId(id);
+    e.dataTransfer.setData('text/plain', id);
+    e.dataTransfer.effectAllowed = 'move';
   };
 
-  const handleDrop = (targetId: string) => {
-    if (!isEditMode || !draggedBlockId.current || draggedBlockId.current === targetId) return;
+  const handleDragOver = (e: React.DragEvent, id: string) => {
+    if (!isEditMode) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (dragOverTargetId !== id) {
+      setDragOverTargetId(id);
+    }
+  };
+
+  const handleDragLeave = (_e: React.DragEvent, id: string) => {
+    if (dragOverTargetId === id) {
+      setDragOverTargetId(null);
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    setDragOverTargetId(null);
+    setActiveDragId(null);
+    if (!isEditMode || targetId === 'centre-math') return;
+
+    const sourceId = e.dataTransfer.getData('text/plain') || draggedBlockId.current;
+    if (!sourceId || sourceId === targetId || sourceId === 'centre-math') return;
 
     setLayout((prev) => {
-      const sourceIdx = prev.findIndex((b) => b.id === draggedBlockId.current);
+      const sourceIdx = prev.findIndex((b) => b.id === sourceId);
       const targetIdx = prev.findIndex((b) => b.id === targetId);
       if (sourceIdx === -1 || targetIdx === -1) return prev;
 
@@ -228,6 +289,77 @@ export const MathematicsPage: React.FC = () => {
 
     draggedBlockId.current = null;
   };
+
+  // Resize block with bidirectional expansion (§6.1)
+  const resizeBlock = (id: string, colDelta: number, rowDelta: number) => {
+    setLayout((prev) => {
+      const next = prev.map((b) => {
+        if (b.id !== id) return b;
+        let [cStart, cEnd] = b.gridColumn.split('/').map((s) => parseInt(s.trim()));
+        let [rStart, rEnd] = b.gridRow.split('/').map((s) => parseInt(s.trim()));
+        if (isNaN(cEnd)) cEnd = cStart + 4;
+        if (isNaN(rEnd)) rEnd = rStart + 3;
+
+        let newStartCol = cStart;
+        let newEndCol = cEnd + colDelta;
+        let newStartRow = rStart;
+        let newEndRow = rEnd + rowDelta;
+
+        if (newEndCol > 17) {
+          const overflow = newEndCol - 17;
+          newEndCol = 17;
+          newStartCol = Math.max(1, newStartCol - overflow);
+        }
+        if (newEndCol - newStartCol < 2) {
+          if (colDelta < 0) newEndCol = newStartCol + 2;
+        }
+
+        if (newEndRow > 9) {
+          const overflow = newEndRow - 9;
+          newEndRow = 9;
+          newStartRow = Math.max(1, newStartRow - overflow);
+        }
+        if (newEndRow - newStartRow < 1) {
+          newEndRow = newStartRow + 1;
+        }
+
+        return {
+          ...b,
+          gridColumn: `${newStartCol} / ${newEndCol}`,
+          gridRow: `${newStartRow} / ${newEndRow}`,
+        };
+      });
+      localStorage.setItem('prismate_math_layout', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const moveBlock = (id: string, colShift: number, rowShift: number) => {
+    setLayout((prev) => {
+      const next = prev.map((b) => {
+        if (b.id !== id) return b;
+        const [cStart, cEnd] = b.gridColumn.split('/').map((s) => parseInt(s.trim()));
+        const [rStart, rEnd] = b.gridRow.split('/').map((s) => parseInt(s.trim()));
+        const cSpan = (isNaN(cEnd) ? cStart + 4 : cEnd) - cStart;
+        const rSpan = (isNaN(rEnd) ? rStart + 3 : rEnd) - rStart;
+        const newStartCol = Math.max(1, Math.min(17 - cSpan, cStart + colShift));
+        const newStartRow = Math.max(1, Math.min(9 - rSpan, rStart + rowShift));
+        return {
+          ...b,
+          gridColumn: `${newStartCol} / ${newStartCol + cSpan}`,
+          gridRow: `${newStartRow} / ${newStartRow + rSpan}`,
+        };
+      });
+      localStorage.setItem('prismate_math_layout', JSON.stringify(next));
+      return next;
+    });
+  };
+
+  const handleResetLayout = () => {
+    setLayout(DEFAULT_MATH_LAYOUT);
+    localStorage.removeItem('prismate_math_layout');
+  };
+
 
   const getPos = (id: string) => {
     const item = layout.find((b) => b.id === id);
@@ -273,6 +405,47 @@ export const MathematicsPage: React.FC = () => {
         }
       `}</style>
 
+      {/* ── Edit Workspace Trigger Button (§12 accessible alternative) ── */}
+      {!isEditMode && (
+        <button
+          onClick={() => setEditModeScreen('mathematics')}
+          title="Customize Mathematics Bento Grid"
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '24px',
+            zIndex: 900,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            background: 'rgba(15,15,15,0.75)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid rgba(242,242,242,0.22)',
+            borderRadius: '20px',
+            padding: '6px 14px',
+            color: 'rgba(242,242,242,0.85)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: '10px',
+            letterSpacing: '1.2px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = 'rgba(242,242,242,0.15)';
+            e.currentTarget.style.color = '#F2F2F2';
+            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.45)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = 'rgba(15,15,15,0.75)';
+            e.currentTarget.style.color = 'rgba(242,242,242,0.85)';
+            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.22)';
+          }}
+        >
+          <span>✎</span>
+          <span>EDIT WORKSPACE</span>
+        </button>
+      )}
+
       {/* ── Subject Edit Mode Indicator Banner (§6.1) ────────────────────── */}
       {isEditMode && (
         <div
@@ -284,11 +457,12 @@ export const MathematicsPage: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '12px',
-            background: 'rgba(20,20,20,0.85)',
+            background: 'rgba(20,20,20,0.92)',
             backdropFilter: 'blur(12px)',
             border: '1px solid rgba(242,242,242,0.3)',
             borderRadius: '24px',
             padding: '6px 16px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
           }}
         >
           <span
@@ -302,10 +476,7 @@ export const MathematicsPage: React.FC = () => {
             MATHEMATICS EDIT MODE: DRAG TO REPOSITION (CENTRE LOCKED)
           </span>
           <button
-            onClick={() => {
-              setLayout(DEFAULT_MATH_LAYOUT);
-              localStorage.removeItem('prismate_math_layout');
-            }}
+            onClick={handleResetLayout}
             style={{
               background: 'none',
               border: 'none',
@@ -313,6 +484,7 @@ export const MathematicsPage: React.FC = () => {
               fontSize: '10px',
               cursor: 'pointer',
               textDecoration: 'underline',
+              fontFamily: 'var(--font-subheading)',
             }}
           >
             RESET
@@ -324,10 +496,11 @@ export const MathematicsPage: React.FC = () => {
               color: '#000000',
               border: 'none',
               borderRadius: '12px',
-              padding: '4px 10px',
+              padding: '4px 12px',
               fontFamily: 'var(--font-heading)',
               fontSize: '10px',
               cursor: 'pointer',
+              fontWeight: 'bold',
             }}
           >
             DONE
@@ -339,6 +512,7 @@ export const MathematicsPage: React.FC = () => {
       <div
         className="prismate-mathematics-grid"
         style={{
+          position: 'relative',
           flex: 1,
           width: '100%',
           height: '100%',
@@ -350,75 +524,211 @@ export const MathematicsPage: React.FC = () => {
           boxSizing: 'border-box',
         }}
       >
+        {isEditMode && <GridGuides />}
         {/* Formula Quiz */}
         <div
-          style={getPos('formula-quiz')}
+          style={{ ...getPos('formula-quiz'), position: 'relative' }}
           draggable={isEditMode}
-          onDragStart={() => handleDragStart('formula-quiz')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('formula-quiz')}
+          onDragStart={(e) => handleDragStart(e, 'formula-quiz')}
+          onDragOver={(e) => handleDragOver(e, 'formula-quiz')}
+          onDragLeave={(e) => handleDragLeave(e, 'formula-quiz')}
+          onDrop={(e) => handleDrop(e, 'formula-quiz')}
         >
-          <MathTile block={MATH_BLOCKS[0]} isEditMode={isEditMode} onActivate={(id) => setActiveModal(id)} />
+          {isEditMode && (
+            <BentoEditToolbar
+              id="formula-quiz"
+              label="Formula Quiz"
+              gridColumn={layout.find((b) => b.id === 'formula-quiz')?.gridColumn || '1 / 11'}
+              gridRow={layout.find((b) => b.id === 'formula-quiz')?.gridRow || '1 / 4'}
+              onResize={resizeBlock}
+              onMove={moveBlock}
+              onDragStart={() => {
+                draggedBlockId.current = 'formula-quiz';
+                setActiveDragId('formula-quiz');
+              }}
+            />
+          )}
+          <MathTile
+            block={MATH_BLOCKS[0]}
+            isEditMode={isEditMode}
+            isTargetHovered={dragOverTargetId === 'formula-quiz'}
+            isDragging={activeDragId === 'formula-quiz'}
+            onActivate={(id) => setActiveModal(id)}
+          />
         </div>
 
         {/* BB One-Word Quiz */}
         <div
-          style={getPos('bb-quiz')}
+          style={{ ...getPos('bb-quiz'), position: 'relative' }}
           draggable={isEditMode}
-          onDragStart={() => handleDragStart('bb-quiz')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('bb-quiz')}
+          onDragStart={(e) => handleDragStart(e, 'bb-quiz')}
+          onDragOver={(e) => handleDragOver(e, 'bb-quiz')}
+          onDragLeave={(e) => handleDragLeave(e, 'bb-quiz')}
+          onDrop={(e) => handleDrop(e, 'bb-quiz')}
         >
-          <MathTile block={MATH_BLOCKS[1]} isEditMode={isEditMode} onActivate={(id) => setActiveModal(id)} />
+          {isEditMode && (
+            <BentoEditToolbar
+              id="bb-quiz"
+              label="BB One-Word Quiz"
+              gridColumn={layout.find((b) => b.id === 'bb-quiz')?.gridColumn || '11 / 17'}
+              gridRow={layout.find((b) => b.id === 'bb-quiz')?.gridRow || '1 / 4'}
+              onResize={resizeBlock}
+              onMove={moveBlock}
+              onDragStart={() => {
+                draggedBlockId.current = 'bb-quiz';
+                setActiveDragId('bb-quiz');
+              }}
+            />
+          )}
+          <MathTile
+            block={MATH_BLOCKS[1]}
+            isEditMode={isEditMode}
+            isTargetHovered={dragOverTargetId === 'bb-quiz'}
+            isDragging={activeDragId === 'bb-quiz'}
+            onActivate={(id) => setActiveModal(id)}
+          />
         </div>
 
         {/* PTA Question Papers */}
         <div
-          style={getPos('pta-qp')}
+          style={{ ...getPos('pta-qp'), position: 'relative' }}
           draggable={isEditMode}
-          onDragStart={() => handleDragStart('pta-qp')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('pta-qp')}
+          onDragStart={(e) => handleDragStart(e, 'pta-qp')}
+          onDragOver={(e) => handleDragOver(e, 'pta-qp')}
+          onDragLeave={(e) => handleDragLeave(e, 'pta-qp')}
+          onDrop={(e) => handleDrop(e, 'pta-qp')}
         >
-          <MathTile block={MATH_BLOCKS[2]} isEditMode={isEditMode} onActivate={(id) => setActiveModal(id)} />
+          {isEditMode && (
+            <BentoEditToolbar
+              id="pta-qp"
+              label="PTA Question Papers"
+              gridColumn={layout.find((b) => b.id === 'pta-qp')?.gridColumn || '1 / 6'}
+              gridRow={layout.find((b) => b.id === 'pta-qp')?.gridRow || '4 / 6'}
+              onResize={resizeBlock}
+              onMove={moveBlock}
+              onDragStart={() => {
+                draggedBlockId.current = 'pta-qp';
+                setActiveDragId('pta-qp');
+              }}
+            />
+          )}
+          <MathTile
+            block={MATH_BLOCKS[2]}
+            isEditMode={isEditMode}
+            isTargetHovered={dragOverTargetId === 'pta-qp'}
+            isDragging={activeDragId === 'pta-qp'}
+            onActivate={(id) => setActiveModal(id)}
+          />
         </div>
 
         {/* Row 4–5: Locked Centre Title Block — MATHEMATICS (6×2) */}
-        <div style={{ gridColumn: '6 / 12', gridRow: '4 / 6' }}>
+        <div style={{ gridColumn: '6 / 12', gridRow: '4 / 6', position: 'relative' }}>
+          {isEditMode && (
+            <BentoEditToolbar
+              id="centre-math"
+              label="MATHEMATICS"
+              gridColumn="6 / 12"
+              gridRow="4 / 6"
+              isLocked={true}
+            />
+          )}
           <CentreTitleBlock />
         </div>
 
         {/* Board Exam QP */}
         <div
-          style={getPos('board-qp')}
+          style={{ ...getPos('board-qp'), position: 'relative' }}
           draggable={isEditMode}
-          onDragStart={() => handleDragStart('board-qp')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('board-qp')}
+          onDragStart={(e) => handleDragStart(e, 'board-qp')}
+          onDragOver={(e) => handleDragOver(e, 'board-qp')}
+          onDragLeave={(e) => handleDragLeave(e, 'board-qp')}
+          onDrop={(e) => handleDrop(e, 'board-qp')}
         >
-          <MathTile block={MATH_BLOCKS[3]} isEditMode={isEditMode} onActivate={(id) => setActiveModal(id)} />
+          {isEditMode && (
+            <BentoEditToolbar
+              id="board-qp"
+              label="Board Exam QP"
+              gridColumn={layout.find((b) => b.id === 'board-qp')?.gridColumn || '12 / 17'}
+              gridRow={layout.find((b) => b.id === 'board-qp')?.gridRow || '4 / 6'}
+              onResize={resizeBlock}
+              onMove={moveBlock}
+              onDragStart={() => {
+                draggedBlockId.current = 'board-qp';
+                setActiveDragId('board-qp');
+              }}
+            />
+          )}
+          <MathTile
+            block={MATH_BLOCKS[3]}
+            isEditMode={isEditMode}
+            isTargetHovered={dragOverTargetId === 'board-qp'}
+            isDragging={activeDragId === 'board-qp'}
+            onActivate={(id) => setActiveModal(id)}
+          />
         </div>
 
         {/* COME Book Government Questions */}
         <div
-          style={getPos('come-book')}
+          style={{ ...getPos('come-book'), position: 'relative' }}
           draggable={isEditMode}
-          onDragStart={() => handleDragStart('come-book')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('come-book')}
+          onDragStart={(e) => handleDragStart(e, 'come-book')}
+          onDragOver={(e) => handleDragOver(e, 'come-book')}
+          onDragLeave={(e) => handleDragLeave(e, 'come-book')}
+          onDrop={(e) => handleDrop(e, 'come-book')}
         >
-          <MathTile block={MATH_BLOCKS[4]} isEditMode={isEditMode} onActivate={(id) => setActiveModal(id)} />
+          {isEditMode && (
+            <BentoEditToolbar
+              id="come-book"
+              label="COME Book Questions"
+              gridColumn={layout.find((b) => b.id === 'come-book')?.gridColumn || '1 / 11'}
+              gridRow={layout.find((b) => b.id === 'come-book')?.gridRow || '6 / 9'}
+              onResize={resizeBlock}
+              onMove={moveBlock}
+              onDragStart={() => {
+                draggedBlockId.current = 'come-book';
+                setActiveDragId('come-book');
+              }}
+            />
+          )}
+          <MathTile
+            block={MATH_BLOCKS[4]}
+            isEditMode={isEditMode}
+            isTargetHovered={dragOverTargetId === 'come-book'}
+            isDragging={activeDragId === 'come-book'}
+            onActivate={(id) => setActiveModal(id)}
+          />
         </div>
 
         {/* Diagrams & Graphs */}
         <div
-          style={getPos('diagrams')}
+          style={{ ...getPos('diagrams'), position: 'relative' }}
           draggable={isEditMode}
-          onDragStart={() => handleDragStart('diagrams')}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={() => handleDrop('diagrams')}
+          onDragStart={(e) => handleDragStart(e, 'diagrams')}
+          onDragOver={(e) => handleDragOver(e, 'diagrams')}
+          onDragLeave={(e) => handleDragLeave(e, 'diagrams')}
+          onDrop={(e) => handleDrop(e, 'diagrams')}
         >
-          <MathTile block={MATH_BLOCKS[5]} isEditMode={isEditMode} onActivate={(id) => setActiveModal(id)} />
+          {isEditMode && (
+            <BentoEditToolbar
+              id="diagrams"
+              label="Diagrams & Graphs"
+              gridColumn={layout.find((b) => b.id === 'diagrams')?.gridColumn || '11 / 17'}
+              gridRow={layout.find((b) => b.id === 'diagrams')?.gridRow || '6 / 9'}
+              onResize={resizeBlock}
+              onMove={moveBlock}
+              onDragStart={() => {
+                draggedBlockId.current = 'diagrams';
+                setActiveDragId('diagrams');
+              }}
+            />
+          )}
+          <MathTile
+            block={MATH_BLOCKS[5]}
+            isEditMode={isEditMode}
+            isTargetHovered={dragOverTargetId === 'diagrams'}
+            isDragging={activeDragId === 'diagrams'}
+            onActivate={(id) => setActiveModal(id)}
+          />
         </div>
       </div>
 
@@ -439,7 +749,11 @@ export const MathematicsPage: React.FC = () => {
         <QuizEngine
           title={`MATHEMATICS ${activeModal.replace('-', ' ').toUpperCase()}`}
           subject="mathematics"
-          questions={mathQuestions}
+          questions={
+            activeModal === 'formula-quiz'
+              ? mathQuestions.filter((q) => q.category === 'formula')
+              : mathQuestions.filter((q) => q.category === 'bb')
+          }
           onClose={() => setActiveModal(null)}
         />
       )}

@@ -34,7 +34,9 @@ export interface QuizQuestion {
   options: [string, string, string, string];
   correctIndex: number;
   explanation: string;
-  category: 'bb' | 'pta' | 'board' | 'formula';
+  category: 'bb' | 'pta' | 'board' | 'formula' | 'unit';
+  sourcePage?: number;
+  requiresDiagram?: boolean;
 }
 
 export interface ChemicalReaction {
