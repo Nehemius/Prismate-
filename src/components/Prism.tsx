@@ -3,8 +3,8 @@ import React from 'react';
 export interface PrismProps {
   /**
    * Dynamic wave density / particle charge (0.0 to 1.0).
-   * 0.0: Base muted 3-faced isometric state from Logo.png
-   * 1.0: Peak glow overload with intense Gem Violet (left) and Ruby Red (right) tint + radial bloom
+   * 0.0: Base electric blue crystal state
+   * 1.0: Peak glow overload with intense cyan and cobalt flare + outer bloom
    */
   waveCharge: number;
   /**
@@ -28,34 +28,21 @@ export const Prism: React.FC<PrismProps> = ({
   // Combined tint factor (wave charge + appear flash boost)
   const tintIntensity = Math.min(1, charge * 0.95 + flash);
 
-  // Left face: interpolates from slate blue (#9FB1C8 / 159, 177, 200) to Gem Violet (#9D22FF / 157, 34, 255)
-  const leftR = Math.round(159 + (157 - 159) * tintIntensity);
-  const leftG = Math.round(177 + (34 - 177) * tintIntensity);
-  const leftB = Math.round(200 + (255 - 200) * tintIntensity);
-  const leftColor = `rgb(${leftR}, ${leftG}, ${leftB})`;
-
-  // Right face: interpolates from deep navy (#121C36 / 18, 28, 54) to Ruby Red (#EB104B / 235, 16, 75)
-  const rightR = Math.round(18 + (235 - 18) * tintIntensity);
-  const rightG = Math.round(28 + (16 - 28) * tintIntensity);
-  const rightB = Math.round(54 + (75 - 54) * tintIntensity);
-  const rightColor = `rgb(${rightR}, ${rightG}, ${rightB})`;
-
-  // Top cap: interpolates from dark slate (#3B4C6A / 59, 76, 106) to jewel highlight (#F2E6FF / 242, 230, 255)
-  const capR = Math.round(59 + (242 - 59) * tintIntensity);
-  const capG = Math.round(76 + (230 - 76) * tintIntensity);
-  const capB = Math.round(106 + (255 - 106) * tintIntensity);
-  const capColor = `rgb(${capR}, ${capG}, ${capB})`;
-
-  // Bloom opacity: scales with tintIntensity and surges on flash
-  const bloomOpacity = Math.min(1, tintIntensity * 1.25);
+  // Dynamic filter with base Electric Blue glow + boost on wave/flash
+  const cyanGlow1 = Math.round(10 + 16 * tintIntensity);
+  const cobaltGlow2 = Math.round(26 + 28 * tintIntensity);
+  const whiteGlow3 = Math.round(36 * tintIntensity);
 
   const filterStyle =
-    tintIntensity > 0.05
-      ? `drop-shadow(0 0 ${Math.round(14 * tintIntensity)}px rgba(157, 34, 255, ${(0.9 * tintIntensity).toFixed(2)})) ` +
-        `drop-shadow(0 0 ${Math.round(18 * tintIntensity)}px rgba(235, 16, 75, ${(0.9 * tintIntensity).toFixed(2)})) ` +
-        `drop-shadow(0 0 ${Math.round(32 * tintIntensity)}px rgba(255, 240, 250, ${(0.75 * tintIntensity).toFixed(2)})) ` +
-        `brightness(${(1 + 1.8 * flash).toFixed(2)})`
-      : undefined;
+    `drop-shadow(0 0 ${cyanGlow1}px rgba(51, 240, 255, ${(0.88 + 0.12 * tintIntensity).toFixed(2)})) ` +
+    `drop-shadow(0 0 ${cobaltGlow2}px rgba(0, 85, 255, ${(0.92).toFixed(2)}))` +
+    (tintIntensity > 0.15
+      ? ` drop-shadow(0 0 ${whiteGlow3}px rgba(255, 255, 255, ${(0.85 * tintIntensity).toFixed(2)}))`
+      : '') +
+    (flash > 0.05 ? ` brightness(${(1 + 1.6 * flash).toFixed(2)})` : '');
+
+  // Bloom opacity: base subtle cyan aura, surges with waveCharge / flash
+  const bloomOpacity = Math.min(1, 0.45 + tintIntensity * 0.65);
 
   return (
     <div
@@ -71,7 +58,7 @@ export const Prism: React.FC<PrismProps> = ({
         ...style,
       }}
     >
-      {/* High-Intensity Dual-Tone Outer Bloom (Gem Violet on left, Ruby Red on right) */}
+      {/* High-Intensity Electric Cyan & Deep Cobalt Outer Bloom */}
       <div
         style={{
           position: 'absolute',
@@ -83,9 +70,9 @@ export const Prism: React.FC<PrismProps> = ({
           pointerEvents: 'none',
           zIndex: 0,
           background:
-            'radial-gradient(ellipse at 35% 50%, rgba(157, 34, 255, 0.8) 0%, transparent 65%), ' +
-            'radial-gradient(ellipse at 65% 50%, rgba(235, 16, 75, 0.8) 0%, transparent 65%), ' +
-            'radial-gradient(ellipse at 50% 50%, rgba(255, 235, 250, 0.6) 0%, transparent 45%)',
+            'radial-gradient(ellipse at 35% 50%, rgba(51, 240, 255, 0.85) 0%, transparent 65%), ' +
+            'radial-gradient(ellipse at 65% 50%, rgba(0, 85, 255, 0.85) 0%, transparent 65%), ' +
+            'radial-gradient(ellipse at 50% 50%, rgba(230, 255, 255, 0.7) 0%, transparent 45%)',
           transition: flash > 0 ? 'none' : 'opacity 0.12s linear',
         }}
         aria-hidden="true"
@@ -101,16 +88,18 @@ export const Prism: React.FC<PrismProps> = ({
             pointerEvents: 'none',
             zIndex: 1,
             background:
-              'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.95) 0%, rgba(245, 210, 255, 0.7) 30%, transparent 70%)',
+              'radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.98) 0%, rgba(200, 245, 255, 0.85) 30%, transparent 70%)',
           }}
           aria-hidden="true"
         />
       )}
 
-      {/* 3-Faced Isometric Prism with Direct Gem Violet & Ruby Red Tint (Zero center line) */}
+      {/* Full Translucent Electric Cyan-Blue Crystal Prism SVG */}
       <svg
-        viewBox="0 0 109 260"
+        viewBox="0 0 220 420"
         shapeRendering="geometricPrecision"
+        className="overflow-visible select-none"
+        fill="none"
         xmlns="http://www.w3.org/2000/svg"
         style={{
           position: 'absolute',
@@ -124,14 +113,113 @@ export const Prism: React.FC<PrismProps> = ({
           transition: flash > 0 ? 'none' : 'filter 0.12s linear',
         }}
       >
-        {/* Top triangular cap pointing down */}
-        <polygon points="0,0 109,0 54.5,63" fill={capColor} />
+        <defs>
+          {/* Top Translucent White-Cyan Cap Gradient */}
+          <linearGradient id="gorgeous-top" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="1" />
+            <stop offset="55%" stopColor="#E6FFFF" stopOpacity="0.98" />
+            <stop offset="100%" stopColor="#33F0FF" stopOpacity="0.92" />
+          </linearGradient>
 
-        {/* Left face: tints dynamically from slate-blue to Gem Violet */}
-        <polygon points="0,0 54.5,63 54.5,259 0,202" fill={leftColor} />
+          {/* Left Electric Cyan-Blue Glass Face */}
+          <linearGradient id="gorgeous-left" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#E6FFFF" stopOpacity="0.95" />
+            <stop offset="38%" stopColor="#33F0FF" stopOpacity="0.82" />
+            <stop offset="100%" stopColor="#00B8FF" stopOpacity="0.62" />
+          </linearGradient>
 
-        {/* Right face: tints dynamically from deep navy to Ruby Red */}
-        <polygon points="109,0 54.5,63 54.5,259 109,202" fill={rightColor} />
+          {/* Right Deep Cobalt-Cyan Glass Face */}
+          <linearGradient id="gorgeous-right" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="#33F0FF" stopOpacity="0.78" />
+            <stop offset="50%" stopColor="#00B8FF" stopOpacity="0.58" />
+            <stop offset="100%" stopColor="#0055FF" stopOpacity="0.48" />
+          </linearGradient>
+        </defs>
+
+        <g>
+          {/* Outer Cobalt-Cyan Optical Halo Polygon */}
+          <polygon
+            points="12,24 208,24 208,322 110,400 12,322"
+            fill="#0055FF"
+            fillOpacity="0.22"
+            stroke="#00B8FF"
+            strokeOpacity="0.35"
+            strokeWidth="6"
+            strokeLinejoin="round"
+          />
+
+          {/* Top White/Cyan Triangle Cap: (20, 30) -> (200, 30) -> (110, 102) */}
+          <polygon
+            points="20,30 200,30 110,102"
+            fill="url(#gorgeous-top)"
+            stroke="#FFFFFF"
+            strokeWidth="2.5"
+            strokeLinejoin="round"
+          />
+
+          {/* Left Vertical Column Face: (20, 30) -> (110, 102) -> (110, 390) -> (20, 318) */}
+          <polygon
+            points="20,30 110,102 110,390 20,318"
+            fill="url(#gorgeous-left)"
+            stroke="#E6FFFF"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+
+          {/* Right Vertical Column Face: (110, 102) -> (200, 30) -> (200, 318) -> (110, 390) */}
+          <polygon
+            points="110,102 200,30 200,318 110,390"
+            fill="url(#gorgeous-right)"
+            stroke="#33F0FF"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+
+          {/* Internal Crystalline Diagonal Refraction Planes */}
+          <polygon
+            points="20,95 110,167 110,222 20,150"
+            fill="#FFFFFF"
+            fillOpacity="0.38"
+          />
+          <polygon
+            points="110,167 200,95 200,142 110,214"
+            fill="#E6FFFF"
+            fillOpacity="0.30"
+          />
+          <polygon
+            points="20,210 110,282 110,320 20,248"
+            fill="#E6FFFF"
+            fillOpacity="0.32"
+          />
+          <polygon
+            points="110,255 200,183 200,225 110,297"
+            fill="#33F0FF"
+            fillOpacity="0.28"
+          />
+
+          {/* Blinding White Central Vertical Spine & V-Edges */}
+          <line
+            x1="110"
+            y1="102"
+            x2="110"
+            y2="390"
+            stroke="#FFFFFF"
+            strokeWidth="3.2"
+            strokeLinecap="round"
+          />
+          <polyline
+            points="20,30 110,102 200,30"
+            fill="none"
+            stroke="#FFFFFF"
+            strokeWidth="2.8"
+          />
+          <polyline
+            points="20,318 110,390 200,318"
+            fill="none"
+            stroke="#E6FFFF"
+            strokeWidth="2.4"
+          />
+        </g>
       </svg>
     </div>
   );

@@ -54,6 +54,7 @@ export interface UniversalLoaderMetadata {
 
 export interface UniversalLoaderProps {
   visible?: boolean;
+  centered?: boolean;
   className?: string;
   style?: React.CSSProperties;
   metadata?: UniversalLoaderMetadata;
@@ -61,6 +62,7 @@ export interface UniversalLoaderProps {
 
 export const UniversalLoader: React.FC<UniversalLoaderProps> = ({
   visible = true,
+  centered = false,
   className = '',
   style = {},
   metadata,
@@ -220,15 +222,35 @@ export const UniversalLoader: React.FC<UniversalLoaderProps> = ({
         </div>
       )}
 
+      {centered && !metadata && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 'calc(50% + 72px)',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: '11px',
+            letterSpacing: '6px',
+            color: 'rgba(242, 242, 242, 0.7)',
+            textTransform: 'uppercase',
+            pointerEvents: 'none',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          INITIALIZING PRISMATE
+        </div>
+      )}
+
       <svg
-        className="prismate-loader-icon"
+        className={`prismate-loader-icon ${centered ? 'is-centered' : ''}`}
         viewBox="-100 -100 200 200"
         xmlns="http://www.w3.org/2000/svg"
       >
         <polygon
           ref={polygonRef}
           id="inkscapeStar"
-          fill="#F2F2F2"
+          fill="#FFFFFF"
           fillRule="evenodd"
           points={computePoints(35, 0.0)}
         />

@@ -34,14 +34,14 @@ export const PrismateLogo: React.FC<PrismateLogoProps> = ({
 
   if (appearFlash > 0.05) {
     letterFilter =
-      `brightness(${1 + 2.8 * appearFlash}) ` +
-      `drop-shadow(0 0 ${24 * appearFlash}px rgba(255, 255, 255, 1)) ` +
-      `drop-shadow(0 0 ${48 * appearFlash}px rgba(255, 255, 255, 0.85))`;
+      `brightness(${1 + 2.6 * appearFlash}) ` +
+      `drop-shadow(0 0 ${16 * appearFlash}px rgba(51, 240, 255, 1)) ` +
+      `drop-shadow(0 0 ${36 * appearFlash}px rgba(0, 85, 255, 0.9)) ` +
+      `drop-shadow(0 0 ${54 * appearFlash}px rgba(255, 255, 255, 0.85))`;
   } else if (wordGlowFactor > 0.05) {
-    // Glowing strictly in pure white as requested
     letterFilter =
-      `drop-shadow(0 0 ${12 * wordGlowFactor}px rgba(255, 255, 255, ${0.9 * wordGlowFactor})) ` +
-      `drop-shadow(0 0 ${28 * wordGlowFactor}px rgba(255, 255, 255, ${0.65 * wordGlowFactor}))`;
+      `drop-shadow(0 0 ${10 * wordGlowFactor}px rgba(51, 240, 255, ${0.9 * wordGlowFactor})) ` +
+      `drop-shadow(0 0 ${24 * wordGlowFactor}px rgba(0, 85, 255, ${0.75 * wordGlowFactor}))`;
   }
 
   const letterStyle: React.CSSProperties = {
