@@ -17,6 +17,8 @@ import ProfilePage from './pages/ProfilePage';
 import StacksWorkspace from './components/stacks/StacksWorkspace';
 import BlackWhiteStarWhirl, { type StarWhirlFrame } from './components/BlackWhiteStarWhirl';
 import { playBlackWhiteStarWhirl } from './utils/starWhirlController';
+import OrientationGuard from './components/OrientationGuard';
+import PageTransitionStar from './components/PageTransitionStar';
 import { AppProvider } from './context/AppContext';
 import { useApp } from './context/useApp';
 
@@ -47,6 +49,8 @@ const MainAppContent: React.FC = () => {
     triggerLoader,
     inApp,
     setInApp,
+    pageTransitionActive,
+    pageTransitionTarget,
   } = useApp();
 
   const [phase, setPhase] = useState<AppPhase>(() => {
@@ -215,6 +219,12 @@ const MainAppContent: React.FC = () => {
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#000000' }}>
+      {/* ── Mobile Horizontal Orientation Enforcer (§1) ── */}
+      <OrientationGuard />
+
+      {/* ── Toned-Down Star Page Switching Transition (§5) ── */}
+      <PageTransitionStar active={pageTransitionActive} targetScreen={pageTransitionTarget} />
+
       {/* ── Continuous Universal Loader (Bottom-docked during app transitions) */}
       <UniversalLoader visible={globalLoader} centered={false} />
 

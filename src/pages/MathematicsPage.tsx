@@ -406,46 +406,7 @@ export const MathematicsPage: React.FC = () => {
         }
       `}</style>
 
-      {/* ── Edit Workspace Trigger Button (§12 accessible alternative) ── */}
-      {!isEditMode && (
-        <button
-          onClick={() => setEditModeScreen('mathematics')}
-          title="Customize Mathematics Bento Grid"
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '24px',
-            zIndex: 900,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(15,15,15,0.75)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(242,242,242,0.22)',
-            borderRadius: '20px',
-            padding: '6px 14px',
-            color: 'rgba(242,242,242,0.85)',
-            fontFamily: 'var(--font-heading)',
-            fontSize: '10px',
-            letterSpacing: '1.2px',
-            cursor: 'pointer',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(242,242,242,0.15)';
-            e.currentTarget.style.color = '#F2F2F2';
-            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.45)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(15,15,15,0.75)';
-            e.currentTarget.style.color = 'rgba(242,242,242,0.85)';
-            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.22)';
-          }}
-        >
-          <span>✎</span>
-          <span>EDIT WORKSPACE</span>
-        </button>
-      )}
+
 
       {/* ── Subject Edit Mode Indicator Banner (§6.1) ────────────────────── */}
       {isEditMode && (

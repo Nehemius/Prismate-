@@ -200,6 +200,7 @@ export const StacksWorkspace: React.FC = () => {
         background: '#000000',
         overflow: 'hidden',
         userSelect: 'none',
+        touchAction: 'none',
         perspective: '1600px',
         WebkitPerspective: '1600px',
       }}

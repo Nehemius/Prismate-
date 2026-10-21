@@ -21,7 +21,7 @@
   width: 48px;
   height: 48px;
   display: block;
-  filter: drop-shadow(0 0 12px rgba(51, 240, 255, 0.7)) drop-shadow(0 0 24px rgba(0, 85, 255, 0.5));
+  filter: drop-shadow(0 0 10px rgba(51, 240, 255, 0.85)) drop-shadow(0 0 24px rgba(0, 85, 255, 0.75));
 }
 
 .prismate-loader-icon.is-centered {
@@ -30,5 +30,5 @@
   transform: translate(-50%, -50%);
   width: 96px;
   height: 96px;
-  filter: drop-shadow(0 0 20px rgba(51, 240, 255, 0.9)) drop-shadow(0 0 45px rgba(0, 85, 255, 0.75));
+  filter: drop-shadow(0 0 22px rgba(51, 240, 255, 0.95)) drop-shadow(0 0 48px rgba(0, 85, 255, 0.85));
 }

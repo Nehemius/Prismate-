@@ -1,5 +1,6 @@
 import { createContext } from 'react';
 import type { ScreenType, ListType, ListItem } from '../types/prismate';
+import type { ProfileSummary } from '../services/cloudStore';
 
 export interface AppContextType {
   currentScreen: ScreenType;
@@ -28,6 +29,15 @@ export interface AppContextType {
   triggerLoader: (durationMs?: number, onComplete?: () => void) => void;
   inApp: boolean;
   setInApp: (val: boolean) => void;
+  // Cloud & Profile Extension
+  profiles: ProfileSummary[];
+  addProfile: (username: string, avatar: string, password?: string) => Promise<void>;
+  deleteProfile: (id: string) => Promise<void>;
+  syncCloudData: () => Promise<void>;
+  isCloudSyncing: boolean;
+  lastCloudSyncTime: number | null;
+  pageTransitionActive: boolean;
+  pageTransitionTarget: ScreenType | null;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);

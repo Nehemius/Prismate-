@@ -251,6 +251,9 @@ export const UniversalLoader: React.FC<UniversalLoaderProps> = ({
           ref={polygonRef}
           id="inkscapeStar"
           fill="#FFFFFF"
+          stroke="#33F0FF"
+          strokeWidth="2.5"
+          strokeLinejoin="round"
           fillRule="evenodd"
           points={computePoints(35, 0.0)}
         />

@@ -619,47 +619,14 @@ export const HomePage: React.FC = () => {
         flexDirection: 'column',
       }}
     >
-      {/* ── Edit Mode Trigger Header Button ──────────────────────────────── */}
-      {!isEditMode && (
-        <button
-          onClick={() => setEditModeScreen('home')}
-          title="Customize Bento Canvas Tiles"
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '24px',
-            zIndex: 900,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            background: 'rgba(15,15,15,0.75)',
-            backdropFilter: 'blur(10px)',
-            border: '1px solid rgba(242,242,242,0.22)',
-            borderRadius: '20px',
-            padding: '7px 16px',
-            color: 'rgba(242,242,242,0.85)',
-            fontFamily: 'var(--font-heading)',
-            fontSize: '11px',
-            letterSpacing: '1.5px',
-            cursor: 'pointer',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.6)',
-            transition: 'all 0.2s ease',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.background = 'rgba(25,25,25,0.92)';
-            e.currentTarget.style.color = '#FFFFFF';
-            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.45)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.background = 'rgba(15,15,15,0.75)';
-            e.currentTarget.style.color = 'rgba(242,242,242,0.85)';
-            e.currentTarget.style.borderColor = 'rgba(242,242,242,0.22)';
-          }}
-        >
-          <span>✎</span>
-          <span>EDIT CANVAS</span>
-        </button>
-      )}
+      <style>{`
+        @media (max-height: 520px) {
+          .prismate-home-grid {
+            gap: 8px !important;
+            padding: 8px 12px 8px max(68px, env(safe-area-inset-left)) !important;
+          }
+        }
+      `}</style>
 
       {/* ── Edit Mode Floating Indicator Banner ──────────────────────────── */}
       {isEditMode && (

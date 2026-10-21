@@ -42,6 +42,7 @@ export const StacksHUD: React.FC<StacksHUDProps> = ({
 }) => {
   return (
     <div
+      className="prismate-stacks-hud"
       style={{
         position: 'absolute',
         inset: 0,
@@ -50,18 +51,39 @@ export const StacksHUD: React.FC<StacksHUDProps> = ({
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
-        padding: '24px 32px',
+        padding: '20px 24px 20px max(72px, env(safe-area-inset-left))',
         boxSizing: 'border-box',
         userSelect: 'none',
       }}
     >
+      <style>{`
+        @media (max-height: 520px), (max-width: 860px) {
+          .prismate-stacks-hud {
+            padding: 8px 14px 8px max(64px, env(safe-area-inset-left)) !important;
+          }
+          .prismate-stacks-hud-top {
+            flex-wrap: wrap !important;
+            gap: 6px !important;
+          }
+          .prismate-stacks-hud button {
+            padding: 4px 8px !important;
+            font-size: 8.5px !important;
+          }
+          .prismate-stacks-bottom-text {
+            display: none !important;
+          }
+        }
+      `}</style>
+
       {/* ─── TOP BAR: BREADCRUMBS & SYSTEM CONTROLS ─── */}
       <div
+        className="prismate-stacks-hud-top"
         style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
           pointerEvents: 'auto',
+          gap: '12px',
         }}
       >
         {/* Left: Breadcrumb / Back Navigation */}

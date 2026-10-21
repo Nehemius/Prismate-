@@ -42,7 +42,6 @@ export const NavDock: React.FC = () => {
   } = useApp();
 
   const [collapsed, setCollapsed] = useState(false);
-  const [promptTarget, setPromptTarget] = useState<ScreenType | null>(null);
 
   const longPressTimerRef = useRef<number | null>(null);
   const isLongPressRef = useRef(false);
@@ -56,15 +55,24 @@ export const NavDock: React.FC = () => {
     return true;
   });
 
-  // Long-press detection on any editable nav button (Home or Subject §5.1, §6.1)
+  // Long-press detection on any editable nav button (>500ms activates/toggles edit mode)
   const handleItemPointerDown = useCallback((screenId: ScreenType) => {
     if (screenId === 'profile' || screenId === 'stacks') return;
     isLongPressRef.current = false;
     longPressTimerRef.current = window.setTimeout(() => {
       isLongPressRef.current = true;
-      setPromptTarget(screenId);
-    }, 550);
-  }, []);
+      try {
+        if ('vibrate' in navigator) navigator.vibrate(60);
+      } catch {}
+
+      if (editModeScreen === screenId) {
+        setEditModeScreen(null);
+      } else {
+        setEditModeScreen(screenId);
+        setCurrentScreen(screenId);
+      }
+    }, 500);
+  }, [editModeScreen, setEditModeScreen, setCurrentScreen]);
 
   const handleItemPointerUp = useCallback(() => {
     if (longPressTimerRef.current) {
@@ -74,10 +82,15 @@ export const NavDock: React.FC = () => {
   }, []);
 
   const handleItemContextMenu = useCallback((e: React.MouseEvent, screenId: ScreenType) => {
-    if (screenId === 'profile') return;
+    if (screenId === 'profile' || screenId === 'stacks') return;
     e.preventDefault();
-    setPromptTarget(screenId);
-  }, []);
+    if (editModeScreen === screenId) {
+      setEditModeScreen(null);
+    } else {
+      setEditModeScreen(screenId);
+      setCurrentScreen(screenId);
+    }
+  }, [editModeScreen, setEditModeScreen, setCurrentScreen]);
 
   const handleItemClick = (id: ScreenType) => {
     if (isLongPressRef.current) {
@@ -85,17 +98,6 @@ export const NavDock: React.FC = () => {
       return;
     }
     setCurrentScreen(id);
-  };
-
-  const handleConfirmEditMode = () => {
-    if (!promptTarget) return;
-    if (editModeScreen === promptTarget) {
-      setEditModeScreen(null);
-    } else {
-      setEditModeScreen(promptTarget);
-      setCurrentScreen(promptTarget);
-    }
-    setPromptTarget(null);
   };
 
   // Swipe detection on dock (swipe left to collapse §4.2)
@@ -136,10 +138,29 @@ export const NavDock: React.FC = () => {
     indicatorPointerDownX.current = null;
   };
 
-  const isCurrentScreenEditing = editModeScreen !== null && editModeScreen === promptTarget;
-
   return (
     <>
+      <style>{`
+        @media (max-height: 520px) {
+          .prismate-nav-dock {
+            padding: 6px 4px !important;
+            gap: 4px !important;
+            border-radius: 20px !important;
+          }
+          .prismate-nav-item {
+            width: 44px !important;
+            height: 38px !important;
+            border-radius: 12px !important;
+          }
+          .prismate-nav-item-icon {
+            font-size: 13px !important;
+          }
+          .prismate-nav-item-label {
+            font-size: 7.5px !important;
+          }
+        }
+      `}</style>
+
       {/* ── Collapsed Indicator Line (spec §4.2 with swipe-right detection) */}
       <AnimatePresence>
         {collapsed && (
@@ -157,7 +178,7 @@ export const NavDock: React.FC = () => {
             title="Open Navigation"
             style={{
               position: 'fixed',
-              left: '6px',
+              left: 'max(6px, env(safe-area-inset-left))',
               top: '50%',
               transform: 'translateY(-50%)',
               width: '6px',
@@ -179,12 +200,13 @@ export const NavDock: React.FC = () => {
       {/* ── Floating Frosted-Glass Dock (True Overlay with swipe-left detection) */}
       <nav
         aria-label="Main Application Navigation"
+        className="prismate-nav-dock"
         onPointerDown={handleDockPointerDown}
         onPointerMove={handleDockPointerMove}
         onPointerUp={handleDockPointerUp}
         style={{
           position: 'fixed',
-          left: '16px',
+          left: 'max(14px, env(safe-area-inset-left))',
           top: '50%',
           transform: collapsed ? 'translate3d(-140px, -50%, 0)' : 'translate3d(0, -50%, 0)',
           zIndex: 1000,
@@ -233,28 +255,28 @@ export const NavDock: React.FC = () => {
         {visibleItems.map((item) => {
           const isActive = currentScreen === item.id;
           const isItemInEditMode = editModeScreen === item.id;
-          const isEditable = item.id !== 'profile';
+          const isEditable = item.id !== 'profile' && item.id !== 'stacks';
 
           return (
             <motion.button
               key={item.id}
+              className="prismate-nav-item"
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 500, damping: 28 }}
               onClick={() => handleItemClick(item.id)}
-              onDoubleClick={isEditable ? () => setPromptTarget(item.id) : undefined}
               onContextMenu={isEditable ? (e) => handleItemContextMenu(e, item.id) : undefined}
               onPointerDown={isEditable ? () => handleItemPointerDown(item.id) : undefined}
               onPointerUp={isEditable ? handleItemPointerUp : undefined}
               onPointerLeave={isEditable ? handleItemPointerUp : undefined}
               aria-label={
                 isEditable
-                  ? `Switch to ${item.label} (Double-click, Long-press, or Right-click for Edit Mode)`
+                  ? `Switch to ${item.label} (Hold for Edit Mode)`
                   : `Switch to ${item.label}`
               }
               title={
                 isEditable
-                  ? `${item.label} (Double-click, Right-click, or Long-press for Edit Mode)`
+                  ? `${item.label} (Hold / Long-press for Edit Mode)`
                   : item.label
               }
               style={{
@@ -287,8 +309,9 @@ export const NavDock: React.FC = () => {
                 }
               }}
             >
-              <span style={{ fontSize: '16px', lineHeight: 1 }}>{item.icon}</span>
+              <span className="prismate-nav-item-icon" style={{ fontSize: '16px', lineHeight: 1 }}>{item.icon}</span>
               <span
+                className="prismate-nav-item-label"
                 style={{
                   fontFamily: 'var(--font-heading)',
                   fontSize: '9px',
@@ -301,164 +324,7 @@ export const NavDock: React.FC = () => {
             </motion.button>
           );
         })}
-
-        {/* Discrete Edit Shortcut Button (§12 accessible alternative) */}
-        {currentScreen !== 'profile' && (
-          <button
-            onClick={() => setPromptTarget(currentScreen)}
-            aria-label={editModeScreen === currentScreen ? 'Exit Edit Mode' : 'Enter Edit Mode'}
-            title={
-              editModeScreen === currentScreen
-                ? 'Exit Edit Mode'
-                : 'Edit Layout (Double-click or Long-press also supported)'
-            }
-            style={{
-              marginTop: '4px',
-              width: '44px',
-              height: '32px',
-              borderRadius: '12px',
-              background: editModeScreen === currentScreen ? '#F2F2F2' : 'rgba(242, 242, 242, 0.08)',
-              border: '1px solid rgba(242, 242, 242, 0.22)',
-              color: editModeScreen === currentScreen ? '#000000' : 'rgba(242, 242, 242, 0.75)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              cursor: 'pointer',
-              fontFamily: 'var(--font-heading)',
-              fontSize: '11px',
-              letterSpacing: '0.5px',
-              transition: 'all 0.2s ease',
-            }}
-            onMouseEnter={(e) => {
-              if (editModeScreen !== currentScreen) {
-                e.currentTarget.style.background = 'rgba(242, 242, 242, 0.2)';
-                e.currentTarget.style.color = '#F2F2F2';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (editModeScreen !== currentScreen) {
-                e.currentTarget.style.background = 'rgba(242, 242, 242, 0.08)';
-                e.currentTarget.style.color = 'rgba(242, 242, 242, 0.75)';
-              }
-            }}
-          >
-            ✎
-          </button>
-        )}
       </nav>
-
-      {/* ── Edit Mode Confirmation Modal (§5.1, §6.1, PRISMATE_FIXES.md §1.2) */}
-      <AnimatePresence>
-        {promptTarget && (
-          <motion.div
-            key="editmode-prompt-backdrop"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2, ease: 'easeOut' }}
-            onClick={(e) => {
-              if (e.target === e.currentTarget) setPromptTarget(null);
-            }}
-            style={{
-              position: 'fixed',
-              inset: 0,
-              zIndex: 9000,
-              background: 'rgba(0, 0, 0, 0.75)',
-              backdropFilter: 'blur(8px)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <motion.div
-              key="editmode-prompt-card"
-              initial={{ opacity: 0, scale: 0.92, y: 12 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.94, y: 8 }}
-              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
-              style={{
-                background: '#000000',
-                border: '1px solid rgba(242, 242, 242, 0.25)',
-                borderRadius: '16px',
-                padding: '32px 36px',
-                maxWidth: '460px',
-                width: '90vw',
-                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
-                textAlign: 'center',
-              }}
-            >
-              <h3
-                style={{
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: '18px',
-                  letterSpacing: '2px',
-                  color: '#F2F2F2',
-                  margin: '0 0 12px',
-                  textTransform: 'uppercase',
-                }}
-              >
-                {isCurrentScreenEditing
-                  ? `EXIT ${promptTarget.toUpperCase()} EDIT MODE?`
-                  : `ENTER ${promptTarget.toUpperCase()} EDIT MODE?`}
-              </h3>
-              <p
-                style={{
-                  fontFamily: 'var(--font-content)',
-                  fontSize: '13px',
-                  color: 'rgba(242, 242, 242, 0.6)',
-                  lineHeight: 1.5,
-                  margin: '0 0 28px',
-                }}
-              >
-                {promptTarget === 'home'
-                  ? isCurrentScreenEditing
-                    ? 'Save your current Home widget arrangement and lock the 16 × 8 Bento grid.'
-                    : 'Confirming unlocks the 16 × 8 Bento grid for widget dragging and repositioning.'
-                  : isCurrentScreenEditing
-                  ? `Save your block layout and lock the ${promptTarget} workspace.`
-                  : `Subject page edit mode lets you resize and reposition existing blocks. The centre title block remains locked.`}
-              </p>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <button
-                  onClick={handleConfirmEditMode}
-                  style={{
-                    flex: 1,
-                    background: '#F2F2F2',
-                    color: '#000000',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: '12px',
-                    letterSpacing: '1px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                  }}
-                >
-                  {isCurrentScreenEditing ? 'EXIT EDIT MODE' : 'ENTER EDIT MODE'}
-                </button>
-                <button
-                  onClick={() => setPromptTarget(null)}
-                  style={{
-                    flex: 1,
-                    background: 'transparent',
-                    color: '#F2F2F2',
-                    border: '1px solid rgba(242, 242, 242, 0.25)',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    fontFamily: 'var(--font-subheading)',
-                    fontSize: '12px',
-                    letterSpacing: '1px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  CANCEL
-                </button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   );
 };
