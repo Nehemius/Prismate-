@@ -405,7 +405,7 @@ export const ChemistryPage: React.FC = () => {
       style={{
         width: '100vw',
         height: '100vh',
-        background: '#000000',
+        background: 'transparent',
         position: 'relative',
         overflow: 'hidden',
         color: '#F2F2F2',

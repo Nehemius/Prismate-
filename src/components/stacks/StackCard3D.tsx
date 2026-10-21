@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import type { StackCard } from '../../types/stacks';
+import MathFormula from './MathFormula';
 
 interface StackCard3DProps {
   card: StackCard;
@@ -17,6 +18,7 @@ interface StackCard3DProps {
   isConnecting?: boolean;
   onSelect: (cardId: string) => void;
   onConnectStart?: (cardId: string) => void;
+  onEditCard?: (card: StackCard) => void;
 }
 
 export const StackCard3D: React.FC<StackCard3DProps> = ({
@@ -26,6 +28,7 @@ export const StackCard3D: React.FC<StackCard3DProps> = ({
   isConnecting = false,
   onSelect,
   onConnectStart,
+  onEditCard,
 }) => {
   const [flipped, setFlipped] = useState(false);
 
@@ -151,19 +154,27 @@ export const StackCard3D: React.FC<StackCard3DProps> = ({
             <div
               style={{
                 margin: 'auto 0',
-                padding: '10px 12px',
-                borderRadius: '8px',
-                background: 'rgba(0, 0, 0, 0.45)',
-                border: '1px solid rgba(242, 242, 242, 0.08)',
+                padding: '12px 14px',
+                borderRadius: '10px',
+                background: 'rgba(0, 0, 0, 0.55)',
+                border: '1px solid rgba(51, 240, 255, 0.22)',
                 textAlign: 'center',
-                fontFamily: 'var(--font-content)',
-                fontSize: '12px',
-                color: '#F2F2F2',
-                letterSpacing: '0.5px',
-                lineHeight: 1.4,
+                boxShadow: 'inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 12px rgba(0, 0, 0, 0.4)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                minHeight: '62px',
+                boxSizing: 'border-box',
+                overflow: 'hidden',
               }}
             >
-              {card.formulaLatex}
+              <MathFormula
+                latex={card.formulaLatex}
+                style={{
+                  fontSize: '14px',
+                  color: '#FFFFFF',
+                }}
+              />
             </div>
           ) : (
             <p
@@ -193,25 +204,48 @@ export const StackCard3D: React.FC<StackCard3DProps> = ({
               borderTop: '1px solid rgba(242, 242, 242, 0.08)',
             }}
           >
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setFlipped(true);
-              }}
-              style={{
-                background: 'none',
-                border: 'none',
-                fontFamily: 'var(--font-subheading)',
-                fontSize: '9px',
-                letterSpacing: '1.5px',
-                color: 'rgba(242, 242, 242, 0.7)',
-                cursor: 'pointer',
-                padding: '2px 4px',
-                textTransform: 'uppercase',
-              }}
-            >
-              FLIP ↷
-            </button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFlipped(true);
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  fontFamily: 'var(--font-subheading)',
+                  fontSize: '9px',
+                  letterSpacing: '1.5px',
+                  color: 'rgba(242, 242, 242, 0.7)',
+                  cursor: 'pointer',
+                  padding: '2px 4px',
+                  textTransform: 'uppercase',
+                }}
+              >
+                FLIP ↷
+              </button>
+              {onEditCard && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onEditCard(card);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontFamily: 'var(--font-subheading)',
+                    fontSize: '9px',
+                    letterSpacing: '1.5px',
+                    color: '#33F0FF',
+                    cursor: 'pointer',
+                    padding: '2px 4px',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  EDIT ✎
+                </button>
+              )}
+            </div>
             {onConnectStart && (
               <button
                 onClick={(e) => {
@@ -270,23 +304,46 @@ export const StackCard3D: React.FC<StackCard3DProps> = ({
               >
                 KEY TAKEAWAYS
               </span>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setFlipped(false);
-                }}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontFamily: 'var(--font-subheading)',
-                  fontSize: '9px',
-                  color: 'rgba(242, 242, 242, 0.7)',
-                  cursor: 'pointer',
-                  padding: '2px',
-                }}
-              >
-                ↶ FRONT
-              </button>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                {onEditCard && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditCard(card);
+                    }}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontFamily: 'var(--font-subheading)',
+                      fontSize: '9px',
+                      letterSpacing: '1px',
+                      color: '#33F0FF',
+                      cursor: 'pointer',
+                      padding: '2px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    EDIT ✎
+                  </button>
+                )}
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setFlipped(false);
+                  }}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontFamily: 'var(--font-subheading)',
+                    fontSize: '9px',
+                    color: 'rgba(242, 242, 242, 0.7)',
+                    cursor: 'pointer',
+                    padding: '2px',
+                  }}
+                >
+                  ↶ FRONT
+                </button>
+              </div>
             </div>
 
             <ul

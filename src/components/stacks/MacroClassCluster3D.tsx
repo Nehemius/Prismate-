@@ -1,6 +1,7 @@
 import React from 'react';
 import type { StackClass3D } from '../../types/stacks';
 import { computeCardTransform3D } from '../../utils/spatialMath';
+import { formatToReadableMath } from '../../utils/mathUtils';
 
 interface MacroClassCluster3DProps {
   stackClass: StackClass3D;
@@ -70,12 +71,142 @@ export const MacroClassCluster3D: React.FC<MacroClassCluster3DProps> = ({
                 transform: `translate3d(${miniX}px, ${miniY}px, ${miniZ}px) rotateX(${t.rotateX}deg) rotateY(${t.rotateY}deg) scale(${miniScale})`,
                 transformStyle: 'preserve-3d',
                 borderRadius: '12px',
-                background: 'linear-gradient(135deg, rgba(24, 24, 28, 0.92), rgba(12, 12, 14, 0.85))',
-                border: '1px solid rgba(242, 242, 242, 0.2)',
-                boxShadow: '0 4px 14px rgba(0, 0, 0, 0.6), inset 0 1px 0 0 rgba(242, 242, 242, 0.25)',
+                background: 'linear-gradient(145deg, rgba(24, 24, 28, 0.94), rgba(10, 10, 12, 0.90))',
+                border: '1px solid rgba(242, 242, 242, 0.24)',
+                boxShadow: '0 6px 18px rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(242, 242, 242, 0.3)',
                 pointerEvents: 'none',
+                padding: '10px 12px',
+                boxSizing: 'border-box',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                overflow: 'hidden',
+                color: '#FFFFFF',
               }}
-            />
+            >
+              {/* Card Header Pill */}
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '8.5px',
+                    letterSpacing: '1px',
+                    fontWeight: 800,
+                    color: '#33F0FF',
+                    textTransform: 'uppercase',
+                    background: 'rgba(51, 240, 255, 0.12)',
+                    border: '1px solid rgba(51, 240, 255, 0.3)',
+                    padding: '2px 6px',
+                    borderRadius: '4px',
+                  }}
+                >
+                  {card.cardType}
+                </span>
+                <span
+                  style={{
+                    width: '6px',
+                    height: '6px',
+                    borderRadius: '50%',
+                    background: card.accentColor || '#33F0FF',
+                    boxShadow: `0 0 6px ${card.accentColor || '#33F0FF'}`,
+                  }}
+                />
+              </div>
+
+              {/* Card Title & Content Snippet */}
+              <div style={{ flex: 1, marginTop: '8px', overflow: 'hidden' }}>
+                <div
+                  style={{
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '11px',
+                    fontWeight: 700,
+                    lineHeight: 1.25,
+                    color: '#FFFFFF',
+                    letterSpacing: '0.5px',
+                    display: '-webkit-box',
+                    WebkitLineClamp: 2,
+                    WebkitBoxOrient: 'vertical',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                  }}
+                >
+                  {card.title}
+                </div>
+
+                {card.formulaLatex ? (
+                  <div
+                    style={{
+                      marginTop: '6px',
+                      padding: '4px 6px',
+                      background: 'rgba(0, 0, 0, 0.45)',
+                      borderRadius: '5px',
+                      border: '1px solid rgba(255, 255, 255, 0.12)',
+                      fontFamily: 'monospace',
+                      fontSize: '9px',
+                      color: '#E6FFFF',
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {formatToReadableMath(card.formulaLatex)}
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      marginTop: '4px',
+                      fontFamily: 'var(--font-content)',
+                      fontSize: '8.5px',
+                      lineHeight: 1.3,
+                      color: 'rgba(242, 242, 242, 0.65)',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                    }}
+                  >
+                    {card.summary}
+                  </div>
+                )}
+              </div>
+
+              {/* Card Footer: Mastery Dots & Tags */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  paddingTop: '6px',
+                  borderTop: '1px solid rgba(242, 242, 242, 0.08)',
+                }}
+              >
+                <div style={{ display: 'flex', gap: '3px' }}>
+                  {[1, 2, 3].map((lvl) => (
+                    <span
+                      key={lvl}
+                      style={{
+                        width: '5px',
+                        height: '5px',
+                        borderRadius: '50%',
+                        background: lvl <= card.masteryLevel ? '#FFFFFF' : 'rgba(255, 255, 255, 0.15)',
+                      }}
+                    />
+                  ))}
+                </div>
+                <span
+                  style={{
+                    fontFamily: 'var(--font-subheading)',
+                    fontSize: '8px',
+                    letterSpacing: '1px',
+                    color: 'rgba(242, 242, 242, 0.45)',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {card.subtitle || 'PRISM'}
+                </span>
+              </div>
+            </div>
           );
         })}
       </div>

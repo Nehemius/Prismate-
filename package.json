@@ -11,8 +11,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.118.0",
+    "@types/katex": "^0.16.8",
     "animejs": "^4.5.0",
     "gsap": "^3.15.0",
+    "katex": "^0.19.0",
     "motion": "^14.3.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"

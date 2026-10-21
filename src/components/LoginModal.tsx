@@ -33,6 +33,45 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }
   const [newAvatar, setNewAvatar] = useState('Z');
   const [newPassword, setNewPassword] = useState('');
   const [createError, setCreateError] = useState('');
+  const newProfileFileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleNewProfileImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const rawDataUrl = ev.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 256;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          setNewAvatar(canvas.toDataURL('image/jpeg', 0.88));
+        } else {
+          setNewAvatar(rawDataUrl);
+        }
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
 
   const handleUserClick = useCallback((username: string) => {
     setIsCreatingProfile(false);
@@ -212,9 +251,14 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }
                           fontFamily: 'var(--font-heading)',
                           fontSize: '14px',
                           fontWeight: 'bold',
+                          overflow: 'hidden',
                         }}
                       >
-                        {profile.avatar}
+                        {profile.avatar && (profile.avatar.startsWith('data:image') || profile.avatar.startsWith('http') || profile.avatar.startsWith('/')) ? (
+                          <img src={profile.avatar} alt={profile.username} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          profile.avatar
+                        )}
                       </span>
                       <span style={{ fontFamily: 'var(--font-heading)', fontSize: '17px' }}>
                         {profile.username}
@@ -448,9 +492,45 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }
                         marginBottom: '4px',
                       }}
                     >
-                      Avatar Symbol:
+                      Avatar (Choose Symbol or Upload Any Photo):
                     </label>
-                    <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <input
+                        ref={newProfileFileInputRef}
+                        type="file"
+                        accept="image/*"
+                        style={{ display: 'none' }}
+                        onChange={handleNewProfileImageUpload}
+                      />
+                      <button
+                        type="button"
+                        onClick={() => newProfileFileInputRef.current?.click()}
+                        style={{
+                          padding: '5px 10px',
+                          borderRadius: '6px',
+                          border: newAvatar.startsWith('data:image') ? '1.5px solid #33F0FF' : '1px solid rgba(242,242,242,0.3)',
+                          background: newAvatar.startsWith('data:image') ? 'rgba(51, 240, 255, 0.15)' : 'rgba(242,242,242,0.08)',
+                          color: '#FFFFFF',
+                          fontFamily: 'var(--font-heading)',
+                          fontSize: '10px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                        }}
+                      >
+                        {newAvatar.startsWith('data:image') ? (
+                          <>
+                            <img src={newAvatar} alt="Photo" style={{ width: '18px', height: '18px', borderRadius: '50%', objectFit: 'cover' }} />
+                            <span>PHOTO READY ✓</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>📷</span>
+                            <span>UPLOAD PHOTO</span>
+                          </>
+                        )}
+                      </button>
                       {AVATAR_OPTIONS.map((av) => (
                         <button
                           key={av}

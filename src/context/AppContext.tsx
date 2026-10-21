@@ -16,17 +16,10 @@ import {
 } from '../services/cloudStore';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [inApp, setInAppState] = useState<boolean>(() => {
-    return localStorage.getItem('prismate_in_app') === 'true';
-  });
+  const [inApp, setInAppState] = useState<boolean>(false);
 
   const setInApp = useCallback((val: boolean) => {
     setInAppState(val);
-    if (val) {
-      localStorage.setItem('prismate_in_app', 'true');
-    } else {
-      localStorage.removeItem('prismate_in_app');
-    }
   }, []);
 
   const [currentScreen, setCurrentScreenState] = useState<ScreenType>(() => {

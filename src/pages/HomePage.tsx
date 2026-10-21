@@ -17,6 +17,7 @@ import type { ActiveQuizFilter, SubjectFilter } from '../components/home/ActiveQ
 import HistoryModal from '../components/home/HistoryModal';
 import type { HistoryEntry } from '../components/home/HistoryModal';
 import StudyTubeModal from '../components/home/StudyTubeModal';
+import { WelcomeEditModal, type WelcomeConfig } from '../components/home/WelcomeEditModal';
 
 /**
  * HomePage / "You" — Customizable 16 x 8 Bento Canvas
@@ -77,6 +78,7 @@ export const HomePage: React.FC = () => {
   const {
     loggedInUser,
     userAvatar,
+    setUserAvatar,
     editModeScreen,
     setEditModeScreen,
     weaklist,
@@ -93,6 +95,21 @@ export const HomePage: React.FC = () => {
     const saved = localStorage.getItem('prismate_home_widget_layout');
     return saved ? JSON.parse(saved) : DEFAULT_HOME_LAYOUT;
   });
+
+  const [welcomeModalOpen, setWelcomeModalOpen] = useState(false);
+  const [welcomeConfig, setWelcomeConfig] = useState<WelcomeConfig>(() => {
+    const saved = localStorage.getItem('prismate_welcome_config');
+    return saved
+      ? JSON.parse(saved)
+      : {
+          prefix: 'WELCOME,',
+          customMotto: 'TN State Board Candidate • AIR 1 Target',
+          showMotto: true,
+        };
+  });
+  useEffect(() => {
+    localStorage.setItem('prismate_welcome_config', JSON.stringify(welcomeConfig));
+  }, [welcomeConfig]);
 
   const draggedWidgetId = useRef<string | null>(null);
   const [dragOverTargetId, setDragOverTargetId] = useState<string | null>(null);
@@ -520,7 +537,6 @@ export const HomePage: React.FC = () => {
   };
 
   const removeWidget = (id: string) => {
-    if (id === 'welcome') return;
     setLayout((prev) => {
       const next = prev.filter((w) => w.id !== id);
       localStorage.setItem('prismate_home_widget_layout', JSON.stringify(next));
@@ -1168,7 +1184,8 @@ export const HomePage: React.FC = () => {
                 gridRow={layout.find((w) => w.id === 'welcome')?.gridRow || '4 / 6'}
                 onResize={resizeWidget}
                 onMove={moveWidget}
-                onRemove={undefined}
+                onRemove={removeWidget}
+                onEdit={() => setWelcomeModalOpen(true)}
                 onDragStart={() => {
                   draggedWidgetId.current = 'welcome';
                   setActiveDragId('welcome');
@@ -1177,6 +1194,7 @@ export const HomePage: React.FC = () => {
             )}
             <div
               className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              onDoubleClick={() => !isEditMode && setWelcomeModalOpen(true)}
               style={tileStyle('welcome', {
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -1199,16 +1217,39 @@ export const HomePage: React.FC = () => {
                   fontFamily: 'var(--font-heading)',
                   fontSize: '22px',
                   flexShrink: 0,
+                  overflow: 'hidden',
                 }}
               >
-                {userAvatar || (loggedInUser ? loggedInUser[0] : 'U')}
+                {userAvatar && (userAvatar.startsWith('data:image') || userAvatar.startsWith('http') || userAvatar.startsWith('/')) ? (
+                  <img
+                    src={userAvatar}
+                    alt={loggedInUser || 'User'}
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
+                ) : (
+                  userAvatar || (loggedInUser ? loggedInUser[0] : 'U')
+                )}
               </div>
-              <div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <GlowingTitle
-                  text={loggedInUser ? `WELCOME, ${loggedInUser.toUpperCase()}` : 'WELCOME, YOU'}
+                  text={`${welcomeConfig.prefix} ${loggedInUser ? loggedInUser.toUpperCase() : 'YOU'}`}
                   fontSize="clamp(20px, 2vw, 30px)"
                   letterSpacing="3px"
                 />
+                {welcomeConfig.showMotto && welcomeConfig.customMotto && (
+                  <span
+                    style={{
+                      fontFamily: 'var(--font-subheading)',
+                      fontSize: '11px',
+                      letterSpacing: '2px',
+                      color: 'rgba(242,242,242,0.6)',
+                      marginTop: '4px',
+                      textTransform: 'uppercase',
+                    }}
+                  >
+                    {welcomeConfig.customMotto}
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -1674,6 +1715,16 @@ export const HomePage: React.FC = () => {
       <StudyTubeModal
         isOpen={studyTubeModalOpen}
         onClose={() => setStudyTubeModalOpen(false)}
+      />
+
+      <WelcomeEditModal
+        isOpen={welcomeModalOpen}
+        onClose={() => setWelcomeModalOpen(false)}
+        config={welcomeConfig}
+        onUpdateConfig={setWelcomeConfig}
+        currentUsername={loggedInUser || 'You'}
+        currentAvatar={userAvatar}
+        onUpdateAvatar={setUserAvatar}
       />
 
       {/* ── Bottom Starter Widgets Dock (§5.1) ───────────────────────────── */}

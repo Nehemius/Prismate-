@@ -8,6 +8,7 @@ export interface BentoEditToolbarProps {
   onResize?: (id: string, colDelta: number, rowDelta: number) => void;
   onMove?: (id: string, colShift: number, rowShift: number) => void;
   onRemove?: (id: string) => void;
+  onEdit?: (id: string) => void;
   onDragStart?: (id: string) => void;
   isLocked?: boolean;
 }
@@ -20,6 +21,7 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
   onResize,
   onMove,
   onRemove,
+  onEdit,
   onDragStart,
   isLocked = false,
 }) => {
@@ -213,6 +215,23 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
               ▼
             </button>
           </div>
+        )}
+
+        {/* Edit button */}
+        {onEdit && (
+          <button
+            title="Edit widget settings"
+            onClick={() => onEdit(id)}
+            style={{
+              ...btnStyle,
+              background: 'rgba(51, 240, 255, 0.15)',
+              borderColor: 'rgba(51, 240, 255, 0.4)',
+              color: '#33F0FF',
+              marginLeft: '4px',
+            }}
+          >
+            ✎
+          </button>
         )}
 
         {/* Remove button (Home widgets only) */}

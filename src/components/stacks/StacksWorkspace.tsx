@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import type {
   StackClass3D,
+  StackCard,
   Template3D,
   VSEPRClassGeometry,
 } from '../../types/stacks';
@@ -16,6 +17,8 @@ import StackCard3D from './StackCard3D';
 import MacroClassCluster3D from './MacroClassCluster3D';
 import StacksCanvasOverlay from './StacksCanvasOverlay';
 import StacksHUD from './StacksHUD';
+import StackClassModal from './StackClassModal';
+import StackCardModal from './StackCardModal';
 
 export const StacksWorkspace: React.FC = () => {
   const containerRef = useRef<HTMLDivElement | null>(null);
@@ -23,10 +26,36 @@ export const StacksWorkspace: React.FC = () => {
   // View state
   const [viewMode, setViewMode] = useState<'MACRO' | 'MICRO'>('MACRO');
   const [activeClassId, setActiveClassId] = useState<string>('chem-coordination');
-  const [classes, setClasses] = useState<StackClass3D[]>(MOCK_CHEMISTRY_STACK_CLASSES);
+  const [classes, setClasses] = useState<StackClass3D[]>(() => {
+    try {
+      const saved = localStorage.getItem('prismate_3d_stacks');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      }
+    } catch {
+      // fallback to mock
+    }
+    return MOCK_CHEMISTRY_STACK_CLASSES;
+  });
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('prismate_3d_stacks', JSON.stringify(classes));
+    } catch (e) {
+      console.warn('Failed to save 3d stacks to localStorage', e);
+    }
+  }, [classes]);
+
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [vseprMode, setVseprMode] = useState<VSEPRClassGeometry>('AUTO');
   const [connectionFilter, setConnectionFilter] = useState<1 | 2 | 3 | 'ALL'>('ALL');
+
+  // Modals state
+  const [classModalOpen, setClassModalOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState<StackClass3D | null>(null);
+  const [cardModalOpen, setCardModalOpen] = useState(false);
+  const [editingCard, setEditingCard] = useState<StackCard | null>(null);
 
   // Camera & Orbit state
   const [cameraYaw, setCameraYaw] = useState<number>(0);
@@ -186,6 +215,145 @@ export const StacksWorkspace: React.FC = () => {
     );
   };
 
+  // Stack Class CRUD
+  const handleOpenCreateStack = () => {
+    setEditingClass(null);
+    setClassModalOpen(true);
+  };
+
+  const handleOpenEditStack = () => {
+    setEditingClass(activeClass);
+    setClassModalOpen(true);
+  };
+
+  const handleSaveClass = (data: {
+    id?: string;
+    name: string;
+    subject: string;
+    template: Template3D;
+    accentColor: string;
+    description: string;
+  }) => {
+    if (data.id) {
+      setClasses((prev) =>
+        prev.map((c) =>
+          c.id === data.id
+            ? {
+                ...c,
+                name: data.name,
+                subject: data.subject,
+                template: data.template,
+                accentColor: data.accentColor,
+                description: data.description,
+              }
+            : c
+        )
+      );
+    } else {
+      const newId = `stack_${Date.now()}`;
+      const newClass: StackClass3D = {
+        id: newId,
+        name: data.name,
+        subject: data.subject,
+        template: data.template,
+        accentColor: data.accentColor,
+        description: data.description,
+        cards: [
+          {
+            id: `card_${Date.now()}_1`,
+            classId: newId,
+            title: `${data.name} Core Axiom`,
+            subtitle: 'Fundamental Theorem',
+            cardType: 'CONCEPT',
+            summary: `Core principles and theoretical framework of ${data.name}.`,
+            detailedNotes: `Systematic review notes for ${data.name}.`,
+            keyTakeaways: [
+              `Core axioms and mathematical foundations of ${data.name}.`,
+              'High-frequency exam derivations and definitions.',
+              'Integration with board question papers.',
+            ],
+            tags: [data.subject.toLowerCase(), 'theory'],
+            masteryLevel: 1,
+            accentColor: data.accentColor,
+          },
+        ],
+      };
+      setClasses((prev) => [...prev, newClass]);
+      setActiveClassId(newId);
+      setViewMode('MICRO');
+      setSelectedCardId(null);
+    }
+  };
+
+  const handleDeleteClass = (classId: string) => {
+    setClasses((prev) => {
+      const remaining = prev.filter((c) => c.id !== classId);
+      if (remaining.length > 0) {
+        setActiveClassId(remaining[0].id);
+      }
+      return remaining.length > 0 ? remaining : MOCK_CHEMISTRY_STACK_CLASSES;
+    });
+    setViewMode('MACRO');
+    setSelectedCardId(null);
+  };
+
+  // Card CRUD
+  const handleOpenAddCard = () => {
+    setEditingCard(null);
+    setCardModalOpen(true);
+  };
+
+  const handleOpenEditCard = (card: StackCard) => {
+    setEditingCard(card);
+    setCardModalOpen(true);
+  };
+
+  const handleSaveCard = (
+    cardData: Omit<StackCard, 'id' | 'classId'>,
+    existingId?: string
+  ) => {
+    setClasses((prev) =>
+      prev.map((cls) => {
+        if (cls.id !== activeClassId) return cls;
+        if (existingId) {
+          return {
+            ...cls,
+            cards: cls.cards.map((c) =>
+              c.id === existingId
+                ? { ...c, ...cardData, classId: activeClassId }
+                : c
+            ),
+          };
+        } else {
+          const newCard: StackCard = {
+            ...cardData,
+            id: `card_${Date.now()}`,
+            classId: activeClassId,
+          };
+          return {
+            ...cls,
+            cards: [...cls.cards, newCard],
+          };
+        }
+      })
+    );
+  };
+
+  const handleDeleteCard = (cardId: string) => {
+    setClasses((prev) =>
+      prev.map((cls) => {
+        if (cls.id !== activeClassId) return cls;
+        return {
+          ...cls,
+          cards: cls.cards.filter((c) => c.id !== cardId),
+        };
+      })
+    );
+    if (selectedCardId === cardId) {
+      setSelectedCardId(null);
+    }
+  };
+
   return (
     <div
       ref={containerRef}
@@ -197,7 +365,7 @@ export const StacksWorkspace: React.FC = () => {
         position: 'fixed',
         inset: 0,
         zIndex: 5,
-        background: '#000000',
+        background: 'transparent',
         overflow: 'hidden',
         userSelect: 'none',
         touchAction: 'none',
@@ -347,6 +515,7 @@ export const StacksWorkspace: React.FC = () => {
                   transform={transform}
                   isSelected={selectedCardId === card.id}
                   onSelect={(id) => setSelectedCardId((prev) => (prev === id ? null : id))}
+                  onEditCard={handleOpenEditCard}
                 />
               );
             })}
@@ -372,6 +541,28 @@ export const StacksWorkspace: React.FC = () => {
           setCameraZoom(1.0);
         }}
         onBackToMacro={handleBackToMacro}
+        onCreateStack={handleOpenCreateStack}
+        onEditStack={handleOpenEditStack}
+        onAddCard={handleOpenAddCard}
+      />
+
+      {/* ─── Stack Class Create / Edit Modal ─── */}
+      <StackClassModal
+        isOpen={classModalOpen}
+        onClose={() => setClassModalOpen(false)}
+        onSave={handleSaveClass}
+        onDelete={handleDeleteClass}
+        initialClass={editingClass}
+      />
+
+      {/* ─── Stack Card Add / Edit Modal ─── */}
+      <StackCardModal
+        isOpen={cardModalOpen}
+        onClose={() => setCardModalOpen(false)}
+        onSave={handleSaveCard}
+        onDelete={handleDeleteCard}
+        initialCard={editingCard}
+        classNameTitle={activeClass?.name}
       />
     </div>
   );

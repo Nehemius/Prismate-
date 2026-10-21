@@ -59,7 +59,19 @@ const MainAppContent: React.FC = () => {
   const [waveCharge, setWaveCharge] = useState(0);
   const [tapBlinkVisible, setTapBlinkVisible] = useState(true);
   const [appearFlash, setAppearFlash] = useState(0);
-  const [isLockedIn, setIsLockedIn] = useState(false);
+  const [isLockedIn, setIsLockedIn] = useState<boolean>(() => inApp);
+
+  // When user logs out (inApp transitions from true to false), replay the login animation sequence
+  const prevInAppRef = useRef<boolean>(inApp);
+  useEffect(() => {
+    if (prevInAppRef.current && !inApp) {
+      setIsLockedIn(false);
+      setStarWhirlFrame(0);
+      setAppearFlash(0);
+      setPhase('shadow-reveal');
+    }
+    prevInAppRef.current = inApp;
+  }, [inApp]);
 
   const prismRef = useRef<HTMLDivElement>(null);
   const logoContainerRef = useRef<HTMLDivElement>(null);
@@ -117,7 +129,7 @@ const MainAppContent: React.FC = () => {
       },
     });
 
-    gsap.set(el, { scale: 0.92 });
+    gsap.set(el, { xPercent: -50, yPercent: -50, scale: 0.92 });
     tl.to(el, { scale: 1, duration: 1.3, ease: 'power2.out' }, 0);
     tl.to(
       maskProxy,
@@ -227,16 +239,18 @@ const MainAppContent: React.FC = () => {
         metadata={globalLoaderMetadata || undefined}
       />
 
-      {/* ── Global Wave Canvas (Flows in login and across all workspaces §3) */}
+      {/* ── Global Wave Canvas (Flows in login and across all workspaces except user page) */}
       <WaveCanvas
         ref={waveCanvasRef}
-        active={true}
+        active={currentScreen !== 'profile'}
         style={{
           position: 'fixed',
           inset: 0,
           zIndex: inApp ? 1 : 0,
           pointerEvents: 'none',
-          opacity: inApp ? 0.38 : 1,
+          opacity: currentScreen === 'profile' ? 0 : inApp ? 0.72 : 1,
+          display: currentScreen === 'profile' ? 'none' : 'block',
+          transition: 'opacity 0.4s ease',
         }}
       />
 
@@ -277,9 +291,9 @@ const MainAppContent: React.FC = () => {
             <PrismateLogo
               appearFlash={appearFlash}
               waveCharge={waveCharge}
-              letterOpacity={isLockedIn ? 1 : 0}
+              letterOpacity={isLockedIn || phase === 'idle' || phase === 'anime-burst' ? 1 : 0}
             >
-              {isLockedIn && (
+              {(isLockedIn || phase === 'idle' || phase === 'anime-burst') && (
                 <Prism
                   variant="glowing-cyan"
                   waveCharge={waveCharge}

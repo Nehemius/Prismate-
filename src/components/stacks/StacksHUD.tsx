@@ -14,6 +14,9 @@ interface StacksHUDProps {
   onToggleAutoSpin: () => void;
   onResetCamera: () => void;
   onBackToMacro: () => void;
+  onCreateStack?: () => void;
+  onEditStack?: () => void;
+  onAddCard?: () => void;
 }
 
 const TEMPLATES: Template3D[] = ['SPHERE', 'RING', 'HELIX', 'GRID', 'COVERFLOW', 'STACK'];
@@ -39,6 +42,9 @@ export const StacksHUD: React.FC<StacksHUDProps> = ({
   onToggleAutoSpin,
   onResetCamera,
   onBackToMacro,
+  onCreateStack,
+  onEditStack,
+  onAddCard,
 }) => {
   return (
     <div
@@ -140,6 +146,81 @@ export const StacksHUD: React.FC<StacksHUDProps> = ({
               </>
             )}
           </div>
+
+          {/* Creation & Editing Buttons */}
+          {viewMode === 'MACRO' && onCreateStack && (
+            <button
+              onClick={onCreateStack}
+              style={{
+                background: '#FFFFFF',
+                color: '#000000',
+                border: 'none',
+                borderRadius: '8px',
+                padding: '6px 14px',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '10px',
+                letterSpacing: '1px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '5px',
+                boxShadow: '0 0 14px rgba(255, 255, 255, 0.28)',
+                transition: 'all 0.15s ease',
+              }}
+            >
+              <span style={{ fontSize: '13px', lineHeight: 1 }}>+</span> CREATE STACK
+            </button>
+          )}
+
+          {viewMode === 'MICRO' && (
+            <div style={{ display: 'flex', gap: '8px' }}>
+              {onEditStack && (
+                <button
+                  onClick={onEditStack}
+                  style={{
+                    background: 'rgba(242, 242, 242, 0.1)',
+                    color: '#FFFFFF',
+                    border: '1px solid rgba(242, 242, 242, 0.25)',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontFamily: 'var(--font-subheading)',
+                    fontSize: '10px',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                  }}
+                >
+                  EDIT STACK ✎
+                </button>
+              )}
+              {onAddCard && (
+                <button
+                  onClick={onAddCard}
+                  style={{
+                    background: '#33F0FF',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 14px',
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '10px',
+                    letterSpacing: '1px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    boxShadow: '0 0 12px rgba(51, 240, 255, 0.45)',
+                  }}
+                >
+                  <span style={{ fontSize: '13px', lineHeight: 1 }}>+</span> ADD CARD
+                </button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right: Structural Selectors */}

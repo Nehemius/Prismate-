@@ -17,6 +17,7 @@ const STARTER_WIDGETS: StarterWidgetMeta[] = [
   { id: 'formula', name: 'Formula Rotator', sub: 'Auto-rotating formula flashcards', icon: '∑', defaultColSpan: 4, defaultRowSpan: 2 },
   { id: 'diagram', name: 'Diagram Rotator', sub: 'Periodic diagram review', icon: '◈', defaultColSpan: 6, defaultRowSpan: 2 },
   { id: 'quiz', name: 'Active Quiz', sub: 'Fast recall question', icon: '⚡', defaultColSpan: 6, defaultRowSpan: 3 },
+  { id: 'welcome', name: 'Welcome Banner', sub: 'Customizable student greeting & motto', icon: '👤', defaultColSpan: 6, defaultRowSpan: 2 },
   { id: 'history', name: 'History Resumption', sub: 'Recently viewed items popup', icon: '↺', defaultColSpan: 5, defaultRowSpan: 3 },
   { id: 'studytube', name: 'Studytube', sub: 'Distraction-free study videos', icon: '▶', defaultColSpan: 5, defaultRowSpan: 3 },
   { id: 'custom_pic', name: 'Custom Picture', sub: 'Upload study diagram/wallpaper (max 1)', icon: '🖼', defaultColSpan: 4, defaultRowSpan: 3 },

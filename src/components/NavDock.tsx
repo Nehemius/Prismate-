@@ -39,6 +39,7 @@ export const NavDock: React.FC = () => {
     homePageEnabled,
     editModeScreen,
     setEditModeScreen,
+    userAvatar,
   } = useApp();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -309,7 +310,13 @@ export const NavDock: React.FC = () => {
                 }
               }}
             >
-              <span className="prismate-nav-item-icon" style={{ fontSize: '16px', lineHeight: 1 }}>{item.icon}</span>
+              <span className="prismate-nav-item-icon" style={{ fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {item.id === 'profile' && userAvatar && (userAvatar.startsWith('data:image') || userAvatar.startsWith('http') || userAvatar.startsWith('/')) ? (
+                  <img src={userAvatar} alt="User" style={{ width: '16px', height: '16px', borderRadius: '50%', objectFit: 'cover' }} />
+                ) : (
+                  item.icon
+                )}
+              </span>
               <span
                 className="prismate-nav-item-label"
                 style={{

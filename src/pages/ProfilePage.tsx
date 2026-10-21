@@ -1,14 +1,13 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { ScreenType, ListType } from '../types/prismate';
 import { useApp } from '../context/useApp';
-import { DEFAULT_PROFILES } from '../services/cloudStore';
 
 /**
  * ProfilePage — Conventional Settings & Master List Manager
  *
  * SPECIFICATION & CORRECTIONS:
  *   - Student Profile details (editable username, candidate status, customizable avatar)
- *   - Custom Cloud Profiles Management (add new profile, switch between profiles, delete custom profiles)
+ *   - Secure: Account switching belongs exclusively on Login screen
  *   - Cross-device Cloud Synchronization (saves name, details, bento layout & lists to cloud)
  *   - Master List Vault (Weaklist, Stronglist, Studylist)
  */
@@ -22,7 +21,6 @@ export const ProfilePage: React.FC = () => {
     userAvatar,
     setUserAvatar,
     logout,
-    login,
     homePageEnabled,
     setHomePageEnabled,
     defaultStartupScreen,
@@ -31,9 +29,6 @@ export const ProfilePage: React.FC = () => {
     stronglist,
     studylist,
     removeFromList,
-    profiles,
-    addProfile,
-    deleteProfile,
     syncCloudData,
     isCloudSyncing,
     lastCloudSyncTime,
@@ -45,12 +40,48 @@ export const ProfilePage: React.FC = () => {
   const [usernameInput, setUsernameInput] = useState(loggedInUser || '');
   const [prevLoggedInUser, setPrevLoggedInUser] = useState(loggedInUser);
 
-  // New Profile inline modal in settings
-  const [showAddProfileModal, setShowAddProfileModal] = useState(false);
-  const [newProfileName, setNewProfileName] = useState('');
-  const [newProfileAvatar, setNewProfileAvatar] = useState('Z');
-  const [newProfilePassword, setNewProfilePassword] = useState('');
-  const [profileAddError, setProfileAddError] = useState('');
+  // Custom photo upload ref
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const rawDataUrl = ev.target?.result as string;
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const maxDim = 256;
+        let w = img.width;
+        let h = img.height;
+        if (w > h) {
+          if (w > maxDim) {
+            h = Math.round((h * maxDim) / w);
+            w = maxDim;
+          }
+        } else {
+          if (h > maxDim) {
+            w = Math.round((w * maxDim) / h);
+            h = maxDim;
+          }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, w, h);
+          const compressed = canvas.toDataURL('image/jpeg', 0.88);
+          setUserAvatar(compressed);
+        } else {
+          setUserAvatar(rawDataUrl);
+        }
+      };
+      img.src = rawDataUrl;
+    };
+    reader.readAsDataURL(file);
+  };
 
   if (loggedInUser !== prevLoggedInUser) {
     setPrevLoggedInUser(loggedInUser);
@@ -82,25 +113,6 @@ export const ProfilePage: React.FC = () => {
     const currentIdx = AVATAR_PRESETS.indexOf(userAvatar);
     const nextAvatar = AVATAR_PRESETS[(currentIdx + 1) % AVATAR_PRESETS.length];
     setUserAvatar(nextAvatar);
-  };
-
-  const handleCreateProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = newProfileName.trim();
-    if (!trimmed) {
-      setProfileAddError('Please enter a profile name');
-      return;
-    }
-    if (profiles.some((p) => p.username.toLowerCase() === trimmed.toLowerCase())) {
-      setProfileAddError('Profile name already exists');
-      return;
-    }
-
-    setProfileAddError('');
-    await addProfile(trimmed, newProfileAvatar, newProfilePassword.trim() || 'prismate1.5');
-    setShowAddProfileModal(false);
-    setNewProfileName('');
-    setNewProfilePassword('');
   };
 
   const formattedSyncTime = lastCloudSyncTime
@@ -191,13 +203,23 @@ export const ProfilePage: React.FC = () => {
             gap: '16px',
           }}
         >
+          {/* Hidden File Input for Any Custom Image/Photo */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleImageUpload}
+          />
+
           {/* Editable Avatar */}
           <div
-            onClick={cycleAvatar}
-            title="Click to cycle avatar icon"
+            onClick={() => fileInputRef.current?.click()}
+            title="Click to upload any custom photo from your device"
             style={{
-              width: '54px',
-              height: '54px',
+              position: 'relative',
+              width: '60px',
+              height: '60px',
               borderRadius: '50%',
               background: '#F2F2F2',
               color: '#000000',
@@ -210,9 +232,19 @@ export const ProfilePage: React.FC = () => {
               flexShrink: 0,
               boxShadow: '0 4px 16px rgba(242,242,242,0.2)',
               transition: 'transform 0.2s ease',
+              overflow: 'hidden',
+              border: '2px solid rgba(242,242,242,0.3)',
             }}
           >
-            {userAvatar || (loggedInUser ? loggedInUser[0] : 'U')}
+            {userAvatar && (userAvatar.startsWith('data:image') || userAvatar.startsWith('http') || userAvatar.startsWith('/')) ? (
+              <img
+                src={userAvatar}
+                alt="Profile Avatar"
+                style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
+            ) : (
+              userAvatar || (loggedInUser ? loggedInUser[0] : 'U')
+            )}
           </div>
 
           {/* Editable Username */}
@@ -297,6 +329,47 @@ export const ProfilePage: React.FC = () => {
             >
               TN State Board Candidate
             </span>
+
+            <div style={{ display: 'flex', gap: '8px', marginTop: '10px' }}>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                style={{
+                  background: 'rgba(242,242,242,0.12)',
+                  border: '1px solid rgba(242,242,242,0.28)',
+                  borderRadius: '6px',
+                  padding: '4px 10px',
+                  color: '#FFFFFF',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '9.5px',
+                  letterSpacing: '1px',
+                  cursor: 'pointer',
+                  fontWeight: 700,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px',
+                }}
+              >
+                <span>📷</span> UPLOAD PHOTO
+              </button>
+              <button
+                type="button"
+                onClick={cycleAvatar}
+                title="Or cycle through Greek/symbol presets"
+                style={{
+                  background: 'transparent',
+                  border: '1px solid rgba(242,242,242,0.16)',
+                  borderRadius: '6px',
+                  padding: '4px 8px',
+                  color: 'rgba(242,242,242,0.65)',
+                  fontFamily: 'var(--font-subheading)',
+                  fontSize: '9px',
+                  cursor: 'pointer',
+                }}
+              >
+                PRESET SYMBOL
+              </button>
+            </div>
           </div>
         </div>
 
@@ -371,215 +444,6 @@ export const ProfilePage: React.FC = () => {
           >
             {isCloudSyncing ? 'CONNECTING CLOUD...' : 'SYNC ALL DATA NOW ☁'}
           </button>
-        </div>
-
-        {/* ── Custom Profiles Directory (Requirement 3) ── */}
-        <div
-          style={{
-            background: 'rgba(242,242,242,0.03)',
-            border: '1px solid rgba(242,242,242,0.12)',
-            borderRadius: '12px',
-            padding: '16px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-            <div>
-              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', color: 'rgba(242,242,242,0.5)', margin: 0 }}>
-                STUDENT PROFILES
-              </p>
-              <p style={{ fontFamily: 'var(--font-heading)', fontSize: '13px', margin: '2px 0 0' }}>
-                SWITCH OR ADD PROFILES
-              </p>
-            </div>
-            <button
-              onClick={() => setShowAddProfileModal(true)}
-              style={{
-                background: '#F2F2F2',
-                color: '#000000',
-                border: 'none',
-                borderRadius: '6px',
-                padding: '4px 10px',
-                fontFamily: 'var(--font-heading)',
-                fontSize: '10px',
-                fontWeight: 'bold',
-                cursor: 'pointer',
-              }}
-            >
-              + ADD
-            </button>
-          </div>
-
-          {/* Profiles Pill List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-            {profiles.map((p) => {
-              const isActive = loggedInUser?.toLowerCase() === p.username.toLowerCase();
-              const isDefault = DEFAULT_PROFILES.some((dp) => dp.id === p.id);
-
-              return (
-                <div
-                  key={p.id}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    background: isActive ? 'rgba(242,242,242,0.12)' : 'rgba(242,242,242,0.04)',
-                    border: isActive ? '1px solid rgba(242,242,242,0.3)' : '1px solid transparent',
-                  }}
-                >
-                  <div
-                    onClick={() => !isActive && login(p.username)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '10px',
-                      cursor: isActive ? 'default' : 'pointer',
-                      flex: 1,
-                    }}
-                  >
-                    <span
-                      style={{
-                        width: '26px',
-                        height: '26px',
-                        borderRadius: '50%',
-                        background: isActive ? '#FFFFFF' : 'rgba(242,242,242,0.2)',
-                        color: isActive ? '#000000' : '#FFFFFF',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        fontFamily: 'var(--font-heading)',
-                        fontSize: '12px',
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {p.avatar}
-                    </span>
-                    <span style={{ fontFamily: 'var(--font-heading)', fontSize: '13px' }}>
-                      {p.username}
-                    </span>
-                    {isActive && (
-                      <span style={{ fontSize: '9px', color: '#33F0FF', fontFamily: 'var(--font-subheading)', letterSpacing: '1px' }}>
-                        (CURRENT)
-                      </span>
-                    )}
-                  </div>
-
-                  {!isDefault && !isActive && (
-                    <button
-                      onClick={() => deleteProfile(p.id)}
-                      title="Delete profile"
-                      style={{
-                        background: 'none',
-                        border: 'none',
-                        color: 'rgba(242,242,242,0.35)',
-                        cursor: 'pointer',
-                        fontSize: '12px',
-                        padding: '2px 6px',
-                      }}
-                      onMouseEnter={(e) => (e.currentTarget.style.color = '#EB104B')}
-                      onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(242,242,242,0.35)')}
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Add Profile Inline Form */}
-          {showAddProfileModal && (
-            <form
-              onSubmit={handleCreateProfile}
-              style={{
-                marginTop: '12px',
-                padding: '12px',
-                borderRadius: '8px',
-                background: 'rgba(0,0,0,0.6)',
-                border: '1px solid rgba(242,242,242,0.22)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '8px',
-              }}
-            >
-              <input
-                type="text"
-                placeholder="Profile Name (e.g. Zenith)"
-                value={newProfileName}
-                onChange={(e) => setNewProfileName(e.target.value)}
-                autoFocus
-                style={{
-                  background: 'rgba(242,242,242,0.08)',
-                  border: '1px solid rgba(242,242,242,0.25)',
-                  borderRadius: '4px',
-                  padding: '6px 10px',
-                  color: '#F2F2F2',
-                  fontFamily: 'var(--font-heading)',
-                  fontSize: '12px',
-                  outline: 'none',
-                }}
-              />
-              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
-                {AVATAR_PRESETS.map((av) => (
-                  <button
-                    key={av}
-                    type="button"
-                    onClick={() => setNewProfileAvatar(av)}
-                    style={{
-                      width: '24px',
-                      height: '24px',
-                      borderRadius: '50%',
-                      border: newProfileAvatar === av ? '1.5px solid #FFFFFF' : '1px solid rgba(242,242,242,0.2)',
-                      background: newProfileAvatar === av ? '#FFFFFF' : 'transparent',
-                      color: newProfileAvatar === av ? '#000000' : '#FFFFFF',
-                      fontSize: '10px',
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {av}
-                  </button>
-                ))}
-              </div>
-              {profileAddError && (
-                <span style={{ fontSize: '10px', color: '#FF6B6B' }}>{profileAddError}</span>
-              )}
-              <div style={{ display: 'flex', gap: '6px' }}>
-                <button
-                  type="submit"
-                  style={{
-                    flex: 1,
-                    background: '#F2F2F2',
-                    color: '#000000',
-                    border: 'none',
-                    borderRadius: '4px',
-                    padding: '6px 0',
-                    fontFamily: 'var(--font-heading)',
-                    fontSize: '10px',
-                    fontWeight: 'bold',
-                    cursor: 'pointer',
-                  }}
-                >
-                  SAVE & SYNC
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setShowAddProfileModal(false)}
-                  style={{
-                    background: 'transparent',
-                    border: '1px solid rgba(242,242,242,0.2)',
-                    borderRadius: '4px',
-                    padding: '6px 10px',
-                    color: '#F2F2F2',
-                    fontSize: '10px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  CANCEL
-                </button>
-              </div>
-            </form>
-          )}
         </div>
 
         {/* Turn Off Home Page Toggle (Teacher Mode) */}
