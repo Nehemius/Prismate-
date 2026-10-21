@@ -33,10 +33,8 @@ import { useApp } from './context/useApp';
 type AppPhase =
   | 'shadow-reveal'  // 1. Chiaroscuro shadowed B/W monolith prism appears at center, rim-lit tips reveal full monolith
   | 'star-whirl'     // 2. Pure #FFFFFF canvas + 4-frame #000000 geometric star/pinwheel whirl impact
-  | 'prism-slam'     // 3. Glowing Electric Cyan Prism supersonic vertical blur-slam
-  | 'prism-glide'    // 4. Prism glides into logo slot between PR and SMATE
-  | 'anime-burst'    // 5. Light streaks fire, letters flash bright
-  | 'idle';          // 6. Login screen interactive
+  | 'anime-burst'    // 3. Overall PRISMATE logo shining burst with light streaks & bloom
+  | 'idle';          // 4. Login screen interactive
 
 const MainAppContent: React.FC = () => {
   const {
@@ -148,11 +146,14 @@ const MainAppContent: React.FC = () => {
   }, [phase, inApp]);
 
   // Phase 2: Standalone Black & White Star / Pinwheel Whirl Impact Animation (4 frames over #FFFFFF)
+  // Directly skips to the overall logo shining scene upon impact completion
   useEffect(() => {
     if (phase !== 'star-whirl' || inApp) return;
 
     const tl = playBlackWhiteStarWhirl(setStarWhirlFrame, () => {
-      setPhase('prism-slam');
+      setIsLockedIn(true);
+      setAppearFlash(1.0);
+      setPhase('anime-burst');
     });
 
     return () => {
@@ -160,103 +161,7 @@ const MainAppContent: React.FC = () => {
     };
   }, [phase, inApp]);
 
-  // Phase 3: Electric Cyan-Blue Prism vertical motion-blur slam
-  useEffect(() => {
-    if (phase !== 'prism-slam' || !prismRef.current) return;
-
-    const el = prismRef.current;
-    const startX = window.innerWidth / 2;
-    const startY = window.innerHeight / 2;
-
-    const slot = logoContainerRef.current?.querySelector('[data-prism-slot]') as HTMLElement | null;
-    const slotRect = slot?.getBoundingClientRect();
-    const targetW = slotRect && slotRect.width > 0 ? slotRect.width : 78;
-    const targetH = slotRect && slotRect.height > 0 ? slotRect.height : 185;
-
-    el.style.width = `${targetW}px`;
-    el.style.height = `${targetH}px`;
-    el.style.left = `${startX}px`;
-    el.style.top = `${startY}px`;
-    el.style.opacity = '1';
-    el.style.filter = 'url(#vertical-slam-blur)';
-
-    const blurProxy = { stdY: 65 };
-    const blurNode = document.getElementById('vertical-blur-val');
-    blurNode?.setAttribute('stdDeviation', '0, 65');
-
-    gsap.set(el, { scaleY: 2.3, scaleX: 0.85 });
-
-    const tl = gsap.timeline({
-      onComplete: () => {
-        if (el) {
-          el.style.filter = 'none';
-        }
-        setTimeout(() => setPhase('prism-glide'), 320);
-      },
-    });
-
-    tl.to(
-      el,
-      {
-        scaleY: 1,
-        scaleX: 1,
-        duration: 0.4,
-        ease: 'power4.out',
-      },
-      0
-    );
-
-    tl.to(
-      blurProxy,
-      {
-        stdY: 0,
-        duration: 0.4,
-        ease: 'power4.out',
-        onUpdate: () => {
-          blurNode?.setAttribute('stdDeviation', `0, ${Math.max(0, blurProxy.stdY).toFixed(2)}`);
-        },
-      },
-      0
-    );
-
-    return () => {
-      tl.kill();
-    };
-  }, [phase]);
-
-  // Phase 3: Prism glides into logo slot
-  useEffect(() => {
-    if (phase !== 'prism-glide' || !prismRef.current || !logoContainerRef.current) return;
-
-    const el = prismRef.current;
-    const slot = logoContainerRef.current.querySelector('[data-prism-slot]') as HTMLElement | null;
-    if (!slot) {
-      setIsLockedIn(true);
-      setPhase('anime-burst');
-      return;
-    }
-
-    const startX = window.innerWidth / 2;
-    const startY = window.innerHeight / 2;
-    const slotRect = slot.getBoundingClientRect();
-    const targetLeft = slotRect.left + slotRect.width / 2;
-    const targetTop = slotRect.top + slotRect.height / 2;
-
-    animate(el, {
-      left: [startX + 'px', targetLeft + 'px'],
-      top: [startY + 'px', targetTop + 'px'],
-      scale: [1.15, 1.0],
-      duration: 850,
-      ease: 'inOutQuad',
-      onComplete: () => {
-        setIsLockedIn(true);
-        setAppearFlash(1.0);
-        setPhase('anime-burst');
-      },
-    });
-  }, [phase]);
-
-  // Phase 4: Anime burst — logo appears with max bloom, then settles
+  // Phase 3: Overall PRISMATE logo shining burst with max bloom, then settles
   useEffect(() => {
     if (phase !== 'anime-burst') return;
 
@@ -312,27 +217,6 @@ const MainAppContent: React.FC = () => {
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#000000' }}>
       {/* ── Continuous Universal Loader (Bottom-docked during app transitions) */}
       <UniversalLoader visible={globalLoader} centered={false} />
-
-      {/* ── Vertical Motion Blur Filter for Supersonic Prism Slam ── */}
-      <svg width="0" height="0" style={{ position: 'absolute', pointerEvents: 'none' }}>
-        <defs>
-          <filter id="vertical-slam-blur" x="-50%" y="-200%" width="200%" height="500%">
-            <feGaussianBlur id="vertical-blur-val" in="SourceGraphic" stdDeviation="0, 65" />
-            <feColorMatrix
-              type="matrix"
-              values="
-                1 0 0 0 0  
-                0 1 0 0 0.4  
-                0 0 1 0 0.8  
-                0 0 0 1 0"
-            />
-            <feMerge>
-              <feMergeNode />
-              <feMergeNode in="SourceGraphic" />
-            </feMerge>
-          </filter>
-        </defs>
-      </svg>
 
       {/* ── Global Wave Canvas (Flows in login and across all workspaces §3) */}
       <WaveCanvas
@@ -397,8 +281,8 @@ const MainAppContent: React.FC = () => {
             </PrismateLogo>
           </div>
 
-          {/* Floating Prism during shadow-reveal, slam, and glide */}
-          {!isLockedIn && phase !== 'star-whirl' && (
+          {/* Floating Monolith Prism during shadow-reveal */}
+          {phase === 'shadow-reveal' && (
             <div
               ref={prismRef}
               style={{
@@ -409,9 +293,9 @@ const MainAppContent: React.FC = () => {
               }}
             >
               <Prism
-                variant={phase === 'shadow-reveal' ? 'monolith' : 'glowing-cyan'}
+                variant="monolith"
                 waveCharge={0}
-                flashIntensity={phase === 'prism-slam' ? 1.0 : 0}
+                flashIntensity={0}
               />
             </div>
           )}
