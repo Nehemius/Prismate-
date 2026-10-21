@@ -2,7 +2,7 @@
  * Prismate 1.5 — Global Type Definitions
  */
 
-export type ScreenType = 'home' | 'chemistry' | 'physics' | 'mathematics' | 'profile';
+export type ScreenType = 'home' | 'chemistry' | 'physics' | 'mathematics' | 'profile' | 'stacks';
 
 export type ListType = 'weaklist' | 'stronglist' | 'studylist';
 

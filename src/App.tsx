@@ -13,6 +13,7 @@ import PhysicsPage from './pages/PhysicsPage';
 import MathematicsPage from './pages/MathematicsPage';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
+import StacksWorkspace from './components/stacks/StacksWorkspace';
 import { AppProvider } from './context/AppContext';
 import { useApp } from './context/useApp';
 
@@ -262,6 +263,7 @@ const MainAppContent: React.FC = () => {
           {currentScreen === 'chemistry' && <ChemistryPage />}
           {currentScreen === 'physics' && <PhysicsPage />}
           {currentScreen === 'mathematics' && <MathematicsPage />}
+          {currentScreen === 'stacks' && <StacksWorkspace />}
           {currentScreen === 'profile' && <ProfilePage />}
         </div>
       )}

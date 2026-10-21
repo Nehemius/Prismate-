@@ -28,6 +28,7 @@ const ALL_NAV_ITEMS: NavItemConfig[] = [
   { id: 'chemistry', label: 'CHEM', icon: '⚗' },
   { id: 'physics', label: 'PHYS', icon: '⚛' },
   { id: 'mathematics', label: 'MATH', icon: '∫' },
+  { id: 'stacks', label: 'STACKS', icon: '⬡' },
   { id: 'profile', label: 'USER', icon: '◉' },
 ];
 
@@ -57,7 +58,7 @@ export const NavDock: React.FC = () => {
 
   // Long-press detection on any editable nav button (Home or Subject §5.1, §6.1)
   const handleItemPointerDown = useCallback((screenId: ScreenType) => {
-    if (screenId === 'profile') return;
+    if (screenId === 'profile' || screenId === 'stacks') return;
     isLongPressRef.current = false;
     longPressTimerRef.current = window.setTimeout(() => {
       isLongPressRef.current = true;
