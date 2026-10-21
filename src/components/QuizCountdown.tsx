@@ -102,29 +102,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
         }}
       />
 
-      {/* 2. Center Radial Glow */}
-      <div
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(circle at center, rgba(242, 242, 242, 0.12) 0%, transparent 65%)',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* 3. Flash Pulse on each number */}
-      <div
-        key={`flash-${index}`}
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background: 'radial-gradient(circle at center, rgba(242, 242, 242, 0.25) 0%, transparent 60%)',
-          animation: 'al-flash 0.45s ease-out forwards',
-          pointerEvents: 'none',
-        }}
-      />
-
-      {/* 4. Horizontal Speed Streaks */}
+      {/* 2. Horizontal Speed Streaks */}
       <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' }}>
         {[0, 1, 2, 3, 4].map((i) => (
           <div
@@ -145,7 +123,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
         ))}
       </div>
 
-      {/* 5. Expanding Neon Rings */}
+      {/* 3. Expanding Rings (Crisp, No Box Shadow Blur) */}
       <div
         style={{
           position: 'absolute',
@@ -164,8 +142,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
               width: '180px',
               height: '180px',
               borderRadius: '50%',
-              border: '2px solid rgba(242, 242, 242, 0.6)',
-              boxShadow: '0 0 35px rgba(242, 242, 242, 0.4)',
+              border: '1.5px solid rgba(242, 242, 242, 0.5)',
               animation: 'al-ring-expand 1s ease-out forwards',
               animationDelay: `${delay}s`,
             }}
@@ -173,14 +150,14 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
         ))}
       </div>
 
-      {/* 6. Rotating Accent Orbit Rings */}
+      {/* 4. Rotating Accent Orbit Rings */}
       <div
         style={{
           position: 'absolute',
           width: '420px',
           height: '420px',
           borderRadius: '50%',
-          border: '1px solid rgba(242, 242, 242, 0.25)',
+          border: '1px solid rgba(242, 242, 242, 0.2)',
           borderTopColor: 'transparent',
           borderBottomColor: 'transparent',
           animation: 'al-spin-slow 6s linear infinite',
@@ -193,7 +170,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
           width: '300px',
           height: '300px',
           borderRadius: '50%',
-          border: '1px solid rgba(242, 242, 242, 0.15)',
+          border: '1px solid rgba(242, 242, 242, 0.12)',
           borderLeftColor: 'transparent',
           borderRightColor: 'transparent',
           animation: 'al-spin-slow 4s linear infinite reverse',
@@ -201,7 +178,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
         }}
       />
 
-      {/* 7. Label Above Number */}
+      {/* 5. Label Above Number */}
       {!isGo && (
         <div
           key={`label-${index}`}
@@ -209,20 +186,19 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
             position: 'absolute',
             top: '28%',
             fontFamily: 'var(--font-subheading)',
-            fontSize: '14px',
+            fontSize: '13px',
             fontWeight: 'bold',
-            letterSpacing: '6px',
-            color: '#F2F2F2',
-            textShadow: '0 0 16px rgba(242, 242, 242, 0.5)',
+            letterSpacing: '5px',
+            color: 'rgba(242, 242, 242, 0.75)',
             textTransform: 'uppercase',
-            animation: 'al-fade-up 0.5s ease-out forwards',
+            animation: 'al-fade-up 0.4s ease-out forwards',
           }}
         >
           {spec?.label || labels.label}
         </div>
       )}
 
-      {/* 8. Main Number / GO! with Spec Word */}
+      {/* 6. Main Number / GO! with Spec Word (Crisp, High Contrast) */}
       <div
         style={{
           position: 'relative',
@@ -238,7 +214,6 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
             style={{
               textAlign: 'center',
               animation: 'al-go-pop 0.85s cubic-bezier(0.2, 1.4, 0.4, 1) forwards',
-              filter: 'drop-shadow(0 0 40px rgba(242, 242, 242, 0.6))',
             }}
           >
             <div
@@ -249,7 +224,6 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
                 fontWeight: 900,
                 letterSpacing: '4px',
                 color: '#FFFFFF',
-                textShadow: '0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px rgba(242, 242, 242, 0.5)',
               }}
             >
               GO!
@@ -259,12 +233,11 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
               style={{
                 position: 'relative',
                 margin: '12px auto 0',
-                height: '4px',
+                height: '3px',
                 width: '75%',
                 borderRadius: '4px',
                 overflow: 'hidden',
                 background: '#F2F2F2',
-                boxShadow: '0 0 15px rgba(242, 242, 242, 0.7)',
               }}
             >
               <div
@@ -283,7 +256,6 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
             style={{
               position: 'relative',
               animation: 'al-number-pop 1s cubic-bezier(0.16, 1.06, 0.43, 0.99) forwards',
-              filter: 'drop-shadow(0 0 35px rgba(242, 242, 242, 0.5))',
             }}
           >
             <div
@@ -292,8 +264,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
                 fontSize: 'clamp(110px, 24vw, 220px)',
                 lineHeight: 1,
                 fontWeight: 900,
-                color: '#F2F2F2',
-                textShadow: '0 0 25px rgba(242, 242, 242, 0.6)',
+                color: '#FFFFFF',
               }}
             >
               {current}
@@ -312,7 +283,6 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
                   whiteSpace: 'nowrap',
                   pointerEvents: 'none',
                   animation: 'al-fly-out 1s cubic-bezier(0.18, 0.9, 0.3, 1) forwards',
-                  filter: 'drop-shadow(0 0 16px rgba(242, 242, 242, 0.4))',
                 }}
               >
                 {/* Fly-out speed line */}
@@ -332,7 +302,7 @@ export const QuizCountdown: React.FC<QuizCountdownProps> = ({
                     fontSize: 'clamp(20px, 3.5vw, 42px)',
                     fontWeight: 900,
                     letterSpacing: '2px',
-                    color: '#F2F2F2',
+                    color: '#FFFFFF',
                     textTransform: 'uppercase',
                   }}
                 >

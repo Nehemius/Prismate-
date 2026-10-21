@@ -378,9 +378,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '16px 28px',
+          background: '#0A0A0A',
           borderBottom: '1px solid rgba(242,242,242,0.10)',
-          background: 'rgba(10,10,10,0.85)',
-          backdropFilter: 'blur(8px)',
           position: 'relative',
           zIndex: 20,
         }}

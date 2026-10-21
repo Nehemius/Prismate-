@@ -105,19 +105,19 @@ body {
   transform: rotateY(180deg);
 }
 
-/* ─── Asphalt Legends Style Countdown Keyframes ─── */
+/* ─── Asphalt Legends Style Countdown Keyframes (Crisp, Zero Blur) ─── */
 @keyframes al-number-pop {
-  0% { transform: scale(2.6) rotate(-6deg); opacity: 0; filter: blur(14px); }
-  18% { transform: scale(1) rotate(0deg); opacity: 1; filter: blur(0px); }
-  78% { transform: scale(1.04) rotate(0deg); opacity: 1; }
-  100% { transform: scale(0.2) rotate(8deg); opacity: 0; filter: blur(10px); }
+  0% { transform: scale(2.2) rotate(-4deg); opacity: 0; }
+  20% { transform: scale(1) rotate(0deg); opacity: 1; }
+  80% { transform: scale(1.03) rotate(0deg); opacity: 1; }
+  100% { transform: scale(0.4) rotate(4deg); opacity: 0; }
 }
 
 @keyframes al-go-pop {
-  0% { transform: scale(3.4) rotate(-10deg); opacity: 0; letter-spacing: 1.2em; filter: blur(18px); }
-  25% { transform: scale(0.92) rotate(2deg); opacity: 1; letter-spacing: 0.06em; filter: blur(0px); }
+  0% { transform: scale(2.8) rotate(-6deg); opacity: 0; letter-spacing: 0.6em; }
+  25% { transform: scale(0.95) rotate(1deg); opacity: 1; letter-spacing: 0.05em; }
   60% { transform: scale(1); letter-spacing: 0.08em; }
-  100% { transform: scale(1.08); opacity: 1; letter-spacing: 0.12em; }
+  100% { transform: scale(1.05); opacity: 1; letter-spacing: 0.1em; }
 }
 
 @keyframes al-shake {
@@ -161,10 +161,10 @@ body {
 }
 
 @keyframes al-fly-out {
-  0% { transform: translateX(-30px) scale(0.5) skewX(-12deg); opacity: 0; filter: blur(10px); letter-spacing: 0.4em; }
-  22% { transform: translateX(8px) scale(1) skewX(-8deg); opacity: 1; filter: blur(0px); letter-spacing: 0.08em; }
-  72% { transform: translateX(110px) scale(1); opacity: 1; }
-  100% { transform: translateX(210px) scale(1.08); opacity: 0; filter: blur(8px); }
+  0% { transform: translateX(-20px) scale(0.7) skewX(-8deg); opacity: 0; letter-spacing: 0.2em; }
+  22% { transform: translateX(6px) scale(1) skewX(-4deg); opacity: 1; letter-spacing: 0.05em; }
+  72% { transform: translateX(90px) scale(1); opacity: 1; }
+  100% { transform: translateX(180px) scale(1.05); opacity: 0; }
 }
 
 @keyframes al-fly-out-streak {
