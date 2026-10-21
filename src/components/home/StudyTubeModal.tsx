@@ -47,8 +47,6 @@ export const StudyTubeModal: React.FC<StudyTubeModalProps> = ({ isOpen, onClose 
   const [customInputUrl, setCustomInputUrl] = useState('');
   const [activeVideoId, setActiveVideoId] = useState<string>(CURATED_LESSONS[0].videoId);
 
-  if (!isOpen) return null;
-
   const extractVideoId = (input: string): string | null => {
     const trimmed = input.trim();
     if (!trimmed) return null;
@@ -89,27 +87,34 @@ export const StudyTubeModal: React.FC<StudyTubeModalProps> = ({ isOpen, onClose 
 
   return (
     <AnimatePresence>
-      <div
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9600,
-          background: 'rgba(0, 0, 0, 0.88)',
-          backdropFilter: 'blur(12px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-        }}
-      >
+      {isOpen && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 14 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+          key="studytube-modal-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9600,
+            background: 'rgba(0, 0, 0, 0.88)',
+            backdropFilter: 'blur(12px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <motion.div
+            key="studytube-modal-card"
+            initial={{ opacity: 0, scale: 0.92, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
           style={{
             width: 'min(920px, 94vw)',
             maxHeight: '92vh',
@@ -281,8 +286,9 @@ export const StudyTubeModal: React.FC<StudyTubeModalProps> = ({ isOpen, onClose 
             </div>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+      </motion.div>
+    )}
+  </AnimatePresence>
   );
 };
 

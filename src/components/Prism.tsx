@@ -49,13 +49,12 @@ export const Prism: React.FC<PrismProps> = ({
   // Bloom opacity: scales with tintIntensity and surges on flash
   const bloomOpacity = Math.min(1, tintIntensity * 1.25);
 
-  // Drop-shadow filter on SVG (Gem Violet & Ruby Red dual-tone radiance)
   const filterStyle =
     tintIntensity > 0.05
-      ? `drop-shadow(0 0 ${14 * tintIntensity}px rgba(157, 34, 255, ${0.9 * tintIntensity})) ` +
-        `drop-shadow(0 0 ${18 * tintIntensity}px rgba(235, 16, 75, ${0.9 * tintIntensity})) ` +
-        `drop-shadow(0 0 ${32 * tintIntensity}px rgba(255, 240, 250, ${0.75 * tintIntensity})) ` +
-        `brightness(${1 + 1.8 * flash})`
+      ? `drop-shadow(0 0 ${Math.round(14 * tintIntensity)}px rgba(157, 34, 255, ${(0.9 * tintIntensity).toFixed(2)})) ` +
+        `drop-shadow(0 0 ${Math.round(18 * tintIntensity)}px rgba(235, 16, 75, ${(0.9 * tintIntensity).toFixed(2)})) ` +
+        `drop-shadow(0 0 ${Math.round(32 * tintIntensity)}px rgba(255, 240, 250, ${(0.75 * tintIntensity).toFixed(2)})) ` +
+        `brightness(${(1 + 1.8 * flash).toFixed(2)})`
       : undefined;
 
   return (

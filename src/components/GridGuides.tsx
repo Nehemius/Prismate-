@@ -7,6 +7,12 @@ import React from 'react';
  *   - Exposed during Edit Mode to guide widget placement and resizing.
  *   - Renders faint, non-interactive cell outlines across 16 columns × 8 rows.
  */
+const GUIDE_CELLS = Array.from({ length: 16 * 8 }, (_, i) => ({
+  id: i,
+  col: (i % 16) + 1,
+  row: Math.floor(i / 16) + 1,
+}));
+
 export const GridGuides: React.FC = () => {
   return (
     <div
@@ -24,30 +30,26 @@ export const GridGuides: React.FC = () => {
         boxSizing: 'border-box',
       }}
     >
-      {Array.from({ length: 16 * 8 }).map((_, i) => {
-        const col = (i % 16) + 1;
-        const row = Math.floor(i / 16) + 1;
-        return (
-          <div
-            key={i}
-            style={{
-              border: '1px dashed rgba(242, 242, 242, 0.08)',
-              borderRadius: '12px',
-              display: 'flex',
-              alignItems: 'flex-start',
-              justifyContent: 'flex-start',
-              padding: '4px 6px',
-              color: 'rgba(242, 242, 242, 0.15)',
-              fontFamily: 'var(--font-heading)',
-              fontSize: '8px',
-              letterSpacing: '0.5px',
-              userSelect: 'none',
-            }}
-          >
-            {col},{row}
-          </div>
-        );
-      })}
+      {GUIDE_CELLS.map((cell) => (
+        <div
+          key={cell.id}
+          style={{
+            border: '1px dashed rgba(242, 242, 242, 0.08)',
+            borderRadius: '12px',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'flex-start',
+            padding: '4px 6px',
+            color: 'rgba(242, 242, 242, 0.15)',
+            fontFamily: 'var(--font-heading)',
+            fontSize: '8px',
+            letterSpacing: '0.5px',
+            userSelect: 'none',
+          }}
+        >
+          {cell.col},{cell.row}
+        </div>
+      ))}
     </div>
   );
 };

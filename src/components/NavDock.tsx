@@ -1,6 +1,7 @@
 import React, { useState, useRef, useCallback } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import type { ScreenType } from '../types/prismate';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 
 /**
  * Floating Left Navigation Dock
@@ -139,40 +140,40 @@ export const NavDock: React.FC = () => {
   return (
     <>
       {/* ── Collapsed Indicator Line (spec §4.2 with swipe-right detection) */}
-      {collapsed && (
-        <button
-          onClick={() => setCollapsed(false)}
-          onPointerDown={handleIndicatorPointerDown}
-          onPointerMove={handleIndicatorPointerMove}
-          onPointerUp={handleIndicatorPointerUp}
-          aria-label="Reveal navigation dock (Click or swipe right)"
-          title="Open Navigation"
-          style={{
-            position: 'fixed',
-            left: '6px',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '6px',
-            height: '110px',
-            borderRadius: '4px',
-            background: '#F2F2F2',
-            border: 'none',
-            cursor: 'pointer',
-            zIndex: 1000,
-            boxShadow: '0 0 12px rgba(242,242,242,0.6)',
-            transition: 'transform 0.2s ease, width 0.2s ease, background 0.2s ease',
-            touchAction: 'none',
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.width = '10px';
-            e.currentTarget.style.transform = 'translateY(-50%) scaleY(1.08)';
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.width = '6px';
-            e.currentTarget.style.transform = 'translateY(-50%)';
-          }}
-        />
-      )}
+      <AnimatePresence>
+        {collapsed && (
+          <motion.button
+            key="collapsed-indicator"
+            initial={{ opacity: 0, x: -14 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -14 }}
+            transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
+            onClick={() => setCollapsed(false)}
+            onPointerDown={handleIndicatorPointerDown}
+            onPointerMove={handleIndicatorPointerMove}
+            onPointerUp={handleIndicatorPointerUp}
+            aria-label="Reveal navigation dock (Click or swipe right)"
+            title="Open Navigation"
+            style={{
+              position: 'fixed',
+              left: '6px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              width: '6px',
+              height: '110px',
+              borderRadius: '4px',
+              background: '#F2F2F2',
+              border: 'none',
+              cursor: 'pointer',
+              zIndex: 1000,
+              boxShadow: '0 0 12px rgba(242,242,242,0.6)',
+              touchAction: 'none',
+            }}
+            whileHover={{ width: '10px', scaleY: 1.08 }}
+            whileTap={{ scale: 0.94 }}
+          />
+        )}
+      </AnimatePresence>
 
       {/* ── Floating Frosted-Glass Dock (True Overlay with swipe-left detection) */}
       <nav
@@ -182,9 +183,9 @@ export const NavDock: React.FC = () => {
         onPointerUp={handleDockPointerUp}
         style={{
           position: 'fixed',
-          left: collapsed ? '-120px' : '16px',
+          left: '16px',
           top: '50%',
-          transform: 'translateY(-50%)',
+          transform: collapsed ? 'translate3d(-140px, -50%, 0)' : 'translate3d(0, -50%, 0)',
           zIndex: 1000,
           display: 'flex',
           flexDirection: 'column',
@@ -197,11 +198,12 @@ export const NavDock: React.FC = () => {
           border: '1px solid rgba(242, 242, 242, 0.22)',
           borderRadius: '32px',
           boxShadow: '0 12px 40px rgba(0, 0, 0, 0.7)',
-          transition: 'left 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease',
+          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease',
           opacity: collapsed ? 0 : 1,
           pointerEvents: collapsed ? 'none' : 'all',
           userSelect: 'none',
           touchAction: 'none',
+          willChange: 'transform, opacity',
         }}
       >
         {/* Collapse toggle arrow */}
@@ -233,8 +235,11 @@ export const NavDock: React.FC = () => {
           const isEditable = item.id !== 'profile';
 
           return (
-            <button
+            <motion.button
               key={item.id}
+              whileHover={{ scale: 1.06 }}
+              whileTap={{ scale: 0.94 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 28 }}
               onClick={() => handleItemClick(item.id)}
               onDoubleClick={isEditable ? () => setPromptTarget(item.id) : undefined}
               onContextMenu={isEditable ? (e) => handleItemContextMenu(e, item.id) : undefined}
@@ -292,7 +297,7 @@ export const NavDock: React.FC = () => {
               >
                 {item.label}
               </span>
-            </button>
+            </motion.button>
           );
         })}
 
@@ -342,105 +347,117 @@ export const NavDock: React.FC = () => {
       </nav>
 
       {/* ── Edit Mode Confirmation Modal (§5.1, §6.1, PRISMATE_FIXES.md §1.2) */}
-      {promptTarget && (
-        <div
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setPromptTarget(null);
-          }}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9000,
-            background: 'rgba(0, 0, 0, 0.75)',
-            backdropFilter: 'blur(8px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <div
+      <AnimatePresence>
+        {promptTarget && (
+          <motion.div
+            key="editmode-prompt-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: 'easeOut' }}
+            onClick={(e) => {
+              if (e.target === e.currentTarget) setPromptTarget(null);
+            }}
             style={{
-              background: '#000000',
-              border: '1px solid rgba(242, 242, 242, 0.25)',
-              borderRadius: '16px',
-              padding: '32px 36px',
-              maxWidth: '460px',
-              width: '90vw',
-              boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
-              textAlign: 'center',
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9000,
+              background: 'rgba(0, 0, 0, 0.75)',
+              backdropFilter: 'blur(8px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}
           >
-            <h3
+            <motion.div
+              key="editmode-prompt-card"
+              initial={{ opacity: 0, scale: 0.92, y: 12 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 8 }}
+              transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
               style={{
-                fontFamily: 'var(--font-heading)',
-                fontSize: '18px',
-                letterSpacing: '2px',
-                color: '#F2F2F2',
-                margin: '0 0 12px',
-                textTransform: 'uppercase',
+                background: '#000000',
+                border: '1px solid rgba(242, 242, 242, 0.25)',
+                borderRadius: '16px',
+                padding: '32px 36px',
+                maxWidth: '460px',
+                width: '90vw',
+                boxShadow: '0 20px 60px rgba(0, 0, 0, 0.9)',
+                textAlign: 'center',
               }}
             >
-              {isCurrentScreenEditing
-                ? `EXIT ${promptTarget.toUpperCase()} EDIT MODE?`
-                : `ENTER ${promptTarget.toUpperCase()} EDIT MODE?`}
-            </h3>
-            <p
-              style={{
-                fontFamily: 'var(--font-content)',
-                fontSize: '13px',
-                color: 'rgba(242, 242, 242, 0.6)',
-                lineHeight: 1.5,
-                margin: '0 0 28px',
-              }}
-            >
-              {promptTarget === 'home'
-                ? isCurrentScreenEditing
-                  ? 'Save your current Home widget arrangement and lock the 16 × 8 Bento grid.'
-                  : 'Confirming unlocks the 16 × 8 Bento grid for widget dragging and repositioning.'
-                : isCurrentScreenEditing
-                ? `Save your block layout and lock the ${promptTarget} workspace.`
-                : `Subject page edit mode lets you resize and reposition existing blocks. The centre title block remains locked.`}
-            </p>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button
-                onClick={handleConfirmEditMode}
+              <h3
                 style={{
-                  flex: 1,
-                  background: '#F2F2F2',
-                  color: '#000000',
-                  border: 'none',
-                  borderRadius: '8px',
-                  padding: '12px',
                   fontFamily: 'var(--font-heading)',
-                  fontSize: '12px',
-                  letterSpacing: '1px',
-                  cursor: 'pointer',
-                  fontWeight: 'bold',
-                }}
-              >
-                {isCurrentScreenEditing ? 'EXIT EDIT MODE' : 'ENTER EDIT MODE'}
-              </button>
-              <button
-                onClick={() => setPromptTarget(null)}
-                style={{
-                  flex: 1,
-                  background: 'transparent',
+                  fontSize: '18px',
+                  letterSpacing: '2px',
                   color: '#F2F2F2',
-                  border: '1px solid rgba(242, 242, 242, 0.25)',
-                  borderRadius: '8px',
-                  padding: '12px',
-                  fontFamily: 'var(--font-subheading)',
-                  fontSize: '12px',
-                  letterSpacing: '1px',
-                  cursor: 'pointer',
+                  margin: '0 0 12px',
+                  textTransform: 'uppercase',
                 }}
               >
-                CANCEL
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                {isCurrentScreenEditing
+                  ? `EXIT ${promptTarget.toUpperCase()} EDIT MODE?`
+                  : `ENTER ${promptTarget.toUpperCase()} EDIT MODE?`}
+              </h3>
+              <p
+                style={{
+                  fontFamily: 'var(--font-content)',
+                  fontSize: '13px',
+                  color: 'rgba(242, 242, 242, 0.6)',
+                  lineHeight: 1.5,
+                  margin: '0 0 28px',
+                }}
+              >
+                {promptTarget === 'home'
+                  ? isCurrentScreenEditing
+                    ? 'Save your current Home widget arrangement and lock the 16 × 8 Bento grid.'
+                    : 'Confirming unlocks the 16 × 8 Bento grid for widget dragging and repositioning.'
+                  : isCurrentScreenEditing
+                  ? `Save your block layout and lock the ${promptTarget} workspace.`
+                  : `Subject page edit mode lets you resize and reposition existing blocks. The centre title block remains locked.`}
+              </p>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={handleConfirmEditMode}
+                  style={{
+                    flex: 1,
+                    background: '#F2F2F2',
+                    color: '#000000',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontFamily: 'var(--font-heading)',
+                    fontSize: '12px',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  {isCurrentScreenEditing ? 'EXIT EDIT MODE' : 'ENTER EDIT MODE'}
+                </button>
+                <button
+                  onClick={() => setPromptTarget(null)}
+                  style={{
+                    flex: 1,
+                    background: 'transparent',
+                    color: '#F2F2F2',
+                    border: '1px solid rgba(242, 242, 242, 0.25)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    fontFamily: 'var(--font-subheading)',
+                    fontSize: '12px',
+                    letterSpacing: '1px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  CANCEL
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 };

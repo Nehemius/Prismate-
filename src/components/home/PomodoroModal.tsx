@@ -29,8 +29,6 @@ export const PomodoroModal: React.FC<PomodoroModalProps> = ({
 }) => {
   const [localSettings, setLocalSettings] = useState<PomodoroSettings>(settings);
 
-  if (!isOpen) return null;
-
   const handlePreset = (focus: number, shortBreak: number, longBreak: number, cycles: number) => {
     const updated = {
       focusMinutes: focus,
@@ -49,27 +47,34 @@ export const PomodoroModal: React.FC<PomodoroModalProps> = ({
 
   return (
     <AnimatePresence>
-      <div
-        onClick={(e) => {
-          if (e.target === e.currentTarget) onClose();
-        }}
-        style={{
-          position: 'fixed',
-          inset: 0,
-          zIndex: 9600,
-          background: 'rgba(0, 0, 0, 0.82)',
-          backdropFilter: 'blur(10px)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          padding: '20px',
-        }}
-      >
+      {isOpen && (
         <motion.div
-          initial={{ opacity: 0, scale: 0.92, y: 14 }}
-          animate={{ opacity: 1, scale: 1, y: 0 }}
-          exit={{ opacity: 0, scale: 0.95, y: 10 }}
-          transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
+          key="pomodoro-modal-backdrop"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+          onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+          }}
+          style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9600,
+            background: 'rgba(0, 0, 0, 0.82)',
+            backdropFilter: 'blur(10px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px',
+          }}
+        >
+          <motion.div
+            key="pomodoro-modal-card"
+            initial={{ opacity: 0, scale: 0.92, y: 14 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: 10 }}
+            transition={{ duration: 0.24, ease: [0.16, 1, 0.3, 1] }}
           style={{
             width: 'min(480px, 94vw)',
             background: 'linear-gradient(135deg, rgba(24, 24, 24, 0.98), rgba(12, 12, 12, 0.95))',
@@ -366,8 +371,9 @@ export const PomodoroModal: React.FC<PomodoroModalProps> = ({
             </button>
           </div>
         </motion.div>
-      </div>
-    </AnimatePresence>
+      </motion.div>
+    )}
+  </AnimatePresence>
   );
 };
 

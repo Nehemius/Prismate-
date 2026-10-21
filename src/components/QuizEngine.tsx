@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import type { QuizQuestion, DifficultyLevel, ListType } from '../types/prismate';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import UniversalLoader from './UniversalLoader';
 import { fetchQuestionsFromSupabase } from '../lib/supabase';
 
@@ -291,13 +291,18 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
     if (phase !== 'playing' || !timeControl || isAnswerChecked) return;
 
     if (timeLeft > 0) {
-      timerRef.current = window.setTimeout(() => setTimeLeft((t) => t - 1), 1000);
+      timerRef.current = window.setTimeout(() => {
+        setTimeLeft((t) => {
+          if (t <= 1) {
+            handleOptionSelect(-1);
+            return 0;
+          }
+          return t - 1;
+        });
+      }, 1000);
       return () => {
         if (timerRef.current) clearTimeout(timerRef.current);
       };
-    } else {
-      // Time expired: count as wrong
-      handleOptionSelect(-1);
     }
   }, [phase, timeLeft, timeControl, isAnswerChecked, handleOptionSelect]);
 

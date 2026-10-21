@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { INITIAL_DIAGRAMS } from '../data/mockData';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 
 interface DiagramsModalProps {
   subject: 'chemistry' | 'physics' | 'mathematics';
@@ -13,7 +14,11 @@ export const DiagramsModal: React.FC<DiagramsModalProps> = ({ subject, onClose }
   const [activeDiagram, setActiveDiagram] = useState(subjectDiagrams[0] || INITIAL_DIAGRAMS[0]);
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       style={{
         position: 'fixed',
         inset: 0,
@@ -212,7 +217,7 @@ export const DiagramsModal: React.FC<DiagramsModalProps> = ({ subject, onClose }
           </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

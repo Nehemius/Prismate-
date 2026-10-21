@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useApp } from '../context/AppContext';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { useApp } from '../context/useApp';
 import { INITIAL_DIAGRAMS, INITIAL_QUESTIONS } from '../data/mockData';
 import GridGuides from '../components/GridGuides';
 import BentoEditToolbar from '../components/BentoEditToolbar';
@@ -316,9 +316,17 @@ export const HomePage: React.FC = () => {
     }
   };
 
+  const activeQuizTimeoutRef = useRef<number | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (activeQuizTimeoutRef.current) clearTimeout(activeQuizTimeoutRef.current);
+    };
+  }, []);
+
   // ── Active Quiz Answer Selection Handler with Auto-Advance ────────────────
-  const handleActiveQuizOption = (optIdx: number) => {
-    if (activeQuizAnswered !== null) return;
+  const handleActiveQuizOption = useCallback((optIdx: number) => {
+    if (activeQuizAnswered !== null || !currentQuizQ) return;
     setActiveQuizAnswered(optIdx);
 
     const isCorrect = optIdx === currentQuizQ.correctIndex;
@@ -341,24 +349,30 @@ export const HomePage: React.FC = () => {
       });
     }
 
+    const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     const newHistory: HistoryEntry = {
-      id: 'hist-' + Date.now(),
+      id: `hist-${Date.now()}-${optIdx}`,
       question: currentQuizQ.question,
       correctAnswer: currentQuizQ.options[currentQuizQ.correctIndex],
       userAnswer: currentQuizQ.options[optIdx],
       isCorrect,
       subject: (currentQuizQ.subject || 'chemistry').toUpperCase(),
-      timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      timestamp,
     };
     setHistoryEntries((prev) => [newHistory, ...prev]);
     setTotalQuizAnswered((c) => c + 1);
 
     // Auto-advance to the next question after 600ms
-    setTimeout(() => {
-      setActiveQuizIdx((idx) => (idx + 1) % filteredQuizQuestions.length);
+    if (activeQuizTimeoutRef.current) clearTimeout(activeQuizTimeoutRef.current);
+    activeQuizTimeoutRef.current = window.setTimeout(() => {
+      setActiveQuizIdx((idx) => {
+        const len = filteredQuizQuestions.length;
+        return len > 0 ? (idx + 1) % len : 0;
+      });
       setActiveQuizAnswered(null);
+      activeQuizTimeoutRef.current = null;
     }, 600);
-  };
+  }, [activeQuizAnswered, currentQuizQ, addToList, filteredQuizQuestions.length]);
 
   // Reset History & Weaklist Handler
   const handleResetHistory = () => {
@@ -574,7 +588,11 @@ export const HomePage: React.FC = () => {
     const isDrag = activeDragId === id;
     return {
       ...TILE_BASE,
-      borderColor: isTarget ? '#F2F2F2' : isEditMode ? 'rgba(242,242,242,0.35)' : 'rgba(242,242,242,0.10)',
+      borderColor: isTarget
+        ? '#F2F2F2'
+        : isEditMode
+        ? 'rgba(242,242,242,0.35)'
+        : 'rgba(242,242,242,0.10)',
       background: isTarget
         ? 'linear-gradient(135deg, rgba(32,32,32,0.95), rgba(48,48,48,0.85))'
         : 'linear-gradient(135deg, rgba(16,16,16,0.85), rgba(28,28,28,0.72))',
@@ -758,6 +776,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setClockModalOpen(true)}
               style={tileStyle('clock', { justifyContent: 'center', alignItems: 'center' })}
             >
@@ -869,6 +888,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setPomoModalOpen(true)}
               style={tileStyle('pomodoro', { justifyContent: 'center', alignItems: 'center', gap: '14px' })}
             >
@@ -978,6 +998,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setTasksQuotesModalOpen(true)}
               style={tileStyle('todos', { justifyContent: 'flex-start', overflowY: 'auto' })}
             >
@@ -1056,6 +1077,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setTasksQuotesModalOpen(true)}
               style={tileStyle('pulse', { justifyContent: 'center' })}
             >
@@ -1113,6 +1135,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setFormulaIdx((i) => (i + 1) % formulas.length)}
               style={tileStyle('formula', {
                 cursor: isEditMode ? 'grab' : 'pointer',
@@ -1186,6 +1209,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               style={tileStyle('welcome', {
                 flexDirection: 'row',
                 alignItems: 'center',
@@ -1249,6 +1273,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setDiagIdx((i) => (i + 1) % INITIAL_DIAGRAMS.length)}
               style={tileStyle('diagram', {
                 cursor: isEditMode ? 'grab' : 'pointer',
@@ -1312,6 +1337,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setActiveQuizModalOpen(true)}
               style={tileStyle('quiz', { justifyContent: 'center' })}
             >
@@ -1420,6 +1446,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setHistoryModalOpen(true)}
               style={tileStyle('history', { justifyContent: 'flex-start', overflowY: 'auto' })}
             >
@@ -1500,6 +1527,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setStudyTubeModalOpen(true)}
               style={tileStyle('studytube', {
                 justifyContent: 'center',
@@ -1559,6 +1587,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
+              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && fileInputRef.current?.click()}
               style={tileStyle('custom_pic', { padding: 0, overflow: 'hidden' })}
             >

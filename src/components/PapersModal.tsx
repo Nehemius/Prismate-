@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { motion } from 'motion/react';
 import { INITIAL_PAPERS } from '../data/mockData';
 
 interface PapersModalProps {
@@ -17,7 +18,11 @@ export const PapersModal: React.FC<PapersModalProps> = ({ type, subject, onClose
   );
 
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      exit={{ opacity: 0, scale: 0.98 }}
+      transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
       style={{
         position: 'fixed',
         inset: 0,
@@ -326,7 +331,7 @@ export const PapersModal: React.FC<PapersModalProps> = ({ type, subject, onClose
           />
         </div>
       )}
-    </div>
+    </motion.div>
   );
 };
 

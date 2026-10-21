@@ -11,6 +11,24 @@ interface AnalogClockProps {
  * Minimalist geometric analog clock face rendered in SVG.
  * Clean monochrome palette matching the PRISMATE aesthetic.
  */
+const RADIUS = 46;
+const CENTER = 50;
+
+const CLOCK_TICKS = Array.from({ length: 12 }).map((_, i) => {
+  const angle = (i * 30 * Math.PI) / 180;
+  const isQuarter = i % 3 === 0;
+  const tickLength = isQuarter ? 6 : 3;
+  return {
+    key: i,
+    x1: CENTER + (RADIUS - 2) * Math.sin(angle),
+    y1: CENTER - (RADIUS - 2) * Math.cos(angle),
+    x2: CENTER + (RADIUS - 2 - tickLength) * Math.sin(angle),
+    y2: CENTER - (RADIUS - 2 - tickLength) * Math.cos(angle),
+    stroke: isQuarter ? '#F2F2F2' : 'rgba(242, 242, 242, 0.35)',
+    strokeWidth: isQuarter ? 1.5 : 0.8,
+  };
+});
+
 export const AnalogClock: React.FC<AnalogClockProps> = ({ time, size = 120 }) => {
   const seconds = time.getSeconds();
   const minutes = time.getMinutes();
@@ -19,9 +37,6 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ time, size = 120 }) =>
   const secondDeg = seconds * 6; // 360 / 60
   const minuteDeg = minutes * 6 + seconds * 0.1; // 360 / 60
   const hourDeg = hours * 30 + minutes * 0.5; // 360 / 12
-
-  const radius = 46;
-  const center = 50;
 
   return (
     <svg
@@ -32,77 +47,67 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ time, size = 120 }) =>
     >
       {/* Outer Dial Circle */}
       <circle
-        cx={center}
-        cy={center}
-        r={radius}
+        cx={CENTER}
+        cy={CENTER}
+        r={RADIUS}
         fill="rgba(10, 10, 10, 0.65)"
         stroke="rgba(242, 242, 242, 0.25)"
         strokeWidth="1.5"
       />
 
       {/* 12 Hour Tick Marks */}
-      {Array.from({ length: 12 }).map((_, i) => {
-        const angle = (i * 30 * Math.PI) / 180;
-        const isQuarter = i % 3 === 0;
-        const tickLength = isQuarter ? 6 : 3;
-        const x1 = center + (radius - 2) * Math.sin(angle);
-        const y1 = center - (radius - 2) * Math.cos(angle);
-        const x2 = center + (radius - 2 - tickLength) * Math.sin(angle);
-        const y2 = center - (radius - 2 - tickLength) * Math.cos(angle);
-
-        return (
-          <line
-            key={i}
-            x1={x1}
-            y1={y1}
-            x2={x2}
-            y2={y2}
-            stroke={isQuarter ? '#F2F2F2' : 'rgba(242, 242, 242, 0.35)'}
-            strokeWidth={isQuarter ? 1.5 : 0.8}
-            strokeLinecap="round"
-          />
-        );
-      })}
+      {CLOCK_TICKS.map((tick) => (
+        <line
+          key={tick.key}
+          x1={tick.x1}
+          y1={tick.y1}
+          x2={tick.x2}
+          y2={tick.y2}
+          stroke={tick.stroke}
+          strokeWidth={tick.strokeWidth}
+          strokeLinecap="round"
+        />
+      ))}
 
       {/* Hour Hand */}
       <line
-        x1={center}
-        y1={center}
-        x2={center}
-        y2={center - 24}
+        x1={CENTER}
+        y1={CENTER}
+        x2={CENTER}
+        y2={CENTER - 24}
         stroke="#F2F2F2"
         strokeWidth="2.4"
         strokeLinecap="round"
-        transform={`rotate(${hourDeg} ${center} ${center})`}
+        transform={`rotate(${hourDeg} ${CENTER} ${CENTER})`}
       />
 
       {/* Minute Hand */}
       <line
-        x1={center}
-        y1={center}
-        x2={center}
-        y2={center - 34}
+        x1={CENTER}
+        y1={CENTER}
+        x2={CENTER}
+        y2={CENTER - 34}
         stroke="#F2F2F2"
         strokeWidth="1.6"
         strokeLinecap="round"
-        transform={`rotate(${minuteDeg} ${center} ${center})`}
+        transform={`rotate(${minuteDeg} ${CENTER} ${CENTER})`}
       />
 
       {/* Second Hand */}
       <line
-        x1={center}
-        y1={center + 6}
-        x2={center}
-        y2={center - 38}
+        x1={CENTER}
+        y1={CENTER + 6}
+        x2={CENTER}
+        y2={CENTER - 38}
         stroke="#EB104B"
         strokeWidth="1"
         strokeLinecap="round"
-        transform={`rotate(${secondDeg} ${center} ${center})`}
+        transform={`rotate(${secondDeg} ${CENTER} ${CENTER})`}
       />
 
       {/* Center Pivot Pin */}
-      <circle cx={center} cy={center} r="2.5" fill="#EB104B" />
-      <circle cx={center} cy={center} r="1" fill="#FFFFFF" />
+      <circle cx={CENTER} cy={CENTER} r="2.5" fill="#EB104B" />
+      <circle cx={CENTER} cy={CENTER} r="1" fill="#FFFFFF" />
     </svg>
   );
 };

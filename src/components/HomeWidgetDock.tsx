@@ -9,7 +9,7 @@ export interface StarterWidgetMeta {
   defaultRowSpan: number;
 }
 
-export const STARTER_WIDGETS: StarterWidgetMeta[] = [
+const STARTER_WIDGETS: StarterWidgetMeta[] = [
   { id: 'clock', name: 'Cool Time', sub: 'Geometric digital clock', icon: '⏱', defaultColSpan: 4, defaultRowSpan: 3 },
   { id: 'pomodoro', name: 'Pomodoro Timer', sub: 'Configurable study/break intervals', icon: '⏳', defaultColSpan: 4, defaultRowSpan: 3 },
   { id: 'todos', name: 'Quote & Tasks', sub: 'Motivational quote & checklist', icon: '☑', defaultColSpan: 4, defaultRowSpan: 3 },

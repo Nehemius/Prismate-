@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { getWaveCharge } from './WaveCanvas';
+import { getWaveCharge } from '../lib/waveCharge';
 
 interface GlowingTitleProps {
   text: string;
@@ -14,7 +14,7 @@ interface GlowingTitleProps {
  *
  * Dynamically modulates pure white text shadow and brightness based on real-time
  * particle wave charge flowing through the center of the title.
- * Operates at 60fps via requestAnimationFrame without triggering React re-renders.
+ * Operates at 60fps via requestAnimationFrame without triggering React re-renders or layout thrashing.
  */
 export const GlowingTitle: React.FC<GlowingTitleProps> = ({
   text,
@@ -26,15 +26,25 @@ export const GlowingTitle: React.FC<GlowingTitleProps> = ({
   const titleRef = useRef<HTMLHeadingElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const smoothedChargeRef = useRef<number>(0.2);
+  const centerRef = useRef<{ cx: number; cy: number }>({ cx: window.innerWidth / 2, cy: window.innerHeight / 2 });
 
   useEffect(() => {
     const el = titleRef.current;
     if (!el) return;
 
-    const updateGlow = () => {
+    const measureCenter = () => {
       const rect = el.getBoundingClientRect();
-      const cx = rect.left + rect.width / 2;
-      const cy = rect.top + rect.height / 2;
+      centerRef.current = {
+        cx: rect.left + rect.width / 2,
+        cy: rect.top + rect.height / 2,
+      };
+    };
+
+    measureCenter();
+    window.addEventListener('resize', measureCenter);
+
+    const updateGlow = () => {
+      const { cx, cy } = centerRef.current;
 
       // Sample particle wave density at the title's visual center
       const rawCharge = getWaveCharge(cx, cy);
@@ -60,6 +70,7 @@ export const GlowingTitle: React.FC<GlowingTitleProps> = ({
     rafRef.current = requestAnimationFrame(updateGlow);
 
     return () => {
+      window.removeEventListener('resize', measureCenter);
       if (rafRef.current !== null) {
         cancelAnimationFrame(rafRef.current);
       }

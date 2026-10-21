@@ -23,8 +23,8 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
   onDragStart,
   isLocked = false,
 }) => {
-  const [cStart, cEnd] = gridColumn.split('/').map((s) => parseInt(s.trim()));
-  const [rStart, rEnd] = gridRow.split('/').map((s) => parseInt(s.trim()));
+  const [cStart, cEnd] = gridColumn.split('/').map((s) => parseInt(s.trim(), 10));
+  const [rStart, rEnd] = gridRow.split('/').map((s) => parseInt(s.trim(), 10));
   const colSpan = (isNaN(cEnd) ? 4 : cEnd) - (isNaN(cStart) ? 1 : cStart);
   const rowSpan = (isNaN(rEnd) ? 3 : rEnd) - (isNaN(rStart) ? 1 : rStart);
 

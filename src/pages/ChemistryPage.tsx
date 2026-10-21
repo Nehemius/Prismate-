@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
+import { AnimatePresence } from 'motion/react';
 import ReactionsModal from '../components/ReactionsModal';
 import DiagramsModal from '../components/DiagramsModal';
 import PapersModal from '../components/PapersModal';
 import QuizEngine from '../components/QuizEngine';
 import { INITIAL_QUESTIONS } from '../data/mockData';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import GridGuides from '../components/GridGuides';
 import BentoEditToolbar from '../components/BentoEditToolbar';
 import GlowingTitle from '../components/GlowingTitle';
@@ -763,39 +764,43 @@ export const ChemistryPage: React.FC = () => {
       </div>
 
       {/* ── Active Sub-View Modals ───────────────────────────────────────── */}
-      {activeModal === 'reactions' && (
-        <ReactionsModal onClose={() => setActiveModal(null)} />
-      )}
+      <AnimatePresence>
+        {activeModal === 'reactions' && (
+          <ReactionsModal key="modal-reactions" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'diagrams' && (
-        <DiagramsModal subject="chemistry" onClose={() => setActiveModal(null)} />
-      )}
+        {activeModal === 'diagrams' && (
+          <DiagramsModal key="modal-diagrams" subject="chemistry" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'pta-qp' && (
-        <PapersModal type="pta" subject="Chemistry" onClose={() => setActiveModal(null)} />
-      )}
+        {activeModal === 'pta-qp' && (
+          <PapersModal key="modal-pta" type="pta" subject="Chemistry" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'board-qp' && (
-        <PapersModal type="board" subject="Chemistry" onClose={() => setActiveModal(null)} />
-      )}
+        {activeModal === 'board-qp' && (
+          <PapersModal key="modal-board" type="board" subject="Chemistry" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'bb-quiz' && (
-        <QuizEngine
-          title="CHEMISTRY BB ONE-WORD QUIZ"
-          subject="chemistry"
-          questions={chemQuestions.filter((q) => q.category === 'bb')}
-          onClose={() => setActiveModal(null)}
-        />
-      )}
+        {activeModal === 'bb-quiz' && (
+          <QuizEngine
+            key="modal-bb-quiz"
+            title="CHEMISTRY BB ONE-WORD QUIZ"
+            subject="chemistry"
+            questions={chemQuestions.filter((q) => q.category === 'bb')}
+            onClose={() => setActiveModal(null)}
+          />
+        )}
 
-      {activeModal === 'formula-quiz' && (
-        <QuizEngine
-          title="CHEMISTRY FORMULA QUIZ"
-          subject="chemistry"
-          questions={chemQuestions.filter((q) => q.category === 'formula')}
-          onClose={() => setActiveModal(null)}
-        />
-      )}
+        {activeModal === 'formula-quiz' && (
+          <QuizEngine
+            key="modal-formula-quiz"
+            title="CHEMISTRY FORMULA QUIZ"
+            subject="chemistry"
+            questions={chemQuestions.filter((q) => q.category === 'formula')}
+            onClose={() => setActiveModal(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

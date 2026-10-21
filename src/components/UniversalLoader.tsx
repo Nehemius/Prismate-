@@ -72,7 +72,6 @@ export const UniversalLoader: React.FC<UniversalLoaderProps> = ({
   const [isDisplayed, setIsDisplayed] = useState<boolean>(visible);
   const [prevVisible, setPrevVisible] = useState<boolean>(visible);
 
-  // If visible transitions from false to true, ensure overlay is displayed immediately
   if (visible !== prevVisible) {
     setPrevVisible(visible);
     if (visible) {

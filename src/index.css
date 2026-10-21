@@ -55,3 +55,20 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+/* Bento Tile Transitions */
+.prism-bento-tile {
+  transition: border-color 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              background 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+
+.prism-bento-tile:not(.is-edit-mode):hover {
+  border-color: rgba(242, 242, 242, 0.30) !important;
+  background: linear-gradient(135deg, rgba(22, 22, 22, 0.94), rgba(36, 36, 36, 0.82)) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.55), inset 0 1px 0 0 rgba(242, 242, 242, 0.30) !important;
+}
+

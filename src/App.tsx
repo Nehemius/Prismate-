@@ -13,7 +13,8 @@ import PhysicsPage from './pages/PhysicsPage';
 import MathematicsPage from './pages/MathematicsPage';
 import HomePage from './pages/HomePage';
 import ProfilePage from './pages/ProfilePage';
-import { AppProvider, useApp } from './context/AppContext';
+import { AppProvider } from './context/AppContext';
+import { useApp } from './context/useApp';
 
 /**
  * App — Login Screen, Intro Choreography & Full System Routing
@@ -135,6 +136,7 @@ const MainAppContent: React.FC = () => {
       ease: 'inOutQuad',
       onComplete: () => {
         setIsLockedIn(true);
+        setAppearFlash(1.0);
         setPhase('anime-burst');
       },
     });
@@ -143,8 +145,6 @@ const MainAppContent: React.FC = () => {
   // Phase 4: Anime burst — logo appears with max bloom, then settles
   useEffect(() => {
     if (phase !== 'anime-burst') return;
-
-    setAppearFlash(1.0);
 
     const animState = { flash: 1.0 };
     animate(animState, {

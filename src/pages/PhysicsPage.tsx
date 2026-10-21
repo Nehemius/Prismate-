@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { AnimatePresence } from 'motion/react';
 import DiagramsModal from '../components/DiagramsModal';
 import PapersModal from '../components/PapersModal';
 import QuizEngine from '../components/QuizEngine';
@@ -7,7 +8,7 @@ import {
   getPhysicsFormulaQuestions,
   getPhysicsUnitQuestions,
 } from '../data/physicsQuizBank';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import GridGuides from '../components/GridGuides';
 import BentoEditToolbar from '../components/BentoEditToolbar';
 import GlowingTitle from '../components/GlowingTitle';
@@ -734,32 +735,35 @@ export const PhysicsPage: React.FC = () => {
       </div>
 
       {/* Sub-modals */}
-      {activeModal === 'diagrams' && (
-        <DiagramsModal subject="physics" onClose={() => setActiveModal(null)} />
-      )}
+      <AnimatePresence>
+        {activeModal === 'diagrams' && (
+          <DiagramsModal key="modal-diagrams" subject="physics" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'pta-qp' && (
-        <PapersModal type="pta" subject="Physics" onClose={() => setActiveModal(null)} />
-      )}
+        {activeModal === 'pta-qp' && (
+          <PapersModal key="modal-pta" type="pta" subject="Physics" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'board-qp' && (
-        <PapersModal type="board" subject="Physics" onClose={() => setActiveModal(null)} />
-      )}
+        {activeModal === 'board-qp' && (
+          <PapersModal key="modal-board" type="board" subject="Physics" onClose={() => setActiveModal(null)} />
+        )}
 
-      {(activeModal === 'formula-quiz' || activeModal === 'unit-quiz' || activeModal === 'bb-quiz') && (
-        <QuizEngine
-          title={`PHYSICS ${activeModal.replace('-', ' ').toUpperCase()}`}
-          subject="physics"
-          questions={
-            activeModal === 'formula-quiz'
-              ? getPhysicsFormulaQuestions()
-              : activeModal === 'unit-quiz'
-              ? getPhysicsUnitQuestions()
-              : getPhysicsBBQuestions()
-          }
-          onClose={() => setActiveModal(null)}
-        />
-      )}
+        {(activeModal === 'formula-quiz' || activeModal === 'unit-quiz' || activeModal === 'bb-quiz') && (
+          <QuizEngine
+            key={`modal-quiz-${activeModal}`}
+            title={`PHYSICS ${activeModal.replace('-', ' ').toUpperCase()}`}
+            subject="physics"
+            questions={
+              activeModal === 'formula-quiz'
+                ? getPhysicsFormulaQuestions()
+                : activeModal === 'unit-quiz'
+                ? getPhysicsUnitQuestions()
+                : getPhysicsBBQuestions()
+            }
+            onClose={() => setActiveModal(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

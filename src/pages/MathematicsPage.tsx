@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
+import { AnimatePresence } from 'motion/react';
 import DiagramsModal from '../components/DiagramsModal';
 import PapersModal from '../components/PapersModal';
 import QuizEngine from '../components/QuizEngine';
 import { INITIAL_QUESTIONS } from '../data/mockData';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import GridGuides from '../components/GridGuides';
 import BentoEditToolbar from '../components/BentoEditToolbar';
 import GlowingTitle from '../components/GlowingTitle';
@@ -733,30 +734,33 @@ export const MathematicsPage: React.FC = () => {
       </div>
 
       {/* Sub-modals */}
-      {activeModal === 'diagrams' && (
-        <DiagramsModal subject="mathematics" onClose={() => setActiveModal(null)} />
-      )}
+      <AnimatePresence>
+        {activeModal === 'diagrams' && (
+          <DiagramsModal key="modal-diagrams" subject="mathematics" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'pta-qp' && (
-        <PapersModal type="pta" subject="Mathematics" onClose={() => setActiveModal(null)} />
-      )}
+        {activeModal === 'pta-qp' && (
+          <PapersModal key="modal-pta" type="pta" subject="Mathematics" onClose={() => setActiveModal(null)} />
+        )}
 
-      {activeModal === 'board-qp' && (
-        <PapersModal type="board" subject="Mathematics" onClose={() => setActiveModal(null)} />
-      )}
+        {activeModal === 'board-qp' && (
+          <PapersModal key="modal-board" type="board" subject="Mathematics" onClose={() => setActiveModal(null)} />
+        )}
 
-      {(activeModal === 'formula-quiz' || activeModal === 'bb-quiz' || activeModal === 'come-book') && (
-        <QuizEngine
-          title={`MATHEMATICS ${activeModal.replace('-', ' ').toUpperCase()}`}
-          subject="mathematics"
-          questions={
-            activeModal === 'formula-quiz'
-              ? mathQuestions.filter((q) => q.category === 'formula')
-              : mathQuestions.filter((q) => q.category === 'bb')
-          }
-          onClose={() => setActiveModal(null)}
-        />
-      )}
+        {(activeModal === 'formula-quiz' || activeModal === 'bb-quiz' || activeModal === 'come-book') && (
+          <QuizEngine
+            key={`modal-quiz-${activeModal}`}
+            title={`MATHEMATICS ${activeModal.replace('-', ' ').toUpperCase()}`}
+            subject="mathematics"
+            questions={
+              activeModal === 'formula-quiz'
+                ? mathQuestions.filter((q) => q.category === 'formula')
+                : mathQuestions.filter((q) => q.category === 'bb')
+            }
+            onClose={() => setActiveModal(null)}
+          />
+        )}
+      </AnimatePresence>
     </div>
   );
 };

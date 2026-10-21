@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import type { ScreenType, ListType } from '../types/prismate';
-import { useApp } from '../context/AppContext';
+import { useApp } from '../context/useApp';
 import { isSupabaseConfigured } from '../lib/supabase';
 
 /**
@@ -39,15 +39,25 @@ export const ProfilePage: React.FC = () => {
   const [search, setSearch] = useState('');
   const [isEditingUsername, setIsEditingUsername] = useState(false);
   const [usernameInput, setUsernameInput] = useState(loggedInUser || '');
+  const [prevLoggedInUser, setPrevLoggedInUser] = useState(loggedInUser);
+
+  if (loggedInUser !== prevLoggedInUser) {
+    setPrevLoggedInUser(loggedInUser);
+    setUsernameInput(loggedInUser || '');
+  }
 
   const currentList = activeTab === 'weaklist' ? weaklist : activeTab === 'stronglist' ? stronglist : studylist;
 
-  const filteredItems = currentList.filter(
-    (item) =>
-      item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.content.toLowerCase().includes(search.toLowerCase()) ||
-      item.source.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredItems = useMemo(() => {
+    const q = search.toLowerCase();
+    if (!q) return currentList;
+    return currentList.filter(
+      (item) =>
+        item.title.toLowerCase().includes(q) ||
+        item.content.toLowerCase().includes(q) ||
+        item.source.toLowerCase().includes(q)
+    );
+  }, [currentList, search]);
 
   const handleSaveUsername = (e: React.FormEvent) => {
     e.preventDefault();

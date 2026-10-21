@@ -1,38 +1,8 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { useRef, useState, useEffect, useCallback } from 'react';
 import type { ScreenType, ListType, ListItem } from '../types/prismate';
 import { INITIAL_LIST_ITEMS } from '../data/mockData';
 import { syncListItemToSupabase, removeListItemFromSupabase } from '../lib/supabase';
-
-interface AppContextType {
-  currentScreen: ScreenType;
-  setCurrentScreen: (screen: ScreenType) => void;
-  loggedInUser: string | null;
-  login: (username: string) => void;
-  logout: () => void;
-  updateUsername: (name: string) => void;
-  userAvatar: string;
-  setUserAvatar: (avatar: string) => void;
-  homePageEnabled: boolean;
-  setHomePageEnabled: (enabled: boolean) => void;
-  defaultStartupScreen: ScreenType;
-  setDefaultStartupScreen: (screen: ScreenType) => void;
-  editModeScreen: ScreenType | null;
-  setEditModeScreen: (screen: ScreenType | null) => void;
-  isEditMode: boolean;
-  setIsEditMode: (val: boolean) => void;
-  weaklist: ListItem[];
-  stronglist: ListItem[];
-  studylist: ListItem[];
-  addToList: (type: ListType, item: Omit<ListItem, 'id' | 'addedAt'>) => void;
-  removeFromList: (type: ListType, itemId: string) => void;
-  isInList: (type: ListType, title: string) => boolean;
-  globalLoader: boolean;
-  triggerLoader: (durationMs?: number, onComplete?: () => void) => void;
-  inApp: boolean;
-  setInApp: (val: boolean) => void;
-}
-
-const AppContext = createContext<AppContextType | null>(null);
+import { AppContext } from './appContextDefinition';
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [inApp, setInAppState] = useState<boolean>(() => {
@@ -105,10 +75,15 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('prismate_current_screen', currentScreen);
   }, [currentScreen]);
 
+  const currentScreenRef = useRef<ScreenType>(currentScreen);
+  useEffect(() => {
+    currentScreenRef.current = currentScreen;
+  }, [currentScreen]);
+
   // Handle Android back button & browser back/forward without kicking to login
   useEffect(() => {
     if (inApp) {
-      const hash = window.location.hash.replace('#', '') || currentScreen;
+      const hash = window.location.hash.replace('#', '') || currentScreenRef.current;
       window.history.replaceState({ screen: hash, inApp: true }, '', '#' + hash);
     }
 
@@ -123,13 +98,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           localStorage.setItem('prismate_current_screen', hash);
         } else if (inApp) {
           // Stay inside the active session
-          window.history.pushState({ screen: currentScreen, inApp: true }, '', '#' + currentScreen);
+          window.history.pushState({ screen: currentScreenRef.current, inApp: true }, '', '#' + currentScreenRef.current);
         }
       }
     };
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
-  }, [inApp, currentScreen]);
+  }, [inApp]);
 
   useEffect(() => {
     localStorage.setItem('prismate_user_avatar', userAvatar);
@@ -155,12 +130,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('prismate_studylist', JSON.stringify(studylist));
   }, [studylist]);
 
+  const loaderTimeoutRef = useRef<number | null>(null);
+
   const triggerLoader = useCallback((durationMs = 900, onComplete?: () => void) => {
+    if (loaderTimeoutRef.current) {
+      clearTimeout(loaderTimeoutRef.current);
+    }
     setGlobalLoader(true);
-    setTimeout(() => {
+    loaderTimeoutRef.current = window.setTimeout(() => {
       setGlobalLoader(false);
+      loaderTimeoutRef.current = null;
       if (onComplete) onComplete();
     }, durationMs);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (loaderTimeoutRef.current) clearTimeout(loaderTimeoutRef.current);
+    };
   }, []);
 
   const setCurrentScreen = useCallback(
@@ -210,7 +197,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addToList = useCallback((type: ListType, itemData: Omit<ListItem, 'id' | 'addedAt'>) => {
     const newItem: ListItem = {
       ...itemData,
-      id: `item-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`,
+      id: `item-${Date.now()}-${Math.random().toString(36).substring(2, 8)}`,
       addedAt: Date.now(),
     };
     if (type === 'weaklist') setWeaklist((prev) => [newItem, ...prev.filter((i) => i.title !== itemData.title)]);
@@ -274,8 +261,4 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   );
 };
 
-export const useApp = (): AppContextType => {
-  const ctx = useContext(AppContext);
-  if (!ctx) throw new Error('useApp must be used within an AppProvider');
-  return ctx;
-};
+export default AppProvider;

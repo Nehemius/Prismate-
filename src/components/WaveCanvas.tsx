@@ -103,6 +103,8 @@ export interface WaveCanvasProps {
   onChargeReady?: (getWaveChargeFn: (x: number, y: number) => number) => void;
 }
 
+import { setWaveChargeGetter } from '../lib/waveCharge';
+
 export interface WaveCanvasRef {
   /**
    * Calculates real-time particle wave density at coordinate (x, y).
@@ -112,16 +114,6 @@ export interface WaveCanvasRef {
   /** Returns the underlying HTML5 Canvas element */
   getCanvas: () => HTMLCanvasElement | null;
 }
-
-// Module-level reference to active wave instance
-let activeDensityGetter: ((x: number, y: number) => number) | null = null;
-
-export const getWaveCharge = (x: number, y: number): number => {
-  if (activeDensityGetter) {
-    return activeDensityGetter(x, y);
-  }
-  return 0.3;
-};
 
 export const WaveCanvas = forwardRef<WaveCanvasRef, WaveCanvasProps>(
   (
@@ -254,14 +246,12 @@ export const WaveCanvas = forwardRef<WaveCanvasRef, WaveCanvasProps>(
 
     // Register active global getter
     useEffect(() => {
-      activeDensityGetter = instanceGetWaveCharge;
+      setWaveChargeGetter(instanceGetWaveCharge);
       if (onChargeReady) {
         onChargeReady(instanceGetWaveCharge);
       }
       return () => {
-        if (activeDensityGetter === instanceGetWaveCharge) {
-          activeDensityGetter = null;
-        }
+        setWaveChargeGetter(null);
       };
     }, [instanceGetWaveCharge, onChargeReady]);
 
@@ -323,6 +313,7 @@ export const WaveCanvas = forwardRef<WaveCanvasRef, WaveCanvasProps>(
         const streamsCount = streams.length;
 
         // Update and draw particles in pure white
+        ctx.fillStyle = '#FFFFFF';
         for (let i = 0; i < particles.length; i++) {
           const p = particles[i];
 
@@ -367,11 +358,12 @@ export const WaveCanvas = forwardRef<WaveCanvasRef, WaveCanvasProps>(
           }
 
           // Render glowing white particle dot
+          ctx.globalAlpha = p.currentAlpha;
           ctx.beginPath();
           ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(255, 255, 255, ${p.currentAlpha.toFixed(3)})`;
           ctx.fill();
         }
+        ctx.globalAlpha = 1.0;
 
         // Sample point charge update
         if (samplePointRef.current && onWaveChargeUpdateRef.current) {
