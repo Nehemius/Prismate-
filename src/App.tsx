@@ -18,7 +18,6 @@ import StacksWorkspace from './components/stacks/StacksWorkspace';
 import BlackWhiteStarWhirl, { type StarWhirlFrame } from './components/BlackWhiteStarWhirl';
 import { playBlackWhiteStarWhirl } from './utils/starWhirlController';
 import OrientationGuard from './components/OrientationGuard';
-import PageTransitionStar from './components/PageTransitionStar';
 import { AppProvider } from './context/AppContext';
 import { useApp } from './context/useApp';
 
@@ -46,11 +45,10 @@ const MainAppContent: React.FC = () => {
     login,
     defaultStartupScreen,
     globalLoader,
+    globalLoaderMetadata,
     triggerLoader,
     inApp,
     setInApp,
-    pageTransitionActive,
-    pageTransitionTarget,
   } = useApp();
 
   const [phase, setPhase] = useState<AppPhase>(() => {
@@ -222,11 +220,12 @@ const MainAppContent: React.FC = () => {
       {/* ── Mobile Horizontal Orientation Enforcer (§1) ── */}
       <OrientationGuard />
 
-      {/* ── Toned-Down Star Page Switching Transition (§5) ── */}
-      <PageTransitionStar active={pageTransitionActive} targetScreen={pageTransitionTarget} />
-
-      {/* ── Continuous Universal Loader (Bottom-docked during app transitions) */}
-      <UniversalLoader visible={globalLoader} centered={false} />
+      {/* ── Universal Loader (Unique Peak Morphing Geometric Star Animation) ── */}
+      <UniversalLoader
+        visible={globalLoader}
+        centered={true}
+        metadata={globalLoaderMetadata || undefined}
+      />
 
       {/* ── Global Wave Canvas (Flows in login and across all workspaces §3) */}
       <WaveCanvas

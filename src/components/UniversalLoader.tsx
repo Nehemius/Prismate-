@@ -48,6 +48,7 @@ let globalLoaderTimeOrigin: number | null = null;
 
 export interface UniversalLoaderMetadata {
   subject?: string;
+  subtitle?: string;
   filter?: string;
   difficulty?: string;
 }
@@ -164,28 +165,43 @@ export const UniversalLoader: React.FC<UniversalLoaderProps> = ({
         <div
           style={{
             position: 'fixed',
-            bottom: '96px',
-            left: '50%',
-            transform: 'translateX(-50%)',
+            ...(centered
+              ? { top: 'calc(50% + 72px)', left: '50%', transform: 'translateX(-50%)' }
+              : { bottom: '96px', left: '50%', transform: 'translateX(-50%)' }),
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'center',
             gap: '6px',
             pointerEvents: 'none',
             textAlign: 'center',
+            whiteSpace: 'nowrap',
           }}
         >
           {metadata.subject && (
             <span
               style={{
                 fontFamily: 'var(--font-heading)',
-                fontSize: '14px',
-                letterSpacing: '3px',
-                color: '#F2F2F2',
+                fontSize: '13px',
+                fontWeight: 800,
+                letterSpacing: '4px',
+                color: '#FFFFFF',
                 textTransform: 'uppercase',
               }}
             >
               {metadata.subject}
+            </span>
+          )}
+          {metadata.subtitle && (
+            <span
+              style={{
+                fontFamily: 'var(--font-subheading)',
+                fontSize: '9px',
+                letterSpacing: '2px',
+                color: 'rgba(242, 242, 242, 0.6)',
+                textTransform: 'uppercase',
+              }}
+            >
+              {metadata.subtitle}
             </span>
           )}
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -251,9 +267,6 @@ export const UniversalLoader: React.FC<UniversalLoaderProps> = ({
           ref={polygonRef}
           id="inkscapeStar"
           fill="#FFFFFF"
-          stroke="#33F0FF"
-          strokeWidth="2.5"
-          strokeLinejoin="round"
           fillRule="evenodd"
           points={computePoints(35, 0.0)}
         />

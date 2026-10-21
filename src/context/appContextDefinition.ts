@@ -2,6 +2,8 @@ import { createContext } from 'react';
 import type { ScreenType, ListType, ListItem } from '../types/prismate';
 import type { ProfileSummary } from '../services/cloudStore';
 
+import type { UniversalLoaderMetadata } from '../components/UniversalLoader';
+
 export interface AppContextType {
   currentScreen: ScreenType;
   setCurrentScreen: (screen: ScreenType) => void;
@@ -26,7 +28,8 @@ export interface AppContextType {
   removeFromList: (type: ListType, itemId: string) => void;
   isInList: (type: ListType, title: string) => boolean;
   globalLoader: boolean;
-  triggerLoader: (durationMs?: number, onComplete?: () => void) => void;
+  globalLoaderMetadata: UniversalLoaderMetadata | null;
+  triggerLoader: (durationMs?: number, onComplete?: () => void, metadata?: UniversalLoaderMetadata) => void;
   inApp: boolean;
   setInApp: (val: boolean) => void;
   // Cloud & Profile Extension
@@ -36,8 +39,6 @@ export interface AppContextType {
   syncCloudData: () => Promise<void>;
   isCloudSyncing: boolean;
   lastCloudSyncTime: number | null;
-  pageTransitionActive: boolean;
-  pageTransitionTarget: ScreenType | null;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);

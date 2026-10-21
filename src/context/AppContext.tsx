@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect, useCallback } from 'react';
 import type { ScreenType, ListType, ListItem } from '../types/prismate';
 import { INITIAL_LIST_ITEMS } from '../data/mockData';
 import { AppContext } from './appContextDefinition';
+import type { UniversalLoaderMetadata } from '../components/UniversalLoader';
 import {
   type ProfileSummary,
   type UserFullData,
@@ -76,8 +77,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   });
 
   const [globalLoader, setGlobalLoader] = useState(false);
-  const [pageTransitionActive, setPageTransitionActive] = useState(false);
-  const [pageTransitionTarget, setPageTransitionTarget] = useState<ScreenType | null>(null);
+  const [globalLoaderMetadata, setGlobalLoaderMetadata] = useState<UniversalLoaderMetadata | null>(null);
 
   // Cloud & Profiles State
   const [profiles, setProfiles] = useState<ProfileSummary[]>(() => getLocalProfiles());
@@ -163,19 +163,24 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     localStorage.setItem('prismate_studylist', JSON.stringify(studylist));
   }, [studylist]);
 
-  // Global Loader trigger
+  // Global Loader trigger using Universal Loader's unique peak morphing animation
   const loaderTimeoutRef = useRef<number | null>(null);
-  const triggerLoader = useCallback((durationMs = 900, onComplete?: () => void) => {
-    if (loaderTimeoutRef.current) {
-      clearTimeout(loaderTimeoutRef.current);
-    }
-    setGlobalLoader(true);
-    loaderTimeoutRef.current = window.setTimeout(() => {
-      setGlobalLoader(false);
-      loaderTimeoutRef.current = null;
-      if (onComplete) onComplete();
-    }, durationMs);
-  }, []);
+  const triggerLoader = useCallback(
+    (durationMs = 900, onComplete?: () => void, metadata?: UniversalLoaderMetadata) => {
+      if (loaderTimeoutRef.current) {
+        clearTimeout(loaderTimeoutRef.current);
+      }
+      setGlobalLoaderMetadata(metadata || null);
+      setGlobalLoader(true);
+      loaderTimeoutRef.current = window.setTimeout(() => {
+        setGlobalLoader(false);
+        setGlobalLoaderMetadata(null);
+        loaderTimeoutRef.current = null;
+        if (onComplete) onComplete();
+      }, durationMs);
+    },
+    []
+  );
 
   useEffect(() => {
     return () => {
@@ -183,26 +188,30 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, []);
 
-  // Page Switch with Toned-Down Star Animation
+  // Page Switch with Universal Loader's Unique Morphing Animation
   const setCurrentScreen = useCallback(
     (screen: ScreenType) => {
       if (screen === currentScreenRef.current) return;
-      setPageTransitionTarget(screen);
-      setPageTransitionActive(true);
-
-      setTimeout(() => {
-        setCurrentScreenState(screen);
-        localStorage.setItem('prismate_current_screen', screen);
-        window.history.pushState({ screen, inApp: true }, '', '#' + screen);
-        setIsEditMode(false);
-      }, 360);
-
-      setTimeout(() => {
-        setPageTransitionActive(false);
-        setPageTransitionTarget(null);
-      }, 520);
+      const screenNames: Record<ScreenType, string> = {
+        home: 'YOU / HOME',
+        chemistry: 'CHEMISTRY',
+        physics: 'PHYSICS',
+        mathematics: 'MATHEMATICS',
+        stacks: '3D STACKS',
+        profile: 'SETTINGS',
+      };
+      triggerLoader(
+        700,
+        () => {
+          setCurrentScreenState(screen);
+          localStorage.setItem('prismate_current_screen', screen);
+          window.history.pushState({ screen, inApp: true }, '', '#' + screen);
+          setIsEditMode(false);
+        },
+        { subject: screenNames[screen] || screen.toUpperCase(), subtitle: 'WORKSPACE' }
+      );
     },
-    [setIsEditMode]
+    [triggerLoader, setIsEditMode]
   );
 
   // Sync current user's full data record to the cloud
@@ -435,6 +444,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         removeFromList,
         isInList,
         globalLoader,
+        globalLoaderMetadata,
         triggerLoader,
         inApp,
         setInApp,
@@ -444,8 +454,6 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         syncCloudData,
         isCloudSyncing,
         lastCloudSyncTime,
-        pageTransitionActive,
-        pageTransitionTarget,
       }}
     >
       {children}
