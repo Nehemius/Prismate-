@@ -235,7 +235,7 @@ const ChemTile: React.FC<TileProps> = ({
   );
 };
 
-const CentreTitleBlock: React.FC = () => (
+const CentreTitleBlock: React.FC<{ onOpenReactions?: () => void }> = ({ onOpenReactions }) => (
   <div
     aria-label="Chemistry — subject workspace locked title"
     style={{
@@ -248,6 +248,38 @@ const CentreTitleBlock: React.FC = () => (
     }}
   >
     <GlowingTitle text="CHEMISTRY" />
+    {onOpenReactions && (
+      <button
+        onClick={onOpenReactions}
+        style={{
+          marginTop: '10px',
+          padding: '6px 14px',
+          borderRadius: '16px',
+          background: 'rgba(51, 240, 255, 0.12)',
+          border: '1px solid rgba(51, 240, 255, 0.35)',
+          color: '#33F0FF',
+          fontFamily: 'var(--font-heading)',
+          fontSize: '10px',
+          letterSpacing: '1.5px',
+          textTransform: 'uppercase',
+          cursor: 'pointer',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+          transition: 'all 0.2s ease',
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.background = '#33F0FF';
+          e.currentTarget.style.color = '#000000';
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.background = 'rgba(51, 240, 255, 0.12)';
+          e.currentTarget.style.color = '#33F0FF';
+        }}
+      >
+        <span>⚗️</span> 3D REACTION ENGINE
+      </button>
+    )}
   </div>
 );
 
@@ -623,7 +655,7 @@ export const ChemistryPage: React.FC = () => {
               isLocked={true}
             />
           )}
-          <CentreTitleBlock />
+          <CentreTitleBlock onOpenReactions={() => setActiveModal('reactions')} />
         </div>
 
         {/* Board Exam Question Papers */}
