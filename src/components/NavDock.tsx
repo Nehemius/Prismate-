@@ -40,6 +40,8 @@ export const NavDock: React.FC = () => {
     editModeScreen,
     setEditModeScreen,
     userAvatar,
+    theme,
+    toggleTheme,
   } = useApp();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -216,13 +218,13 @@ export const NavDock: React.FC = () => {
           alignItems: 'center',
           gap: '8px',
           padding: '12px 8px',
-          background: 'rgba(16, 16, 16, 0.78)',
+          background: 'var(--color-dock-bg, rgba(16, 16, 16, 0.78))',
           backdropFilter: 'blur(16px)',
           WebkitBackdropFilter: 'blur(16px)',
-          border: '1px solid rgba(242, 242, 242, 0.22)',
+          border: '1px solid var(--color-dock-border, rgba(242, 242, 242, 0.22))',
           borderRadius: '32px',
-          boxShadow: '0 12px 40px rgba(0, 0, 0, 0.7)',
-          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease',
+          boxShadow: '0 12px 40px var(--color-shadow, rgba(0, 0, 0, 0.7))',
+          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease, background 0.25s, border-color 0.25s',
           opacity: collapsed ? 0 : 1,
           pointerEvents: collapsed ? 'none' : 'all',
           userSelect: 'none',
@@ -238,7 +240,7 @@ export const NavDock: React.FC = () => {
           style={{
             background: 'none',
             border: 'none',
-            color: 'rgba(242, 242, 242, 0.45)',
+            color: 'var(--color-dock-fg-muted, rgba(242, 242, 242, 0.45))',
             fontSize: '11px',
             cursor: 'pointer',
             padding: '4px',
@@ -246,8 +248,8 @@ export const NavDock: React.FC = () => {
             marginBottom: '4px',
             transition: 'color 0.2s ease',
           }}
-          onMouseEnter={(e) => (e.currentTarget.style.color = '#F2F2F2')}
-          onMouseLeave={(e) => (e.currentTarget.style.color = 'rgba(242, 242, 242, 0.45)')}
+          onMouseEnter={(e) => (e.currentTarget.style.color = 'var(--color-fg, #F2F2F2)')}
+          onMouseLeave={(e) => (e.currentTarget.style.color = 'var(--color-dock-fg-muted, rgba(242, 242, 242, 0.45))')}
         >
           ❮
         </button>
@@ -261,7 +263,7 @@ export const NavDock: React.FC = () => {
           return (
             <motion.button
               key={item.id}
-              className="prismate-nav-item"
+              className={`prismate-nav-item ${isActive ? 'is-active' : ''}`}
               whileHover={{ scale: 1.06 }}
               whileTap={{ scale: 0.94 }}
               transition={{ type: 'spring', stiffness: 500, damping: 28 }}
@@ -284,9 +286,9 @@ export const NavDock: React.FC = () => {
                 width: '54px',
                 height: '52px',
                 borderRadius: '20px',
-                background: isActive ? '#F2F2F2' : 'transparent',
-                border: isItemInEditMode ? '1.5px dashed #F2F2F2' : 'none',
-                color: isActive ? '#000000' : 'rgba(242, 242, 242, 0.75)',
+                background: isActive ? 'var(--color-dock-active-bg, #F2F2F2)' : 'transparent',
+                border: isItemInEditMode ? '1.5px dashed var(--color-dock-active-bg, #F2F2F2)' : 'none',
+                color: isActive ? 'var(--color-dock-active-fg, #000000)' : 'var(--color-dock-fg, rgba(242, 242, 242, 0.75))',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -294,20 +296,8 @@ export const NavDock: React.FC = () => {
                 gap: '2px',
                 cursor: 'pointer',
                 transition: 'all 0.22s ease',
-                boxShadow: isActive ? '0 4px 14px rgba(242,242,242,0.3)' : 'none',
+                boxShadow: isActive ? '0 4px 14px var(--color-shadow, rgba(0,0,0,0.25))' : 'none',
                 position: 'relative',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = 'rgba(242, 242, 242, 0.12)';
-                  e.currentTarget.style.color = '#F2F2F2';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.background = 'transparent';
-                  e.currentTarget.style.color = 'rgba(242, 242, 242, 0.75)';
-                }
               }}
             >
               <span className="prismate-nav-item-icon" style={{ fontSize: '16px', lineHeight: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -331,6 +321,42 @@ export const NavDock: React.FC = () => {
             </motion.button>
           );
         })}
+
+        {/* Separator */}
+        <div
+          style={{
+            width: '26px',
+            height: '1px',
+            background: 'var(--color-dock-border, rgba(242, 242, 242, 0.16))',
+            margin: '3px 0',
+          }}
+        />
+
+        {/* Theme Toggle Button (☀️ Light / 🌙 Dark) */}
+        <motion.button
+          className="prismate-theme-toggle-btn"
+          whileHover={{ scale: 1.12 }}
+          whileTap={{ scale: 0.92 }}
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          style={{
+            width: '38px',
+            height: '38px',
+            borderRadius: '50%',
+            background: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
+            border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
+            color: theme === 'dark' ? '#F2F2F2' : '#111114',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '15px',
+            cursor: 'pointer',
+            transition: 'all 0.2s ease',
+          }}
+        >
+          {theme === 'dark' ? '☀️' : '🌙'}
+        </motion.button>
       </nav>
     </>
   );

@@ -56,10 +56,20 @@ export const GlowingTitle: React.FC<GlowingTitleProps> = ({
       // Active glow factor (0.0 to 1.0)
       const glowFactor = Math.max(0, Math.min(1, (charge - 0.12) / 0.65));
 
+      const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light';
+
       if (glowFactor > 0.04) {
-        el.style.textShadow = `0 0 ${Math.round(12 * glowFactor)}px rgba(255, 255, 255, ${0.95 * glowFactor}), 0 0 ${Math.round(30 * glowFactor)}px rgba(255, 255, 255, ${0.72 * glowFactor}), 0 0 ${Math.round(52 * glowFactor)}px rgba(255, 255, 255, ${0.45 * glowFactor})`;
-        el.style.filter = `brightness(${1 + 0.5 * glowFactor}) drop-shadow(0 0 ${Math.round(16 * glowFactor)}px rgba(255, 255, 255, ${0.85 * glowFactor}))`;
+        if (isLight) {
+          el.style.color = '#111114';
+          el.style.textShadow = `0 0 ${Math.round(10 * glowFactor)}px rgba(0, 153, 255, ${0.5 * glowFactor}), 0 0 ${Math.round(24 * glowFactor)}px rgba(0, 153, 255, ${0.3 * glowFactor})`;
+          el.style.filter = `drop-shadow(0 0 ${Math.round(12 * glowFactor)}px rgba(0, 153, 255, ${0.35 * glowFactor}))`;
+        } else {
+          el.style.color = '#F2F2F2';
+          el.style.textShadow = `0 0 ${Math.round(12 * glowFactor)}px rgba(255, 255, 255, ${0.95 * glowFactor}), 0 0 ${Math.round(30 * glowFactor)}px rgba(255, 255, 255, ${0.72 * glowFactor}), 0 0 ${Math.round(52 * glowFactor)}px rgba(255, 255, 255, ${0.45 * glowFactor})`;
+          el.style.filter = `brightness(${1 + 0.5 * glowFactor}) drop-shadow(0 0 ${Math.round(16 * glowFactor)}px rgba(255, 255, 255, ${0.85 * glowFactor}))`;
+        }
       } else {
+        el.style.color = isLight ? '#111114' : '#F2F2F2';
         el.style.textShadow = 'none';
         el.style.filter = 'none';
       }
@@ -80,11 +90,11 @@ export const GlowingTitle: React.FC<GlowingTitleProps> = ({
   return (
     <h1
       ref={titleRef}
-      className={className}
+      className={`prismate-glowing-title ${className || ''}`}
       style={{
         fontFamily: 'var(--font-heading)',
         fontSize,
-        color: '#F2F2F2',
+        color: 'var(--color-fg, #F2F2F2)',
         letterSpacing,
         textAlign: 'center',
         fontWeight: 'normal',

@@ -10,6 +10,7 @@ interface QuizEngineProps {
   subject: 'chemistry' | 'physics' | 'mathematics';
   questions: QuizQuestion[];
   onClose: () => void;
+  category?: 'bb' | 'formula' | 'unit' | 'pta' | 'board';
 }
 
 type QuizPhase = 'setup' | 'loading' | 'countdown' | 'playing' | 'wither' | 'gameover';
@@ -124,23 +125,39 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
   subject,
   questions,
   onClose,
+  category,
 }) => {
   const { addToList, isInList } = useApp();
 
-  // Loaded questions with Supabase fetch + offline local fallback
-  const [loadedQuestions, setLoadedQuestions] = useState<QuizQuestion[]>(questions);
+  // Infer targetCategory: either passed explicitly or if all questions share the same category
+  const targetCategory = category || (
+    questions.length > 0 && questions.every((q) => q.category === questions[0].category)
+      ? questions[0].category
+      : undefined
+  );
+
+  // Loaded questions with Supabase fetch + offline local fallback (strictly filtered by category)
+  const initialCategoryFiltered = targetCategory
+    ? questions.filter((q) => q.category === targetCategory)
+    : questions;
+  const [loadedQuestions, setLoadedQuestions] = useState<QuizQuestion[]>(initialCategoryFiltered);
 
   useEffect(() => {
     let isMounted = true;
-    fetchQuestionsFromSupabase(subject).then((remoteQuestions) => {
+    fetchQuestionsFromSupabase(subject, targetCategory).then((remoteQuestions) => {
       if (isMounted && remoteQuestions && remoteQuestions.length > 0) {
-        setLoadedQuestions(remoteQuestions);
+        const strictlyFiltered = targetCategory
+          ? remoteQuestions.filter((q) => q.category === targetCategory)
+          : remoteQuestions;
+        if (strictlyFiltered.length > 0) {
+          setLoadedQuestions(strictlyFiltered);
+        }
       }
     });
     return () => {
       isMounted = false;
     };
-  }, [subject]);
+  }, [subject, targetCategory]);
 
   // Setup state
   const [selectedFilter, setSelectedFilter] = useState<'all' | ListType>('all');
@@ -166,13 +183,17 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
   const heartsRef = useRef<number>(3);
   const isAnswerCheckedRef = useRef<boolean>(false);
 
-  // Filter questions based on selection
-  const filteredQuestions = loadedQuestions.filter((q) => {
+  // Filter questions based on selection while guaranteeing category isolation
+  const baseCategoryQuestions = targetCategory
+    ? loadedQuestions.filter((q) => q.category === targetCategory)
+    : loadedQuestions;
+
+  const filteredQuestions = baseCategoryQuestions.filter((q) => {
     if (selectedFilter === 'all') return true;
     return isInList(selectedFilter, q.question);
   });
 
-  const activeQuestions = filteredQuestions.length > 0 ? filteredQuestions : loadedQuestions;
+  const activeQuestions = filteredQuestions.length > 0 ? filteredQuestions : baseCategoryQuestions;
   const currentQ = activeQuestions[currentIndex];
 
   // Start sequence
@@ -359,6 +380,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
 
   return (
     <div
+      className="prismate-quiz-container"
       style={{
         position: 'fixed',
         inset: 0,
@@ -373,6 +395,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
     >
       {/* ── Top Bar HUD ─────────────────────────────────────────────────── */}
       <div
+        className="prismate-quiz-topbar"
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -914,7 +937,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                 </div>
 
                 {/* Stamp Drop-In on Mistake or Timeout */}
-                {isAnswerChecked && (isWrong || isTimeout) && (
+                {isAnswerChecked && !isFlipped && (isWrong || isTimeout) && (
                   <div
                     className="animate-stamp"
                     style={{

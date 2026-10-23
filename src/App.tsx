@@ -228,7 +228,7 @@ const MainAppContent: React.FC = () => {
   }, [loggedInUser, triggerLoader, setCurrentScreen, defaultStartupScreen, setInApp]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: '#000000' }}>
+    <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: 'var(--color-bg, #000000)' }}>
       {/* ── Mobile Horizontal Orientation Enforcer (§1) ── */}
       <OrientationGuard />
 

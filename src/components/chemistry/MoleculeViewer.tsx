@@ -55,26 +55,28 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
         const sdfText = await response.text();
         if (!active) return;
 
+        const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light';
+
         const viewer = $3Dmol.createViewer(containerRef.current, {
-          backgroundColor: transparent ? 0x000000 : 0x0a0a0c,
-          backgroundAlpha: transparent ? 0 : 0.85,
+          backgroundColor: transparent ? 0x000000 : isLight ? 0xffffff : 0x0a0a0c,
+          backgroundAlpha: transparent ? 0 : isLight ? 0.95 : 0.85,
         });
         viewerRef.current = viewer;
 
         const model = viewer.addModel(sdfText, "sdf");
         const atoms = model.selectedAtoms({});
 
-        // CPK Molecular Color Protocol
+        // CPK Molecular Color Protocol with light mode adaptation for white atoms (H)
         atoms.forEach((atom: any) => {
-          let color = "#FFFFFF";
+          let color = isLight ? "#111114" : "#FFFFFF";
           let radiusRatio = 0.35;
 
           switch (atom.elem) {
             case "C": color = "#333338"; radiusRatio = 1.00; break;
-            case "H": color = "#F2F2F2"; radiusRatio = 0.35; break;
+            case "H": color = isLight ? "#94A3B8" : "#F2F2F2"; radiusRatio = 0.35; break;
             case "O": color = "#FF2233"; radiusRatio = 0.65; break;
-            case "N": color = "#33F0FF"; radiusRatio = 0.70; break;
-            case "Cl": color = "#1FF01F"; radiusRatio = 0.80; break;
+            case "N": color = isLight ? "#0284C7" : "#33F0FF"; radiusRatio = 0.70; break;
+            case "Cl": color = "#10B981"; radiusRatio = 0.80; break;
             case "Br": color = "#EB104B"; radiusRatio = 0.85; break;
             case "I": color = "#9400D3"; radiusRatio = 0.95; break;
             case "Na": color = "#7450E6"; radiusRatio = 1.10; break;
@@ -85,7 +87,7 @@ export const MoleculeViewer: React.FC<MoleculeViewerProps> = ({
             { serial: atom.serial },
             {
               sphere: { color: color, radius: 0.38 * radiusRatio },
-              stick: { color: "#555560", radius: 0.08 },
+              stick: { color: isLight ? "#64748B" : "#555560", radius: 0.08 },
             }
           );
         });

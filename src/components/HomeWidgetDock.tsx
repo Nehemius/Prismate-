@@ -56,11 +56,12 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
     >
       {/* Dock Toggle Tab */}
       <div
+        className="prismate-dock-toggle-tab"
         onClick={() => setCollapsed((c) => !c)}
         style={{
           pointerEvents: 'auto',
-          background: 'rgba(15, 15, 15, 0.95)',
-          border: '1px solid rgba(242, 242, 242, 0.25)',
+          background: 'var(--banner-bg, rgba(15, 15, 15, 0.95))',
+          border: '1px solid var(--banner-border, rgba(242, 242, 242, 0.25))',
           borderBottom: 'none',
           borderRadius: '12px 12px 0 0',
           padding: '6px 20px',
@@ -68,7 +69,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
           alignItems: 'center',
           gap: '10px',
           cursor: 'pointer',
-          boxShadow: '0 -4px 20px rgba(0, 0, 0, 0.7)',
+          boxShadow: '0 -4px 20px var(--color-shadow, rgba(0, 0, 0, 0.7))',
         }}
       >
         <span
@@ -76,7 +77,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
             fontFamily: 'var(--font-heading)',
             fontSize: '11px',
             letterSpacing: '1.5px',
-            color: '#F2F2F2',
+            color: 'var(--banner-text, #F2F2F2)',
           }}
         >
           {collapsed ? '▲ OPEN STARTER WIDGET DOCK (10 WIDGETS)' : '▼ HIDE WIDGET DOCK'}
@@ -85,7 +86,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
           style={{
             fontFamily: 'var(--font-subheading)',
             fontSize: '10px',
-            color: 'rgba(242, 242, 242, 0.5)',
+            color: 'var(--banner-muted, rgba(242, 242, 242, 0.5))',
           }}
         >
           {activeWidgetIds.length} on canvas
@@ -94,15 +95,16 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
 
       {/* Dock Shelf */}
       <div
+        className="prismate-home-widget-dock"
         style={{
           pointerEvents: 'auto',
           width: '100%',
-          background: 'rgba(12, 12, 12, 0.96)',
+          background: 'var(--banner-bg, rgba(12, 12, 12, 0.96))',
           backdropFilter: 'blur(16px)',
-          borderTop: '1px solid rgba(242, 242, 242, 0.2)',
+          borderTop: '1px solid var(--banner-border, rgba(242, 242, 242, 0.2))',
           padding: '16px 24px 20px',
           boxSizing: 'border-box',
-          boxShadow: '0 -10px 40px rgba(0, 0, 0, 0.8)',
+          boxShadow: '0 -10px 40px var(--color-shadow, rgba(0, 0, 0, 0.8))',
         }}
       >
         <div
@@ -119,7 +121,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
                 fontFamily: 'var(--font-heading)',
                 fontSize: '12px',
                 letterSpacing: '1.5px',
-                color: '#F2F2F2',
+                color: 'var(--banner-text, #F2F2F2)',
               }}
             >
               10 STARTER WIDGETS (§5.2)
@@ -128,7 +130,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
               style={{
                 fontFamily: 'var(--font-content)',
                 fontSize: '11px',
-                color: 'rgba(242, 242, 242, 0.45)',
+                color: 'var(--banner-muted, rgba(242, 242, 242, 0.45))',
               }}
             >
               Click "+ ADD (2×2)" to place onto the 16 × 8 Bento grid.
@@ -140,8 +142,8 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
               onClick={onResetLayout}
               style={{
                 background: 'transparent',
-                border: '1px solid rgba(242, 242, 242, 0.2)',
-                color: 'rgba(242, 242, 242, 0.6)',
+                border: '1px solid var(--banner-border, rgba(242, 242, 242, 0.2))',
+                color: 'var(--banner-muted, rgba(242, 242, 242, 0.6))',
                 borderRadius: '6px',
                 padding: '4px 10px',
                 fontFamily: 'var(--font-subheading)',
@@ -155,9 +157,9 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
             <button
               onClick={onCloseEditMode}
               style={{
-                background: '#F2F2F2',
+                background: 'var(--banner-btn-bg, #F2F2F2)',
                 border: 'none',
-                color: '#000000',
+                color: 'var(--banner-btn-fg, #000000)',
                 borderRadius: '6px',
                 padding: '4px 14px',
                 fontFamily: 'var(--font-heading)',
@@ -189,6 +191,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
             return (
               <div
                 key={w.id}
+                className="prismate-starter-widget-card"
                 draggable={!isActive}
                 onDragStart={(e) => {
                   if (!isActive) {
@@ -201,10 +204,10 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
                 style={{
                   minWidth: '170px',
                   maxWidth: '180px',
-                  background: isActive ? 'rgba(242, 242, 242, 0.05)' : 'rgba(25, 25, 25, 0.8)',
+                  background: isActive ? 'var(--color-accent-subtle, rgba(242, 242, 242, 0.05))' : 'var(--tile-bg, rgba(25, 25, 25, 0.8))',
                   border: isActive
-                    ? '1px solid rgba(242, 242, 242, 0.15)'
-                    : '1px solid rgba(242, 242, 242, 0.3)',
+                    ? '1px solid var(--tile-border, rgba(242, 242, 242, 0.15))'
+                    : '1px solid var(--tile-border, rgba(242, 242, 242, 0.3))',
                   borderRadius: '12px',
                   padding: '12px',
                   display: 'flex',
@@ -221,7 +224,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
                       style={{
                         fontFamily: 'var(--font-heading)',
                         fontSize: '11px',
-                        color: '#F2F2F2',
+                        color: 'var(--color-text-primary, #F2F2F2)',
                         letterSpacing: '0.5px',
                         whiteSpace: 'nowrap',
                         overflow: 'hidden',
@@ -235,7 +238,7 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
                     style={{
                       fontFamily: 'var(--font-content)',
                       fontSize: '10px',
-                      color: 'rgba(242, 242, 242, 0.45)',
+                      color: 'var(--color-text-muted, rgba(242, 242, 242, 0.45))',
                       lineHeight: 1.3,
                       margin: '0 0 10px',
                       minHeight: '26px',
@@ -251,13 +254,13 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: 'rgba(242, 242, 242, 0.08)',
-                      border: '1px solid rgba(242, 242, 242, 0.12)',
+                      background: 'var(--color-accent-subtle, rgba(242, 242, 242, 0.08))',
+                      border: '1px solid var(--color-card-border, rgba(242, 242, 242, 0.12))',
                       borderRadius: '6px',
                       padding: '4px',
                       fontFamily: 'var(--font-subheading)',
                       fontSize: '9px',
-                      color: 'rgba(242, 242, 242, 0.5)',
+                      color: 'var(--color-text-muted, rgba(242, 242, 242, 0.5))',
                       letterSpacing: '0.8px',
                     }}
                   >
@@ -268,16 +271,17 @@ export const HomeWidgetDock: React.FC<HomeWidgetDockProps> = ({
                     onClick={() => onAddWidget(w.id, 2, 2)}
                     disabled={disableAdd}
                     style={{
-                      background: '#F2F2F2',
+                      background: 'var(--banner-btn-bg, #F2F2F2)',
                       border: 'none',
-                      color: '#000000',
+                      color: 'var(--banner-btn-fg, #000000)',
                       borderRadius: '6px',
                       padding: '5px 8px',
                       fontFamily: 'var(--font-heading)',
                       fontSize: '10px',
                       letterSpacing: '1px',
-                      cursor: 'pointer',
+                      cursor: disableAdd ? 'not-allowed' : 'pointer',
                       fontWeight: 'bold',
+                      opacity: disableAdd ? 0.4 : 1,
                     }}
                   >
                     + ADD (2×2)

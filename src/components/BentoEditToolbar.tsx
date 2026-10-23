@@ -33,13 +33,14 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
   if (isLocked) {
     return (
       <div
+        className="bento-edit-toolbar is-locked"
         style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
-          background: 'rgba(10, 10, 10, 0.92)',
-          borderBottom: '1px solid rgba(242, 242, 242, 0.2)',
+          background: 'var(--toolbar-locked-bg, rgba(10, 10, 10, 0.92))',
+          borderBottom: '1px solid var(--toolbar-border, rgba(242, 242, 242, 0.2))',
           padding: '4px 10px',
           display: 'flex',
           alignItems: 'center',
@@ -54,7 +55,7 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
             fontFamily: 'var(--font-heading)',
             fontSize: '9px',
             letterSpacing: '1px',
-            color: 'rgba(242, 242, 242, 0.6)',
+            color: 'var(--toolbar-text-muted, rgba(242, 242, 242, 0.6))',
           }}
         >
           🔒 LOCKED CENTRE BLOCK ({colSpan} × {rowSpan})
@@ -64,7 +65,7 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
             fontFamily: 'var(--font-subheading)',
             fontSize: '9px',
             letterSpacing: '0.5px',
-            color: 'rgba(242, 242, 242, 0.4)',
+            color: 'var(--toolbar-text-faint, rgba(242, 242, 242, 0.4))',
           }}
         >
           IMMUTABLE
@@ -74,9 +75,9 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
   }
 
   const btnStyle: React.CSSProperties = {
-    background: 'rgba(242, 242, 242, 0.12)',
-    border: '1px solid rgba(242, 242, 242, 0.25)',
-    color: '#F2F2F2',
+    background: 'var(--toolbar-btn-bg, rgba(242, 242, 242, 0.12))',
+    border: '1px solid var(--toolbar-btn-border, rgba(242, 242, 242, 0.25))',
+    color: 'var(--toolbar-btn-fg, #F2F2F2)',
     borderRadius: '4px',
     padding: '2px 6px',
     fontSize: '10px',
@@ -91,15 +92,16 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
 
   return (
     <div
+      className="bento-edit-toolbar"
       onClick={(e) => e.stopPropagation()}
       style={{
         position: 'absolute',
         top: 0,
         left: 0,
         right: 0,
-        background: 'rgba(12, 12, 12, 0.94)',
+        background: 'var(--toolbar-bg, rgba(12, 12, 12, 0.94))',
         backdropFilter: 'blur(8px)',
-        borderBottom: '1px solid rgba(242, 242, 242, 0.2)',
+        borderBottom: '1px solid var(--toolbar-border, rgba(242, 242, 242, 0.2))',
         padding: '5px 10px',
         display: 'flex',
         alignItems: 'center',
@@ -130,20 +132,22 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
         }}
       >
         <span
+          className="bento-toolbar-title"
           style={{
             fontFamily: 'var(--font-heading)',
             fontSize: '10px',
             letterSpacing: '0.8px',
-            color: '#F2F2F2',
+            color: 'var(--toolbar-title-fg, #F2F2F2)',
           }}
         >
           ⠿ {label}
         </span>
         <span
+          className="bento-toolbar-span"
           style={{
             fontFamily: 'var(--font-subheading)',
             fontSize: '9px',
-            color: 'rgba(242, 242, 242, 0.55)',
+            color: 'var(--toolbar-span-fg, rgba(242, 242, 242, 0.55))',
             letterSpacing: '0.5px',
           }}
         >
@@ -156,7 +160,7 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
         {/* Width (Column span) */}
         {onResize && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-            <span style={{ fontSize: '9px', color: 'rgba(242,242,242,0.4)', marginRight: '2px' }}>W</span>
+            <span className="bento-toolbar-dim" style={{ fontSize: '9px', color: 'var(--toolbar-dim-fg, rgba(242,242,242,0.4))', marginRight: '2px' }}>W</span>
             <button
               title="Narrower (shrink column span)"
               style={btnStyle}
@@ -179,7 +183,7 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
         {/* Height (Row span) */}
         {onResize && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '2px' }}>
-            <span style={{ fontSize: '9px', color: 'rgba(242,242,242,0.4)', marginRight: '2px' }}>H</span>
+            <span className="bento-toolbar-dim" style={{ fontSize: '9px', color: 'var(--toolbar-dim-fg, rgba(242,242,242,0.4))', marginRight: '2px' }}>H</span>
             <button
               title="Shorter (shrink row span)"
               style={btnStyle}
@@ -226,7 +230,7 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
               ...btnStyle,
               background: 'rgba(51, 240, 255, 0.15)',
               borderColor: 'rgba(51, 240, 255, 0.4)',
-              color: '#33F0FF',
+              color: 'var(--color-accent, #33F0FF)',
               marginLeft: '4px',
             }}
           >
@@ -241,16 +245,10 @@ export const BentoEditToolbar: React.FC<BentoEditToolbarProps> = ({
             onClick={() => onRemove(id)}
             style={{
               ...btnStyle,
-              background: 'rgba(242, 242, 242, 0.12)',
-              borderColor: 'rgba(242, 242, 242, 0.35)',
-              color: '#F2F2F2',
+              background: 'var(--toolbar-btn-bg, rgba(242, 242, 242, 0.12))',
+              borderColor: 'var(--toolbar-btn-border, rgba(242, 242, 242, 0.35))',
+              color: 'var(--toolbar-btn-fg, #F2F2F2)',
               marginLeft: '4px',
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = 'rgba(242, 242, 242, 0.25)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'rgba(242, 242, 242, 0.12)';
             }}
           >
             ✕

@@ -166,7 +166,22 @@ export const StacksWorkspace: React.FC = () => {
     setCameraZoom((prev) => Math.max(0.65, Math.min(1.65, prev + zoomDelta)));
   };
 
-  // Keyboard controls (Space to toggle spin, ESC to back/deselect, R to reset)
+  // Card Iteration Handlers (Next & Previous)
+  const handleNextCard = useCallback(() => {
+    if (!activeClass.cards || activeClass.cards.length === 0) return;
+    const currentIdx = activeClass.cards.findIndex((c) => c.id === selectedCardId);
+    const nextIdx = currentIdx === -1 ? 0 : (currentIdx + 1) % activeClass.cards.length;
+    setSelectedCardId(activeClass.cards[nextIdx].id);
+  }, [activeClass.cards, selectedCardId]);
+
+  const handlePrevCard = useCallback(() => {
+    if (!activeClass.cards || activeClass.cards.length === 0) return;
+    const currentIdx = activeClass.cards.findIndex((c) => c.id === selectedCardId);
+    const prevIdx = currentIdx === -1 ? 0 : (currentIdx - 1 + activeClass.cards.length) % activeClass.cards.length;
+    setSelectedCardId(activeClass.cards[prevIdx].id);
+  }, [activeClass.cards, selectedCardId]);
+
+  // Keyboard controls (Space to toggle spin, ESC to back/deselect, R to reset, Arrows to iterate cards)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
@@ -175,6 +190,12 @@ export const StacksWorkspace: React.FC = () => {
         } else if (viewMode === 'MICRO') {
           setViewMode('MACRO');
         }
+      } else if (e.key === 'ArrowRight' && selectedCardId) {
+        e.preventDefault();
+        handleNextCard();
+      } else if (e.key === 'ArrowLeft' && selectedCardId) {
+        e.preventDefault();
+        handlePrevCard();
       } else if (e.key === ' ') {
         e.preventDefault();
         setAutoSpin((prev) => !prev);
@@ -186,7 +207,7 @@ export const StacksWorkspace: React.FC = () => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [viewMode, selectedCardId]);
+  }, [viewMode, selectedCardId, handleNextCard, handlePrevCard]);
 
   // Enter Class (Transition from Macro to Micro)
   const handleEnterClass = useCallback((classId: string) => {
@@ -419,7 +440,7 @@ export const StacksWorkspace: React.FC = () => {
         {/* ─── LEVEL 1: MACRO STACK SPACE ─── */}
         {viewMode === 'MACRO' && (
           <>
-            {/* Central Glowing White Nucleus Dot (§1.1: 16x16 pure white core, radial halo, pulsing ring, NO text) */}
+            {/* Central 3D Glowing Nucleus Orb with Gyroscopic Orbital Rings & Photons */}
             <div
               style={{
                 position: 'absolute',
@@ -430,45 +451,138 @@ export const StacksWorkspace: React.FC = () => {
                 pointerEvents: 'none',
               }}
             >
-              {/* Outer Pulsing Ring */}
+              {/* Equatorial 3D Ring (Plane X-Z) */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '-20px',
-                  left: '-20px',
-                  width: '40px',
-                  height: '40px',
+                  width: '54px',
+                  height: '54px',
+                  top: '-27px',
+                  left: '-27px',
                   borderRadius: '50%',
-                  border: '1.5px solid rgba(255, 255, 255, 0.45)',
-                  boxShadow: '0 0 16px rgba(255, 255, 255, 0.6), inset 0 0 8px rgba(255, 255, 255, 0.3)',
-                  animation: 'al-ring-expand 2.4s ease-out infinite',
+                  border: '1.5px solid rgba(255, 255, 255, 0.65)',
+                  boxShadow: '0 0 16px rgba(255, 255, 255, 0.8), inset 0 0 10px rgba(51, 240, 255, 0.5)',
+                  transform: `rotateX(90deg) rotateZ(${spinDeg * 1.5}deg)`,
+                  transformStyle: 'preserve-3d',
                 }}
               />
-              {/* Radial Halo */}
+
+              {/* Polar 3D Ring (Plane Y-Z) */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '-16px',
-                  left: '-16px',
-                  width: '32px',
-                  height: '32px',
+                  width: '54px',
+                  height: '54px',
+                  top: '-27px',
+                  left: '-27px',
                   borderRadius: '50%',
-                  background: 'radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, rgba(255, 255, 255, 0.15) 60%, transparent 80%)',
+                  border: '1.5px solid rgba(51, 240, 255, 0.65)',
+                  boxShadow: '0 0 16px rgba(51, 240, 255, 0.8), inset 0 0 10px rgba(255, 255, 255, 0.4)',
+                  transform: `rotateY(90deg) rotateZ(${spinDeg * -1.2}deg)`,
+                  transformStyle: 'preserve-3d',
                 }}
               />
-              {/* Core 16x16 Crisp White Dot */}
+
+              {/* Diagonal 3D Ring (45° Tilt) */}
               <div
                 style={{
                   position: 'absolute',
-                  top: '-8px',
-                  left: '-8px',
-                  width: '16px',
-                  height: '16px',
+                  width: '46px',
+                  height: '46px',
+                  top: '-23px',
+                  left: '-23px',
                   borderRadius: '50%',
-                  background: '#FFFFFF',
-                  boxShadow: '0 0 12px #FFFFFF, 0 0 24px rgba(255, 255, 255, 0.8)',
+                  border: '1px solid rgba(255, 255, 255, 0.75)',
+                  boxShadow: '0 0 14px rgba(255, 255, 255, 0.6)',
+                  transform: `rotateX(45deg) rotateY(45deg) rotateZ(${spinDeg * 2}deg)`,
+                  transformStyle: 'preserve-3d',
                 }}
               />
+
+              {/* Counter-Diagonal 3D Ring (-45° Tilt) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '46px',
+                  height: '46px',
+                  top: '-23px',
+                  left: '-23px',
+                  borderRadius: '50%',
+                  border: '1px solid rgba(0, 240, 255, 0.65)',
+                  boxShadow: '0 0 14px rgba(0, 240, 255, 0.6)',
+                  transform: `rotateX(-45deg) rotateY(-45deg) rotateZ(${spinDeg * -2}deg)`,
+                  transformStyle: 'preserve-3d',
+                }}
+              />
+
+              {/* Volumetric 3D Spherical Core (Plane XY) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '24px',
+                  height: '24px',
+                  top: '-12px',
+                  left: '-12px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 35% 35%, #FFFFFF 0%, #D8F8FF 40%, rgba(51, 240, 255, 0.4) 75%, transparent 100%)',
+                  boxShadow: '0 0 20px #FFFFFF, 0 0 35px rgba(51, 240, 255, 0.9)',
+                  transform: 'rotateY(0deg)',
+                }}
+              />
+
+              {/* Volumetric 3D Spherical Core (Plane YZ) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '24px',
+                  height: '24px',
+                  top: '-12px',
+                  left: '-12px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 35% 35%, #FFFFFF 0%, #D8F8FF 40%, rgba(51, 240, 255, 0.4) 75%, transparent 100%)',
+                  boxShadow: '0 0 20px #FFFFFF, 0 0 35px rgba(51, 240, 255, 0.9)',
+                  transform: 'rotateY(90deg)',
+                }}
+              />
+
+              {/* Volumetric 3D Spherical Core (Plane XZ) */}
+              <div
+                style={{
+                  position: 'absolute',
+                  width: '24px',
+                  height: '24px',
+                  top: '-12px',
+                  left: '-12px',
+                  borderRadius: '50%',
+                  background: 'radial-gradient(circle at 35% 35%, #FFFFFF 0%, #D8F8FF 40%, rgba(51, 240, 255, 0.4) 75%, transparent 100%)',
+                  boxShadow: '0 0 20px #FFFFFF, 0 0 35px rgba(51, 240, 255, 0.9)',
+                  transform: 'rotateX(90deg)',
+                }}
+              />
+
+              {/* Orbiting 3D Quantum Photons on elliptical 3D paths */}
+              {[0, 1, 2].map((pIdx) => {
+                const angle = ((spinDeg * 2.2 + pIdx * 120) * Math.PI) / 180;
+                const px = Math.cos(angle) * 32;
+                const py = Math.sin(angle * 1.5) * 16;
+                const pz = Math.sin(angle) * 32;
+                return (
+                  <div
+                    key={pIdx}
+                    style={{
+                      position: 'absolute',
+                      width: '6px',
+                      height: '6px',
+                      top: '-3px',
+                      left: '-3px',
+                      borderRadius: '50%',
+                      background: '#FFFFFF',
+                      boxShadow: '0 0 10px #FFFFFF, 0 0 18px #33F0FF',
+                      transform: `translate3d(${px}px, ${py}px, ${pz}px)`,
+                    }}
+                  />
+                );
+              })}
             </div>
 
             {/* VSEPR 3D Classes */}
@@ -545,6 +659,130 @@ export const StacksWorkspace: React.FC = () => {
         onEditStack={handleOpenEditStack}
         onAddCard={handleOpenAddCard}
       />
+
+      {/* ─── Centered Card Interactive Navigation Controls ─── */}
+      {viewMode === 'MICRO' && selectedCardId && (
+        <div
+          style={{
+            position: 'fixed',
+            bottom: '88px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 60,
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            padding: '8px 18px',
+            borderRadius: '9999px',
+            background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light'
+              ? 'rgba(255, 255, 255, 0.88)'
+              : 'rgba(12, 12, 16, 0.88)',
+            backdropFilter: 'blur(20px) saturate(180%)',
+            WebkitBackdropFilter: 'blur(20px) saturate(180%)',
+            border: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light'
+              ? '1px solid rgba(0, 0, 0, 0.14)'
+              : '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 16px 40px rgba(0, 0, 0, 0.35)',
+            userSelect: 'none',
+          }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handlePrevCard();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light' ? '#111114' : '#FFFFFF',
+              fontFamily: 'var(--font-heading)',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title="Previous Card (Left Arrow)"
+          >
+            ← PREVIOUS
+          </button>
+
+          <span
+            style={{
+              fontFamily: 'var(--font-subheading)',
+              fontSize: '10px',
+              letterSpacing: '1.5px',
+              color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light' ? '#6B7280' : 'rgba(242, 242, 242, 0.65)',
+              padding: '0 6px',
+            }}
+          >
+            CARD {activeClass.cards.findIndex((c) => c.id === selectedCardId) + 1} OF {activeClass.cards.length}
+          </span>
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNextCard();
+            }}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light' ? '#111114' : '#FFFFFF',
+              fontFamily: 'var(--font-heading)',
+              fontSize: '11px',
+              fontWeight: 700,
+              letterSpacing: '1px',
+              cursor: 'pointer',
+              padding: '6px 12px',
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px',
+            }}
+            title="Next Card (Right Arrow)"
+          >
+            NEXT →
+          </button>
+
+          <div
+            style={{
+              width: '1px',
+              height: '16px',
+              background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light'
+                ? 'rgba(0, 0, 0, 0.12)'
+                : 'rgba(255, 255, 255, 0.2)',
+            }}
+          />
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setSelectedCardId(null);
+            }}
+            style={{
+              background: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light' ? '#111114' : '#FFFFFF',
+              color: typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light' ? '#FFFFFF' : '#000000',
+              border: 'none',
+              borderRadius: '9999px',
+              width: '24px',
+              height: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '11px',
+              fontWeight: 700,
+              cursor: 'pointer',
+            }}
+            title="Close Centered View (ESC)"
+          >
+            ✕
+          </button>
+        </div>
+      )}
 
       {/* ─── Stack Class Create / Edit Modal ─── */}
       <StackClassModal

@@ -34,3 +34,12 @@
   height: 96px;
   filter: drop-shadow(0 0 22px rgba(51, 240, 255, 0.95)) drop-shadow(0 0 48px rgba(0, 85, 255, 0.85));
 }
+
+[data-theme="light"] .prismate-loader-overlay {
+  background: rgba(255, 255, 255, 0.88);
+}
+
+[data-theme="light"] .prismate-loader-overlay span {
+  color: #111114 !important;
+}
+

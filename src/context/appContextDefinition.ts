@@ -32,6 +32,10 @@ export interface AppContextType {
   triggerLoader: (durationMs?: number, onComplete?: () => void, metadata?: UniversalLoaderMetadata) => void;
   inApp: boolean;
   setInApp: (val: boolean) => void;
+  // Theme System
+  theme: 'dark' | 'light';
+  setTheme: (theme: 'dark' | 'light') => void;
+  toggleTheme: () => void;
   // Cloud & Profile Extension
   profiles: ProfileSummary[];
   addProfile: (username: string, avatar: string, password?: string) => Promise<void>;

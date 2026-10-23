@@ -9,6 +9,7 @@ import { useApp } from '../context/useApp';
 import GridGuides from '../components/GridGuides';
 import BentoEditToolbar from '../components/BentoEditToolbar';
 import GlowingTitle from '../components/GlowingTitle';
+import DraggableEditBanner from '../components/DraggableEditBanner';
 
 /**
  * ChemistryPage — Tamil Nadu Class 11/12 Chemistry workspace.
@@ -83,12 +84,12 @@ const DEFAULT_CHEM_LAYOUT: BlockLayout[] = [
 ];
 
 const TILE_BASE: React.CSSProperties = {
-  background: 'linear-gradient(135deg, rgba(16,16,16,0.85), rgba(28,28,28,0.72))',
+  background: 'var(--tile-bg, linear-gradient(135deg, rgba(16,16,16,0.85), rgba(28,28,28,0.72)))',
   borderWidth: '1px',
   borderStyle: 'solid',
-  borderColor: 'rgba(242,242,242,0.10)',
+  borderColor: 'var(--tile-border, rgba(242,242,242,0.10))',
   borderRadius: '20px',
-  boxShadow: 'inset 0 1px 0 0 rgba(242,242,242,0.22)',
+  boxShadow: 'var(--tile-shadow, inset 0 1px 0 0 rgba(242,242,242,0.22))',
   padding: 'clamp(16px, 2vw, 26px)',
   display: 'flex',
   flexDirection: 'column' as const,
@@ -125,6 +126,7 @@ const ChemTile: React.FC<TileProps> = ({
       role="button"
       tabIndex={0}
       aria-label={block.label}
+      className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
       style={{
         ...TILE_BASE,
         borderColor: isTargetHovered
@@ -209,7 +211,7 @@ const ChemTile: React.FC<TileProps> = ({
         style={{
           fontFamily: 'var(--font-content)',
           fontSize: 'clamp(11px, 0.85vw, 13px)',
-          color: 'rgba(242,242,242,0.45)',
+          color: 'var(--color-text-muted, rgba(242,242,242,0.45))',
           letterSpacing: '0.8px',
           marginBottom: '8px',
           lineHeight: 1.35,
@@ -222,7 +224,7 @@ const ChemTile: React.FC<TileProps> = ({
         style={{
           fontFamily: 'var(--font-heading)',
           fontSize: 'clamp(14px, 1.25vw, 22px)',
-          color: '#F2F2F2',
+          color: 'var(--color-text-primary, #F2F2F2)',
           letterSpacing: '2px',
           lineHeight: 1.25,
           fontWeight: 'normal',
@@ -238,13 +240,14 @@ const ChemTile: React.FC<TileProps> = ({
 const CentreTitleBlock: React.FC<{ onOpenReactions?: () => void }> = ({ onOpenReactions }) => (
   <div
     aria-label="Chemistry — subject workspace locked title"
+    className="prism-bento-tile centre-title-tile"
     style={{
       ...TILE_BASE,
       alignItems: 'center',
       justifyContent: 'center',
       cursor: 'default',
-      borderColor: 'rgba(242,242,242,0.18)',
-      background: 'linear-gradient(135deg, rgba(20,20,20,0.95), rgba(10,10,10,0.85))',
+      borderColor: 'var(--tile-border, rgba(242,242,242,0.18))',
+      background: 'var(--tile-bg, linear-gradient(135deg, rgba(20,20,20,0.95), rgba(10,10,10,0.85)))',
     }}
   >
     <GlowingTitle text="CHEMISTRY" />
@@ -471,64 +474,12 @@ export const ChemistryPage: React.FC = () => {
 
       {/* ── Subject Edit Mode Indicator Banner (§6.1) ────────────────────── */}
       {isEditMode && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '24px',
-            zIndex: 900,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            background: 'rgba(20,20,20,0.92)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(242,242,242,0.3)',
-            borderRadius: '24px',
-            padding: '6px 16px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '11px',
-              letterSpacing: '1px',
-              color: '#F2F2F2',
-            }}
-          >
-            CHEMISTRY EDIT MODE: DRAG TO REPOSITION (CENTRE LOCKED)
-          </span>
-          <button
-            onClick={handleResetLayout}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(242,242,242,0.5)',
-              fontSize: '10px',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              fontFamily: 'var(--font-subheading)',
-            }}
-          >
-            RESET
-          </button>
-          <button
-            onClick={() => setEditModeScreen(null)}
-            style={{
-              background: '#F2F2F2',
-              color: '#000000',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '4px 12px',
-              fontFamily: 'var(--font-heading)',
-              fontSize: '10px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
-            DONE
-          </button>
-        </div>
+        <DraggableEditBanner
+          title="CHEMISTRY EDIT MODE: DRAG TO REPOSITION (CENTRE LOCKED)"
+          onReset={handleResetLayout}
+          onDone={() => setEditModeScreen(null)}
+          storageKey="prismate_chem_banner_pos"
+        />
       )}
 
       {/* ── Whole-Screen 16x8 Bento Grid ─────────────────────────────────── */}
@@ -778,6 +729,7 @@ export const ChemistryPage: React.FC = () => {
             key="modal-bb-quiz"
             title="CHEMISTRY BB ONE-WORD QUIZ"
             subject="chemistry"
+            category="bb"
             questions={chemQuestions.filter((q) => q.category === 'bb')}
             onClose={() => setActiveModal(null)}
           />
@@ -788,6 +740,7 @@ export const ChemistryPage: React.FC = () => {
             key="modal-formula-quiz"
             title="CHEMISTRY FORMULA QUIZ"
             subject="chemistry"
+            category="formula"
             questions={chemQuestions.filter((q) => q.category === 'formula')}
             onClose={() => setActiveModal(null)}
           />

@@ -72,6 +72,31 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [globalLoader, setGlobalLoader] = useState(false);
   const [globalLoaderMetadata, setGlobalLoaderMetadata] = useState<UniversalLoaderMetadata | null>(null);
 
+  // Theme Management (Light & Dark System)
+  const [theme, setThemeState] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('prismate_theme') as 'dark' | 'light' | null;
+    return saved === 'light' ? 'light' : 'dark';
+  });
+
+  const setTheme = useCallback((t: 'dark' | 'light') => {
+    setThemeState(t);
+    localStorage.setItem('prismate_theme', t);
+    document.documentElement.setAttribute('data-theme', t);
+  }, []);
+
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('prismate_theme', next);
+      document.documentElement.setAttribute('data-theme', next);
+      return next;
+    });
+  }, []);
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+  }, [theme]);
+
   // Cloud & Profiles State
   const [profiles, setProfiles] = useState<ProfileSummary[]>(() => getLocalProfiles());
   const [isCloudSyncing, setIsCloudSyncing] = useState<boolean>(false);
@@ -441,6 +466,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         triggerLoader,
         inApp,
         setInApp,
+        theme,
+        setTheme,
+        toggleTheme,
         profiles,
         addProfile,
         deleteProfile,

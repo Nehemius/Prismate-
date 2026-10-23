@@ -8,7 +8,17 @@ export type VSEPRClassGeometry =
   | 'OCTAHEDRAL'
   | 'PENTAGONAL_BIPYRAMIDAL';
 
-export type CardType = 'CONCEPT' | 'FORMULA' | 'SIMULATION' | 'PROOF' | 'PROBLEM';
+export type CardType =
+  | 'CONCEPT'
+  | 'FORMULA'
+  | 'SIMULATION'
+  | 'PROOF'
+  | 'PROBLEM'
+  | 'WEBSITE'
+  | 'YOUTUBE'
+  | 'PICTURE'
+  | 'WIDGET'
+  | 'PDF';
 
 export type WidgetKind =
   | 'COULOMB_FORCE'
@@ -37,6 +47,12 @@ export interface StackCard {
   widgetKind?: WidgetKind;
   accentColor: string;
   pinned?: boolean;
+  // Specific fields for specialized card types:
+  url?: string;            // for WEBSITE, YOUTUBE, or web PDF
+  imageUrl?: string;       // for PICTURE (data URL or web URL)
+  widgetId?: string;       // for WIDGET (from starter widgets)
+  pdfUrl?: string;         // for PDF (blob / data URL or link)
+  pdfFileName?: string;    // for PDF display name
 }
 
 export interface StackClass3D {

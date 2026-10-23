@@ -18,6 +18,7 @@ import HistoryModal from '../components/home/HistoryModal';
 import type { HistoryEntry } from '../components/home/HistoryModal';
 import StudyTubeModal from '../components/home/StudyTubeModal';
 import { WelcomeEditModal, type WelcomeConfig } from '../components/home/WelcomeEditModal';
+import DraggableEditBanner from '../components/DraggableEditBanner';
 
 /**
  * HomePage / "You" — Customizable 16 x 8 Bento Canvas
@@ -57,12 +58,12 @@ const DEFAULT_HOME_LAYOUT: WidgetLayout[] = [
 ];
 
 const TILE_BASE: React.CSSProperties = {
-  background: 'linear-gradient(135deg, rgba(16,16,16,0.85), rgba(28,28,28,0.72))',
+  background: 'var(--tile-bg, linear-gradient(135deg, rgba(16,16,16,0.85), rgba(28,28,28,0.72)))',
   borderWidth: '1px',
   borderStyle: 'solid',
-  borderColor: 'rgba(242,242,242,0.10)',
+  borderColor: 'var(--tile-border, rgba(242,242,242,0.10))',
   borderRadius: '20px',
-  boxShadow: 'inset 0 1px 0 0 rgba(242,242,242,0.22)',
+  boxShadow: 'var(--tile-shadow, inset 0 1px 0 0 rgba(242,242,242,0.22))',
   padding: '20px',
   display: 'flex',
   flexDirection: 'column' as const,
@@ -605,18 +606,18 @@ export const HomePage: React.FC = () => {
     return {
       ...TILE_BASE,
       borderColor: isTarget
-        ? '#F2F2F2'
+        ? 'var(--color-accent, #33F0FF)'
         : isEditMode
-        ? 'rgba(242,242,242,0.35)'
-        : 'rgba(242,242,242,0.10)',
+        ? 'var(--tile-border, rgba(242,242,242,0.35))'
+        : 'var(--tile-border, rgba(242,242,242,0.10))',
       background: isTarget
-        ? 'linear-gradient(135deg, rgba(32,32,32,0.95), rgba(48,48,48,0.85))'
-        : 'linear-gradient(135deg, rgba(16,16,16,0.85), rgba(28,28,28,0.72))',
+        ? 'var(--tile-bg-hover, linear-gradient(135deg, rgba(32,32,32,0.95), rgba(48,48,48,0.85)))'
+        : (TILE_BASE.background as string),
       opacity: isDrag ? 0.4 : 1,
       cursor: isEditMode ? 'grab' : 'pointer',
       boxShadow: isTarget
-        ? '0 0 20px rgba(242,242,242,0.2), inset 0 1px 0 0 rgba(242,242,242,0.4)'
-        : 'inset 0 1px 0 0 rgba(242,242,242,0.22)',
+        ? '0 0 20px rgba(51, 240, 255, 0.25)'
+        : TILE_BASE.boxShadow,
       ...extra,
     };
   };
@@ -646,64 +647,12 @@ export const HomePage: React.FC = () => {
 
       {/* ── Edit Mode Floating Indicator Banner ──────────────────────────── */}
       {isEditMode && (
-        <div
-          style={{
-            position: 'fixed',
-            top: '20px',
-            right: '24px',
-            zIndex: 900,
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            background: 'rgba(20,20,20,0.92)',
-            backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(242,242,242,0.3)',
-            borderRadius: '24px',
-            padding: '6px 16px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.8)',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--font-heading)',
-              fontSize: '11px',
-              letterSpacing: '1px',
-              color: '#F2F2F2',
-            }}
-          >
-            EDIT MODE: DRAG TILES OR USE CONTROLS
-          </span>
-          <button
-            onClick={handleResetLayout}
-            style={{
-              background: 'none',
-              border: 'none',
-              color: 'rgba(242,242,242,0.5)',
-              fontSize: '10px',
-              cursor: 'pointer',
-              textDecoration: 'underline',
-              fontFamily: 'var(--font-subheading)',
-            }}
-          >
-            RESET
-          </button>
-          <button
-            onClick={() => setEditModeScreen(null)}
-            style={{
-              background: '#F2F2F2',
-              color: '#000000',
-              border: 'none',
-              borderRadius: '12px',
-              padding: '4px 12px',
-              fontFamily: 'var(--font-heading)',
-              fontSize: '10px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-            }}
-          >
-            DONE
-          </button>
-        </div>
+        <DraggableEditBanner
+          title="HOME EDIT MODE: DRAG TILES OR USE CONTROLS"
+          onReset={handleResetLayout}
+          onDone={() => setEditModeScreen(null)}
+          storageKey="prismate_home_banner_pos"
+        />
       )}
 
       {/* Hidden file picker for custom picture upload (§5.2) */}
@@ -881,7 +830,7 @@ export const HomePage: React.FC = () => {
                     fontFamily: 'var(--font-subheading)',
                     fontSize: '10px',
                     letterSpacing: '1.5px',
-                    color: pomoMode === 'focus' ? 'rgba(242,242,242,0.5)' : '#EB104B',
+                    color: pomoMode === 'focus' ? 'var(--color-text-muted, rgba(242,242,242,0.5))' : '#EB104B',
                     textTransform: 'uppercase',
                     display: 'block',
                     marginBottom: '4px',
@@ -900,6 +849,7 @@ export const HomePage: React.FC = () => {
                     letterSpacing: '3px',
                     margin: 0,
                     lineHeight: 1,
+                    color: 'var(--color-text-primary, #F2F2F2)',
                   }}
                 >
                   {Math.floor(pomoSeconds / 60)
@@ -912,9 +862,13 @@ export const HomePage: React.FC = () => {
                 <button
                   onClick={() => setPomoRunning((r) => !r)}
                   style={{
-                    background: pomoRunning ? 'rgba(242,242,242,0.1)' : '#F2F2F2',
-                    color: pomoRunning ? '#F2F2F2' : '#000000',
-                    border: 'none',
+                    background: pomoRunning
+                      ? 'var(--color-accent-subtle, rgba(242,242,242,0.1))'
+                      : 'var(--banner-btn-bg, #F2F2F2)',
+                    color: pomoRunning
+                      ? 'var(--color-text-primary, #F2F2F2)'
+                      : 'var(--banner-btn-fg, #000000)',
+                    border: '1px solid var(--color-card-border, rgba(242,242,242,0.2))',
                     borderRadius: '6px',
                     padding: '6px 14px',
                     fontFamily: 'var(--font-heading)',
@@ -938,8 +892,8 @@ export const HomePage: React.FC = () => {
                   }}
                   style={{
                     background: 'transparent',
-                    color: '#F2F2F2',
-                    border: '1px solid rgba(242,242,242,0.2)',
+                    color: 'var(--color-text-primary, #F2F2F2)',
+                    border: '1px solid var(--color-card-border, rgba(242,242,242,0.2))',
                     borderRadius: '6px',
                     padding: '6px 12px',
                     fontFamily: 'var(--font-subheading)',
@@ -991,12 +945,12 @@ export const HomePage: React.FC = () => {
                     fontFamily: 'var(--font-heading)',
                     fontSize: '11px',
                     letterSpacing: '1.5px',
-                    color: 'rgba(242,242,242,0.4)',
+                    color: 'var(--color-text-muted, rgba(242,242,242,0.4))',
                   }}
                 >
                   TASKS • DOUBLE CLICK TO EDIT
                 </span>
-                <span style={{ fontSize: '11px', color: '#F2F2F2', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '11px', color: 'var(--color-text-primary, #F2F2F2)', fontFamily: 'monospace' }}>
                   {todos.filter((t) => t.done).length}/{todos.length}
                 </span>
               </div>
@@ -1015,13 +969,13 @@ export const HomePage: React.FC = () => {
                       gap: '10px',
                       fontFamily: 'var(--font-content)',
                       fontSize: '13px',
-                      color: todo.done ? 'rgba(242,242,242,0.30)' : '#F2F2F2',
+                      color: todo.done ? 'var(--color-text-muted, rgba(242,242,242,0.30))' : 'var(--color-text-primary, #F2F2F2)',
                       textDecoration: todo.done ? 'line-through' : 'none',
                       cursor: 'pointer',
                       userSelect: 'none',
                     }}
                   >
-                    <span style={{ fontSize: '14px', color: todo.done ? '#F2F2F2' : 'rgba(242,242,242,0.4)' }}>
+                    <span style={{ fontSize: '14px', color: todo.done ? 'var(--color-text-primary, #F2F2F2)' : 'var(--color-text-muted, rgba(242,242,242,0.4))' }}>
                       {todo.done ? '☑' : '☐'}
                     </span>
                     <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -1069,7 +1023,7 @@ export const HomePage: React.FC = () => {
                   fontFamily: 'var(--font-heading)',
                   fontSize: '10px',
                   letterSpacing: '1.5px',
-                  color: 'rgba(242,242,242,0.4)',
+                  color: 'var(--color-text-muted, rgba(242,242,242,0.4))',
                   marginBottom: '8px',
                   display: 'block',
                 }}
@@ -1082,7 +1036,7 @@ export const HomePage: React.FC = () => {
                   fontSize: '12px',
                   lineHeight: 1.5,
                   margin: 0,
-                  color: 'rgba(242,242,242,0.85)',
+                  color: 'var(--color-text-primary, rgba(242,242,242,0.85))',
                   fontStyle: 'italic',
                 }}
               >
@@ -1131,7 +1085,7 @@ export const HomePage: React.FC = () => {
                 style={{
                   fontFamily: 'var(--font-heading)',
                   fontSize: '13px',
-                  color: 'rgba(242,242,242,0.6)',
+                  color: 'var(--color-text-muted, rgba(242,242,242,0.6))',
                   margin: '0 0 6px',
                   letterSpacing: '1px',
                 }}
@@ -1142,11 +1096,11 @@ export const HomePage: React.FC = () => {
                 style={{
                   fontFamily: 'monospace',
                   fontSize: '14px',
-                  color: '#F2F2F2',
-                  background: 'rgba(0,0,0,0.4)',
+                  color: 'var(--color-text-primary, #F2F2F2)',
+                  background: 'var(--color-accent-subtle, rgba(0,0,0,0.4))',
                   padding: '8px 12px',
                   borderRadius: '6px',
-                  border: '1px solid rgba(242,242,242,0.1)',
+                  border: '1px solid var(--color-card-border, rgba(242,242,242,0.1))',
                   display: 'inline-block',
                 }}
               >
@@ -1155,7 +1109,7 @@ export const HomePage: React.FC = () => {
               <span
                 style={{
                   fontSize: '10px',
-                  color: 'rgba(242,242,242,0.3)',
+                  color: 'var(--color-text-muted, rgba(242,242,242,0.3))',
                   marginTop: '6px',
                   fontFamily: 'var(--font-subheading)',
                 }}
@@ -1193,24 +1147,25 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile centre-title-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setWelcomeModalOpen(true)}
               style={tileStyle('welcome', {
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: '24px',
-                background: 'linear-gradient(135deg, rgba(22,22,22,0.95), rgba(12,12,12,0.88))',
-                borderColor: 'rgba(242,242,242,0.22)',
+                background: 'var(--tile-bg, linear-gradient(135deg, rgba(22,22,22,0.95), rgba(12,12,12,0.88)))',
+                borderColor: 'var(--tile-border, rgba(242,242,242,0.22))',
               })}
             >
               <div
+                className="avatar-circle"
                 style={{
                   width: '56px',
                   height: '56px',
                   borderRadius: '50%',
-                  background: '#F2F2F2',
-                  color: '#000000',
+                  background: 'var(--banner-btn-bg, #F2F2F2)',
+                  color: 'var(--banner-btn-fg, #000000)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -1242,7 +1197,7 @@ export const HomePage: React.FC = () => {
                       fontFamily: 'var(--font-subheading)',
                       fontSize: '11px',
                       letterSpacing: '2px',
-                      color: 'rgba(242,242,242,0.6)',
+                      color: 'var(--color-text-muted, rgba(242,242,242,0.6))',
                       marginTop: '4px',
                       textTransform: 'uppercase',
                     }}
@@ -1295,7 +1250,7 @@ export const HomePage: React.FC = () => {
                   fontFamily: 'var(--font-heading)',
                   fontSize: '11px',
                   letterSpacing: '1px',
-                  color: 'rgba(242,242,242,0.4)',
+                  color: 'var(--color-text-muted, rgba(242,242,242,0.4))',
                   marginBottom: '6px',
                 }}
               >
@@ -1305,14 +1260,14 @@ export const HomePage: React.FC = () => {
                 style={{
                   fontFamily: 'var(--font-heading)',
                   fontSize: '14px',
-                  color: '#F2F2F2',
+                  color: 'var(--color-text-primary, #F2F2F2)',
                   letterSpacing: '1px',
                   marginBottom: '4px',
                 }}
               >
                 {currentDiagram.title}
               </div>
-              <span style={{ fontSize: '10px', color: 'rgba(242,242,242,0.4)', textTransform: 'uppercase' }}>
+              <span style={{ fontSize: '10px', color: 'var(--color-text-muted, rgba(242,242,242,0.4))', textTransform: 'uppercase' }}>
                 {currentDiagram.subject} • Double-click for next diagram
               </span>
             </div>
@@ -1355,13 +1310,13 @@ export const HomePage: React.FC = () => {
                     fontFamily: 'var(--font-heading)',
                     fontSize: '10px',
                     letterSpacing: '1.5px',
-                    color: 'rgba(242,242,242,0.45)',
+                    color: 'var(--color-text-muted, rgba(242,242,242,0.45))',
                     textTransform: 'uppercase',
                   }}
                 >
                   ACTIVE DRILL ({activeFilter.toUpperCase()} • {subjectFilter.toUpperCase()})
                 </span>
-                <span style={{ fontSize: '10px', color: 'rgba(242,242,242,0.4)', fontFamily: 'monospace' }}>
+                <span style={{ fontSize: '10px', color: 'var(--color-text-muted, rgba(242,242,242,0.4))', fontFamily: 'monospace' }}>
                   {activeQuizIdx + 1}/{filteredQuizQuestions.length}
                 </span>
               </div>
@@ -1371,7 +1326,7 @@ export const HomePage: React.FC = () => {
                   fontSize: '12px',
                   margin: '0 0 10px',
                   lineHeight: 1.4,
-                  color: '#F2F2F2',
+                  color: 'var(--color-text-primary, #F2F2F2)',
                   display: '-webkit-box',
                   WebkitLineClamp: 2,
                   WebkitBoxOrient: 'vertical',
@@ -1386,13 +1341,13 @@ export const HomePage: React.FC = () => {
                   const isThisCorrect = idx === currentQuizQ.correctIndex;
                   const isThisSelected = activeQuizAnswered === idx;
 
-                  let btnBg = 'rgba(242,242,242,0.06)';
-                  let btnColor = '#F2F2F2';
+                  let btnBg = 'var(--color-accent-subtle, rgba(242,242,242,0.06))';
+                  let btnColor = 'var(--color-text-primary, #F2F2F2)';
 
                   if (isChecked) {
                     if (isThisCorrect) {
-                      btnBg = '#F2F2F2';
-                      btnColor = '#000000';
+                      btnBg = 'var(--banner-btn-bg, #F2F2F2)';
+                      btnColor = 'var(--banner-btn-fg, #000000)';
                     } else if (isThisSelected) {
                       btnBg = '#EB104B';
                       btnColor = '#FFFFFF';
@@ -1406,7 +1361,7 @@ export const HomePage: React.FC = () => {
                       style={{
                         background: btnBg,
                         color: btnColor,
-                        border: '1px solid rgba(242,242,242,0.15)',
+                        border: '1px solid var(--color-card-border, rgba(242,242,242,0.15))',
                         borderRadius: '6px',
                         padding: '6px 10px',
                         fontFamily: 'var(--font-content)',
@@ -1464,7 +1419,7 @@ export const HomePage: React.FC = () => {
                     fontFamily: 'var(--font-heading)',
                     fontSize: '10px',
                     letterSpacing: '1.5px',
-                    color: 'rgba(242,242,242,0.4)',
+                    color: 'var(--color-text-muted, rgba(242,242,242,0.4))',
                   }}
                 >
                   PAST MISTAKES • DOUBLE-CLICK
@@ -1481,12 +1436,12 @@ export const HomePage: React.FC = () => {
                         style={{
                           fontFamily: 'var(--font-heading)',
                           fontSize: '10px',
-                          color: h.isCorrect ? '#F2F2F2' : '#EB104B',
+                          color: h.isCorrect ? 'var(--color-text-primary, #F2F2F2)' : '#EB104B',
                         }}
                       >
                         {h.isCorrect ? '✓ CORRECT' : '✗ MISTAKE'} • {h.subject}
                       </span>
-                      <span style={{ fontSize: '9px', color: 'rgba(242,242,242,0.3)', fontFamily: 'monospace' }}>
+                      <span style={{ fontSize: '9px', color: 'var(--color-text-muted, rgba(242,242,242,0.3))', fontFamily: 'monospace' }}>
                         {h.timestamp}
                       </span>
                     </div>
@@ -1494,7 +1449,7 @@ export const HomePage: React.FC = () => {
                       style={{
                         fontFamily: 'var(--font-content)',
                         fontSize: '11px',
-                        color: 'rgba(242,242,242,0.7)',
+                        color: 'var(--color-text-secondary, rgba(242,242,242,0.7))',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
@@ -1542,7 +1497,7 @@ export const HomePage: React.FC = () => {
                 alignItems: 'center',
                 background: customPictureUrl
                   ? `linear-gradient(rgba(0,0,0,0.65), rgba(0,0,0,0.85)), url(${customPictureUrl}) center/cover`
-                  : 'linear-gradient(135deg, rgba(20,20,20,0.9), rgba(10,10,10,0.8))',
+                  : 'var(--tile-bg, linear-gradient(135deg, rgba(20,20,20,0.9), rgba(10,10,10,0.8)))',
               })}
             >
               <span
@@ -1550,7 +1505,7 @@ export const HomePage: React.FC = () => {
                   fontFamily: 'var(--font-heading)',
                   fontSize: '13px',
                   letterSpacing: '2px',
-                  color: '#F2F2F2',
+                  color: 'var(--color-text-primary, #F2F2F2)',
                 }}
               >
                 ▶ PLAY: STUDY TUBE
@@ -1559,7 +1514,7 @@ export const HomePage: React.FC = () => {
                 style={{
                   fontFamily: 'var(--font-content)',
                   fontSize: '11px',
-                  color: 'rgba(242,242,242,0.45)',
+                  color: 'var(--color-text-muted, rgba(242,242,242,0.45))',
                   marginTop: '4px',
                 }}
               >

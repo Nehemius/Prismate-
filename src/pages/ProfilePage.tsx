@@ -32,6 +32,8 @@ export const ProfilePage: React.FC = () => {
     syncCloudData,
     isCloudSyncing,
     lastCloudSyncTime,
+    theme,
+    setTheme,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<ListType>('weaklist');
@@ -125,8 +127,8 @@ export const ProfilePage: React.FC = () => {
       style={{
         width: '100vw',
         height: '100vh',
-        background: '#000000',
-        color: '#F2F2F2',
+        background: 'var(--color-bg, #000000)',
+        color: 'var(--color-fg, #F2F2F2)',
         display: 'flex',
         overflow: 'hidden',
         boxSizing: 'border-box',
@@ -193,14 +195,16 @@ export const ProfilePage: React.FC = () => {
 
         {/* Profile Card with Editable Avatar & Username */}
         <div
+          className="prismate-user-profile-card"
           style={{
-            background: 'linear-gradient(135deg, rgba(20,20,20,0.95), rgba(10,10,10,0.85))',
-            border: '1px solid rgba(242,242,242,0.18)',
+            background: 'var(--tile-bg, linear-gradient(135deg, rgba(20,20,20,0.95), rgba(10,10,10,0.85)))',
+            border: '1px solid var(--tile-border, rgba(242,242,242,0.18))',
             borderRadius: '16px',
             padding: '20px',
             display: 'flex',
             alignItems: 'center',
             gap: '16px',
+            boxShadow: 'var(--tile-shadow, none)',
           }}
         >
           {/* Hidden File Input for Any Custom Image/Photo */}
@@ -221,8 +225,8 @@ export const ProfilePage: React.FC = () => {
               width: '60px',
               height: '60px',
               borderRadius: '50%',
-              background: '#F2F2F2',
-              color: '#000000',
+              background: 'var(--banner-btn-bg, #F2F2F2)',
+              color: 'var(--banner-btn-fg, #000000)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -230,10 +234,10 @@ export const ProfilePage: React.FC = () => {
               fontSize: '22px',
               cursor: 'pointer',
               flexShrink: 0,
-              boxShadow: '0 4px 16px rgba(242,242,242,0.2)',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
               transition: 'transform 0.2s ease',
               overflow: 'hidden',
-              border: '2px solid rgba(242,242,242,0.3)',
+              border: '2px solid var(--tile-border, rgba(242,242,242,0.3))',
             }}
           >
             {userAvatar && (userAvatar.startsWith('data:image') || userAvatar.startsWith('http') || userAvatar.startsWith('/')) ? (
@@ -291,7 +295,7 @@ export const ProfilePage: React.FC = () => {
                     fontFamily: 'var(--font-heading)',
                     fontSize: '18px',
                     letterSpacing: '1px',
-                    color: '#F2F2F2',
+                    color: 'var(--color-text-primary, #F2F2F2)',
                     textOverflow: 'ellipsis',
                     overflow: 'hidden',
                     whiteSpace: 'nowrap',
@@ -308,7 +312,7 @@ export const ProfilePage: React.FC = () => {
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: 'rgba(242,242,242,0.4)',
+                    color: 'var(--color-text-muted, rgba(242,242,242,0.4))',
                     cursor: 'pointer',
                     fontSize: '12px',
                     padding: '2px',
@@ -322,7 +326,7 @@ export const ProfilePage: React.FC = () => {
               style={{
                 fontFamily: 'var(--font-content)',
                 fontSize: '12px',
-                color: 'rgba(242,242,242,0.45)',
+                color: 'var(--color-text-muted, rgba(242,242,242,0.45))',
                 display: 'block',
                 marginTop: '4px',
               }}
@@ -335,11 +339,11 @@ export const ProfilePage: React.FC = () => {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 style={{
-                  background: 'rgba(242,242,242,0.12)',
-                  border: '1px solid rgba(242,242,242,0.28)',
+                  background: 'var(--banner-btn-bg, #F2F2F2)',
+                  border: '1px solid var(--tile-border, rgba(242,242,242,0.28))',
                   borderRadius: '6px',
                   padding: '4px 10px',
-                  color: '#FFFFFF',
+                  color: 'var(--banner-btn-fg, #000000)',
                   fontFamily: 'var(--font-heading)',
                   fontSize: '9.5px',
                   letterSpacing: '1px',
@@ -358,10 +362,10 @@ export const ProfilePage: React.FC = () => {
                 title="Or cycle through Greek/symbol presets"
                 style={{
                   background: 'transparent',
-                  border: '1px solid rgba(242,242,242,0.16)',
+                  border: '1px solid var(--tile-border, rgba(242,242,242,0.16))',
                   borderRadius: '6px',
                   padding: '4px 8px',
-                  color: 'rgba(242,242,242,0.65)',
+                  color: 'var(--color-text-muted, rgba(242,242,242,0.65))',
                   fontFamily: 'var(--font-subheading)',
                   fontSize: '9px',
                   cursor: 'pointer',
@@ -376,13 +380,14 @@ export const ProfilePage: React.FC = () => {
         {/* ── Cross-Device Cloud Persistence Card ── */}
         <div
           style={{
-            background: 'rgba(242,242,242,0.04)',
-            border: '1px solid rgba(242,242,242,0.14)',
+            background: 'var(--tile-bg, rgba(242,242,242,0.04))',
+            border: '1px solid var(--tile-border, rgba(242,242,242,0.14))',
             borderRadius: '12px',
             padding: '16px',
             display: 'flex',
             flexDirection: 'column',
             gap: '10px',
+            boxShadow: 'var(--tile-shadow, none)',
           }}
         >
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -391,7 +396,7 @@ export const ProfilePage: React.FC = () => {
                 style={{
                   fontFamily: 'var(--font-subheading)',
                   fontSize: '11px',
-                  color: 'rgba(242,242,242,0.5)',
+                  color: 'var(--color-text-muted, rgba(242,242,242,0.5))',
                   letterSpacing: '1px',
                   margin: 0,
                 }}
@@ -402,7 +407,7 @@ export const ProfilePage: React.FC = () => {
                 style={{
                   fontFamily: 'var(--font-content)',
                   fontSize: '12px',
-                  color: '#F2F2F2',
+                  color: 'var(--color-text-primary, #F2F2F2)',
                   margin: '2px 0 0',
                 }}
               >
@@ -410,12 +415,13 @@ export const ProfilePage: React.FC = () => {
               </p>
             </div>
             <span
+              data-keep-color="true"
               style={{
                 fontFamily: 'var(--font-heading)',
                 fontSize: '10px',
                 letterSpacing: '1px',
-                color: isCloudSyncing ? '#33F0FF' : '#000000',
-                background: isCloudSyncing ? 'rgba(51, 240, 255, 0.15)' : '#F2F2F2',
+                color: isCloudSyncing ? '#33F0FF' : '#FFFFFF',
+                background: isCloudSyncing ? 'rgba(51, 240, 255, 0.15)' : '#10B981',
                 border: isCloudSyncing ? '1px solid #33F0FF' : 'none',
                 padding: '4px 8px',
                 borderRadius: '4px',
@@ -431,10 +437,10 @@ export const ProfilePage: React.FC = () => {
             disabled={isCloudSyncing}
             style={{
               background: 'transparent',
-              border: '1px solid rgba(242,242,242,0.25)',
+              border: '1px solid var(--tile-border, rgba(242,242,242,0.25))',
               borderRadius: '6px',
               padding: '8px',
-              color: '#F2F2F2',
+              color: 'var(--color-text-primary, #F2F2F2)',
               fontFamily: 'var(--font-heading)',
               fontSize: '10px',
               letterSpacing: '1.5px',
@@ -490,13 +496,75 @@ export const ProfilePage: React.FC = () => {
           </button>
         </div>
 
+        {/* Appearance / Theme Selector */}
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '14px 18px',
+            background: 'rgba(242,242,242,0.04)',
+            border: '1px solid rgba(242,242,242,0.12)',
+            borderRadius: '12px',
+          }}
+        >
+          <div>
+            <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '12px', margin: 0 }}>
+              APPEARANCE / THEME
+            </p>
+            <p style={{ fontFamily: 'var(--font-content)', fontSize: '10.5px', color: 'rgba(242,242,242,0.4)', margin: '2px 0 0' }}>
+              Select high-contrast dark or crisp white mode
+            </p>
+          </div>
+          <div style={{ display: 'flex', gap: '6px' }}>
+            <button
+              onClick={() => setTheme('dark')}
+              style={{
+                background: theme === 'dark' ? '#F2F2F2' : 'transparent',
+                color: theme === 'dark' ? '#000000' : 'rgba(242,242,242,0.6)',
+                border: theme === 'dark' ? 'none' : '1px solid rgba(242,242,242,0.2)',
+                borderRadius: '16px',
+                padding: '6px 12px',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '10.5px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              🌙 DARK
+            </button>
+            <button
+              onClick={() => setTheme('light')}
+              style={{
+                background: theme === 'light' ? '#111114' : 'transparent',
+                color: theme === 'light' ? '#FFFFFF' : 'rgba(242,242,242,0.6)',
+                border: theme === 'light' ? 'none' : '1px solid rgba(242,242,242,0.2)',
+                borderRadius: '16px',
+                padding: '6px 12px',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '10.5px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+              }}
+            >
+              ☀️ LIGHT
+            </button>
+          </div>
+        </div>
+
         {/* Default Startup Screen Selector */}
         <div>
           <label
             style={{
               fontFamily: 'var(--font-subheading)',
               fontSize: '11px',
-              color: 'rgba(242,242,242,0.5)',
+              color: 'var(--color-text-muted, rgba(242,242,242,0.5))',
               letterSpacing: '1px',
               display: 'block',
               marginBottom: '8px',
@@ -509,22 +577,22 @@ export const ProfilePage: React.FC = () => {
             onChange={(e) => setDefaultStartupScreen(e.target.value as ScreenType)}
             style={{
               width: '100%',
-              background: 'rgba(242,242,242,0.08)',
-              border: '1px solid rgba(242,242,242,0.2)',
+              background: 'var(--tile-bg, rgba(242,242,242,0.08))',
+              border: '1px solid var(--tile-border, rgba(242,242,242,0.2))',
               borderRadius: '8px',
               padding: '10px 14px',
-              color: '#F2F2F2',
+              color: 'var(--color-text-primary, #F2F2F2)',
               fontFamily: 'var(--font-heading)',
               fontSize: '12px',
               outline: 'none',
               cursor: 'pointer',
             }}
           >
-            {homePageEnabled && <option value="home" style={{ background: '#000' }}>HOME (YOU)</option>}
-            <option value="chemistry" style={{ background: '#000' }}>CHEMISTRY</option>
-            <option value="physics" style={{ background: '#000' }}>PHYSICS</option>
-            <option value="mathematics" style={{ background: '#000' }}>MATHEMATICS</option>
-            <option value="stacks" style={{ background: '#000' }}>3D STACKS</option>
+            {homePageEnabled && <option value="home" style={{ background: 'var(--color-surface, #000)', color: 'var(--color-text-primary, #fff)' }}>HOME (YOU)</option>}
+            <option value="chemistry" style={{ background: 'var(--color-surface, #000)', color: 'var(--color-text-primary, #fff)' }}>CHEMISTRY</option>
+            <option value="physics" style={{ background: 'var(--color-surface, #000)', color: 'var(--color-text-primary, #fff)' }}>PHYSICS</option>
+            <option value="mathematics" style={{ background: 'var(--color-surface, #000)', color: 'var(--color-text-primary, #fff)' }}>MATHEMATICS</option>
+            <option value="stacks" style={{ background: 'var(--color-surface, #000)', color: 'var(--color-text-primary, #fff)' }}>3D STACKS</option>
           </select>
         </div>
 
@@ -591,11 +659,11 @@ export const ProfilePage: React.FC = () => {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             style={{
-              background: 'rgba(242,242,242,0.06)',
-              border: '1px solid rgba(242,242,242,0.18)',
+              background: 'var(--tile-bg, rgba(242,242,242,0.06))',
+              border: '1px solid var(--tile-border, rgba(242,242,242,0.18))',
               borderRadius: '6px',
               padding: '8px 16px',
-              color: '#F2F2F2',
+              color: 'var(--color-text-primary, #F2F2F2)',
               fontFamily: 'var(--font-content)',
               fontSize: '13px',
               width: '240px',
@@ -614,9 +682,9 @@ export const ProfilePage: React.FC = () => {
                 key={tab}
                 onClick={() => setActiveTab(tab)}
                 style={{
-                  background: active ? '#F2F2F2' : 'rgba(242,242,242,0.06)',
-                  color: active ? '#000000' : 'rgba(242,242,242,0.7)',
-                  border: 'none',
+                  background: active ? 'var(--banner-btn-bg, #F2F2F2)' : 'var(--color-accent-subtle, rgba(242,242,242,0.06))',
+                  color: active ? 'var(--banner-btn-fg, #000000)' : 'var(--color-text-muted, rgba(242,242,242,0.7))',
+                  border: '1px solid var(--tile-border, transparent)',
                   borderRadius: '20px',
                   padding: '8px 18px',
                   fontFamily: 'var(--font-heading)',
@@ -632,9 +700,10 @@ export const ProfilePage: React.FC = () => {
               >
                 <span>{tab.toUpperCase()}</span>
                 <span
+                  data-keep-color="true"
                   style={{
-                    background: active ? '#000000' : 'rgba(242,242,242,0.15)',
-                    color: active ? '#F2F2F2' : 'rgba(242,242,242,0.9)',
+                    background: active ? 'var(--banner-btn-fg, #000000)' : 'var(--color-accent-subtle, rgba(242,242,242,0.15))',
+                    color: active ? 'var(--banner-btn-bg, #F2F2F2)' : 'var(--color-text-primary, rgba(242,242,242,0.9))',
                     padding: '1px 6px',
                     borderRadius: '10px',
                     fontSize: '10px',
@@ -657,15 +726,15 @@ export const ProfilePage: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '60%',
-                color: 'rgba(242,242,242,0.3)',
+                color: 'var(--color-text-muted, rgba(242,242,242,0.3))',
                 textAlign: 'center',
               }}
             >
               <span style={{ fontSize: '32px', marginBottom: '8px' }}>◈</span>
-              <p style={{ fontFamily: 'var(--font-heading)', fontSize: '13px', letterSpacing: '2px', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-heading)', fontSize: '13px', letterSpacing: '2px', margin: 0, color: 'var(--color-text-primary, #F2F2F2)' }}>
                 NO ITEMS IN {activeTab.toUpperCase()}
               </p>
-              <p style={{ fontFamily: 'var(--font-content)', fontSize: '12px', margin: '4px 0 0' }}>
+              <p style={{ fontFamily: 'var(--font-content)', fontSize: '12px', margin: '4px 0 0', color: 'var(--color-text-muted, rgba(242,242,242,0.7))' }}>
                 Save questions, formulas, and reactions from workspaces to track them here.
               </p>
             </div>
@@ -674,14 +743,15 @@ export const ProfilePage: React.FC = () => {
               <div
                 key={item.id}
                 style={{
-                  background: 'rgba(242,242,242,0.03)',
-                  border: '1px solid rgba(242,242,242,0.1)',
+                  background: 'var(--tile-bg, rgba(242,242,242,0.03))',
+                  border: '1px solid var(--tile-border, rgba(242,242,242,0.1))',
                   borderRadius: '10px',
                   padding: '14px 18px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   gap: '16px',
+                  boxShadow: 'var(--tile-shadow, none)',
                 }}
               >
                 <div style={{ flex: 1 }}>
@@ -691,22 +761,23 @@ export const ProfilePage: React.FC = () => {
                         fontFamily: 'var(--font-subheading)',
                         fontSize: '9px',
                         letterSpacing: '1px',
-                        color: '#33F0FF',
+                        color: 'var(--color-accent, #33F0FF)',
                         textTransform: 'uppercase',
+                        fontWeight: 'bold',
                       }}
                     >
                       {item.subject} • {item.category}
                     </span>
-                    <span style={{ color: 'rgba(242,242,242,0.3)', fontSize: '10px' }}>•</span>
-                    <span style={{ color: 'rgba(242,242,242,0.4)', fontSize: '10px', fontFamily: 'var(--font-content)' }}>
+                    <span style={{ color: 'var(--color-text-muted, rgba(242,242,242,0.3))', fontSize: '10px' }}>•</span>
+                    <span style={{ color: 'var(--color-text-muted, rgba(242,242,242,0.4))', fontSize: '10px', fontFamily: 'var(--font-content)' }}>
                       {item.source}
                     </span>
                   </div>
-                  <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '14px', margin: '0 0 2px 0' }}>
+                  <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '14px', margin: '0 0 2px 0', color: 'var(--color-text-primary, #F2F2F2)' }}>
                     {item.title}
                   </h4>
                   {item.content && (
-                    <p style={{ fontFamily: 'var(--font-content)', fontSize: '12px', color: 'rgba(242,242,242,0.7)', margin: 0 }}>
+                    <p style={{ fontFamily: 'var(--font-content)', fontSize: '12px', color: 'var(--color-text-secondary, rgba(242,242,242,0.7))', margin: 0 }}>
                       {item.content}
                     </p>
                   )}

@@ -305,15 +305,17 @@ export const WaveCanvas = forwardRef<WaveCanvasRef, WaveCanvasProps>(
           particles = particlesRef.current;
         }
 
-        // Pure black canvas background #000000
-        ctx.fillStyle = '#000000';
+        const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light';
+
+        // Background: #FFFFFF in light mode, #000000 in dark mode
+        ctx.fillStyle = isLight ? '#FFFFFF' : '#000000';
         ctx.fillRect(0, 0, width, height);
 
         const streams = DEFAULT_STREAMLINES;
         const streamsCount = streams.length;
 
-        // Update and draw particles in pure white
-        ctx.fillStyle = '#FFFFFF';
+        // Draw particles: sleek deep slate/cyan in light mode, pure white in dark mode
+        ctx.fillStyle = isLight ? '#1E293B' : '#FFFFFF';
         for (let i = 0; i < particles.length; i++) {
           const p = particles[i];
 

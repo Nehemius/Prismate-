@@ -7,6 +7,8 @@ interface ReactionsModalProps {
 }
 
 export const ReactionsModal: React.FC<ReactionsModalProps> = ({ onClose }) => {
+  const isLight = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'light';
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.99 }}
@@ -17,7 +19,7 @@ export const ReactionsModal: React.FC<ReactionsModalProps> = ({ onClose }) => {
         position: 'fixed',
         inset: 0,
         zIndex: 4000,
-        background: 'rgba(0, 0, 0, 0.95)',
+        background: isLight ? 'rgba(244, 246, 251, 0.98)' : 'rgba(0, 0, 0, 0.95)',
         backdropFilter: 'blur(16px)',
         display: 'flex',
         flexDirection: 'column',

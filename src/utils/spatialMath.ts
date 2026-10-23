@@ -231,7 +231,24 @@ export function computeCardTransform3D(
   selectedIndex: number | null,
   spinDeg: number = 0
 ): ComputedCardTransform {
+  // When a card is clicked/selected, bring it directly to the center focal stage
+  if (selectedIndex !== null && selectedIndex === index) {
+    return {
+      x: 0,
+      y: 0,
+      z: 240,
+      rotateX: 0,
+      rotateY: 0,
+      rotateZ: 0,
+      scale: 1.22,
+      opacity: 1,
+    };
+  }
+
   const spinRad = (spinDeg * Math.PI) / 180;
+  const isAnotherSelected = selectedIndex !== null && selectedIndex !== index;
+  const bgOpacity = isAnotherSelected ? 0.22 : 1;
+
 
   switch (template) {
     case 'SPHERE': {
@@ -258,7 +275,7 @@ export function computeCardTransform3D(
         rotateY,
         rotateZ: 0,
         scale: 1,
-        opacity: 1,
+        opacity: bgOpacity,
       };
     }
 
@@ -279,7 +296,7 @@ export function computeCardTransform3D(
         rotateY,
         rotateZ: 0,
         scale: 1,
-        opacity: 1,
+        opacity: bgOpacity,
       };
     }
 
@@ -302,7 +319,7 @@ export function computeCardTransform3D(
         rotateY,
         rotateZ,
         scale: 1,
-        opacity: 1,
+        opacity: bgOpacity,
       };
     }
 
@@ -332,7 +349,7 @@ export function computeCardTransform3D(
         rotateY,
         rotateZ: 0,
         scale: 1,
-        opacity: 1,
+        opacity: bgOpacity,
       };
     }
 
@@ -357,7 +374,7 @@ export function computeCardTransform3D(
         rotateY,
         rotateZ: 0,
         scale: Math.max(0.78, 1 - absOff * 0.08),
-        opacity: Math.max(0.45, 1 - absOff * 0.18),
+        opacity: Math.max(0.2, (1 - absOff * 0.18) * bgOpacity),
       };
     }
 
@@ -380,7 +397,7 @@ export function computeCardTransform3D(
         rotateY,
         rotateZ: 0,
         scale: Math.max(0.75, 1 - Math.abs(rel) * 0.05),
-        opacity: Math.max(0.4, 1 - Math.abs(rel) * 0.12),
+        opacity: Math.max(0.2, (1 - Math.abs(rel) * 0.12) * bgOpacity),
       };
     }
   }

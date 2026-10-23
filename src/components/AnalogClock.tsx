@@ -47,6 +47,7 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ time, size = 120 }) =>
     >
       {/* Outer Dial Circle */}
       <circle
+        className="analog-clock-dial"
         cx={CENTER}
         cy={CENTER}
         r={RADIUS}
@@ -59,6 +60,7 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ time, size = 120 }) =>
       {CLOCK_TICKS.map((tick) => (
         <line
           key={tick.key}
+          className={tick.key % 3 === 0 ? 'analog-clock-tick-quarter' : 'analog-clock-tick-regular'}
           x1={tick.x1}
           y1={tick.y1}
           x2={tick.x2}
@@ -71,6 +73,7 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ time, size = 120 }) =>
 
       {/* Hour Hand */}
       <line
+        className="analog-clock-hand"
         x1={CENTER}
         y1={CENTER}
         x2={CENTER}
@@ -83,6 +86,7 @@ export const AnalogClock: React.FC<AnalogClockProps> = ({ time, size = 120 }) =>
 
       {/* Minute Hand */}
       <line
+        className="analog-clock-hand"
         x1={CENTER}
         y1={CENTER}
         x2={CENTER}
