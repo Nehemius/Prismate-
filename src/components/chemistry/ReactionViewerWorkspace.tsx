@@ -328,9 +328,77 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
   >({});
   const [builderActiveCoords, setBuilderActiveCoords] = useState<[number, number] | null>([3, 3]);
   const [builderSelectedBond, setBuilderSelectedBond] = useState<"single" | "double" | "triple" | null>(null);
-  const [builderMessage, setBuilderMessage] = useState<string>("Click an element from the palette below to place it at the center cell.");
+  const [builderMessage, setBuilderMessage] = useState<string>("Click or drag an element from the palette below to place it.");
   const [builderHistory, setBuilderHistory] = useState<any[]>([]);
   const [congratsPopup, setCongratsPopup] = useState<string | null>(null);
+  const [dragOverCell, setDragOverCell] = useState<string | null>(null);
+
+  const handleCellDrop = (targetX: number, targetY: number, e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOverCell(null);
+    let payload: any = null;
+    try {
+      const raw = e.dataTransfer.getData('application/json') || e.dataTransfer.getData('text/plain');
+      if (raw) payload = JSON.parse(raw);
+    } catch {
+      const text = e.dataTransfer.getData('text/plain');
+      if (['single', 'double', 'triple'].includes(text)) {
+        payload = { type: 'bond', bondType: text };
+      } else if (text) {
+        payload = { type: 'element', symbol: text };
+      }
+    }
+    if (!payload) return;
+
+    const targetKey = `${targetX},${targetY}`;
+
+    setBuilderHistory((prev) => [
+      ...prev,
+      {
+        grid: { ...guessGrid },
+        activeCoords: builderActiveCoords ? [...builderActiveCoords] : null,
+        selectedBond: builderSelectedBond,
+        message: builderMessage,
+      },
+    ]);
+
+    if (payload.type === 'element') {
+      setGuessGrid((prev) => ({
+        ...prev,
+        [targetKey]: { type: 'element', symbol: payload.symbol },
+      }));
+      setBuilderActiveCoords([targetX, targetY]);
+      setBuilderSelectedBond(null);
+      setBuilderMessage(`Dropped ${payload.symbol} at [${targetX}, ${targetY}]! Pick a bond to connect.`);
+    } else if (payload.type === 'bond') {
+      const hasLeftRight = guessGrid[`${targetX - 1},${targetY}`] || guessGrid[`${targetX + 1},${targetY}`];
+      const hasUpDown = guessGrid[`${targetX},${targetY - 1}`] || guessGrid[`${targetX},${targetY + 1}`];
+      const isHoriz = hasLeftRight ? true : hasUpDown ? false : true;
+      setGuessGrid((prev) => ({
+        ...prev,
+        [targetKey]: { type: 'bond', symbol: payload.bondType, isHorizontal: isHoriz },
+      }));
+      setBuilderActiveCoords([targetX, targetY]);
+      setBuilderMessage(`Dropped ${payload.bondType} bond at [${targetX}, ${targetY}]!`);
+    } else if (payload.type === 'move_cell' && payload.sourceKey) {
+      if (payload.sourceKey === targetKey) return;
+      const sourceItem = guessGrid[payload.sourceKey];
+      if (!sourceItem) return;
+      setGuessGrid((prev) => {
+        const next = { ...prev };
+        const existingTarget = next[targetKey];
+        next[targetKey] = sourceItem;
+        if (existingTarget) {
+          next[payload.sourceKey] = existingTarget;
+        } else {
+          delete next[payload.sourceKey];
+        }
+        return next;
+      });
+      setBuilderActiveCoords([targetX, targetY]);
+      setBuilderMessage(`Moved item from ${payload.sourceKey} to [${targetX}, ${targetY}].`);
+    }
+  };
 
   // Reset/Initialize Molecule builder when selected reaction changes
   useEffect(() => {
@@ -338,7 +406,7 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
     setBuilderActiveCoords([Math.floor(gridSize / 2), Math.floor(gridSize / 2)]);
     setBuilderSelectedBond(null);
     setBuilderHistory([]);
-    setBuilderMessage("Click an element from the palette below to place it at the active center cell.");
+    setBuilderMessage("Click or drag an element from the palette below to place it.");
     // If already solved, show 3D, else show game
     if (solvedReactions[selectedReaction.id]) {
       setProductViewMode("3d");
@@ -1378,6 +1446,7 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
                         const key = `${c},${r}`;
                         const item = guessGrid[key];
                         const isActive = builderActiveCoords && builderActiveCoords[0] === c && builderActiveCoords[1] === r;
+                        const isDragTarget = dragOverCell === key;
 
                         let placementDir: number | null = null;
                         if (builderActiveCoords && builderSelectedBond && !item) {
@@ -1391,14 +1460,32 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
                         return (
                           <div
                             key={key}
+                            draggable={!!item}
+                            onDragStart={(e) => {
+                              if (item) {
+                                e.stopPropagation();
+                                e.dataTransfer.setData('application/json', JSON.stringify({ type: 'move_cell', sourceKey: key, item }));
+                                e.dataTransfer.setData('text/plain', key);
+                                e.dataTransfer.effectAllowed = 'move';
+                              }
+                            }}
+                            onDragOver={(e) => {
+                              e.preventDefault();
+                              e.dataTransfer.dropEffect = 'copy';
+                              if (dragOverCell !== key) setDragOverCell(key);
+                            }}
+                            onDragLeave={() => {
+                              if (dragOverCell === key) setDragOverCell(null);
+                            }}
+                            onDrop={(e) => handleCellDrop(c, r, e)}
                             onClick={() => {
                               setBuilderActiveCoords([c, r]);
                               if (item && item.type === "element") {
                                 setBuilderSelectedBond(null);
-                                setBuilderMessage(`Selected ${item.symbol}. Choose a bond to extend, or click another cell.`);
+                                setBuilderMessage(`Selected ${item.symbol}. Drag to move, or choose a bond to extend.`);
                               } else if (!item) {
                                 setBuilderSelectedBond(null);
-                                setBuilderMessage(`Selected cell [${c}, ${r}]. Click an element from palette below.`);
+                                setBuilderMessage(`Selected cell [${c}, ${r}]. Click or drag an atom/bond here.`);
                               }
                             }}
                             style={{
@@ -1406,14 +1493,20 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'center',
-                              border: isActive && !item
+                              border: isDragTarget
+                                ? (isLight ? '2px solid #0077EE' : '2px solid #33F0FF')
+                                : isActive && !item
                                 ? '1.5px dashed #33F0FF'
                                 : (isLight ? '1px solid rgba(0, 0, 0, 0.05)' : '1px solid rgba(255, 255, 255, 0.05)'),
-                              background: isActive
+                              background: isDragTarget
+                                ? (isLight ? 'rgba(0, 119, 238, 0.16)' : 'rgba(51, 240, 255, 0.22)')
+                                : isActive
                                 ? (isLight ? 'rgba(0, 85, 255, 0.08)' : 'rgba(51, 240, 255, 0.12)')
                                 : 'transparent',
-                              cursor: 'pointer',
+                              cursor: item ? 'grab' : 'pointer',
                               borderRadius: '3px',
+                              boxShadow: isDragTarget ? (isLight ? '0 0 8px rgba(0,119,238,0.4)' : '0 0 8px rgba(51,240,255,0.4)') : 'none',
+                              transition: 'background 0.12s ease, border-color 0.12s ease',
                             }}
                           >
                             {item ? (
@@ -1488,16 +1581,22 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
                     {builderMessage}
                   </div>
 
-                  {/* 1. Element palette */}
+                  {/* 1. Element palette (Click or Drag & Drop) */}
                   <div>
                     <span style={{ fontSize: '8px', textTransform: 'uppercase', fontFamily: 'var(--font-subheading)', letterSpacing: '1px', color: isLight ? '#6B7280' : 'rgba(242,242,242,0.45)', display: 'block', marginBottom: '3px' }}>
-                      1. Click group to place:
+                      1. Drag & drop atom or click to place:
                     </span>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '3px', justifyContent: 'center' }}>
                       {availableElements.map((el) => (
                         <button
                           key={el}
                           type="button"
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('application/json', JSON.stringify({ type: 'element', symbol: el }));
+                            e.dataTransfer.setData('text/plain', el);
+                            e.dataTransfer.effectAllowed = 'copy';
+                          }}
                           onClick={() => placeElement(el)}
                           style={{
                             padding: '3px 6px',
@@ -1508,7 +1607,8 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
                             fontSize: '9px',
                             fontFamily: 'monospace',
                             fontWeight: 700,
-                            cursor: 'pointer',
+                            cursor: 'grab',
+                            boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
                           }}
                         >
                           {renderSubscripts(el)}
@@ -1517,16 +1617,22 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
                     </div>
                   </div>
 
-                  {/* 2. Bond selector */}
+                  {/* 2. Bond selector (Click or Drag & Drop) */}
                   <div>
                     <span style={{ fontSize: '8px', textTransform: 'uppercase', fontFamily: 'var(--font-subheading)', letterSpacing: '1px', color: isLight ? '#6B7280' : 'rgba(242,242,242,0.45)', display: 'block', marginBottom: '3px' }}>
-                      2. Select bond, then pick direction (1-4):
+                      2. Drag bond onto grid or select & pick (1-4):
                     </span>
                     <div style={{ display: 'flex', gap: '4px' }}>
                       {(['single', 'double', 'triple'] as const).map((b) => (
                         <button
                           key={b}
                           type="button"
+                          draggable={true}
+                          onDragStart={(e) => {
+                            e.dataTransfer.setData('application/json', JSON.stringify({ type: 'bond', bondType: b }));
+                            e.dataTransfer.setData('text/plain', b);
+                            e.dataTransfer.effectAllowed = 'copy';
+                          }}
                           onClick={() => selectBond(b)}
                           style={{
                             flex: 1,
@@ -1542,8 +1648,9 @@ export const ReactionViewerWorkspace: React.FC<ReactionViewerWorkspaceProps> = (
                             fontSize: '9px',
                             fontFamily: 'monospace',
                             fontWeight: 700,
-                            cursor: 'pointer',
+                            cursor: 'grab',
                             textTransform: 'capitalize',
+                            boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
                           }}
                         >
                           {b === 'single' ? 'Single —' : b === 'double' ? 'Double ═' : 'Triple ≡'}

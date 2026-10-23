@@ -197,18 +197,27 @@ const MainAppContent: React.FC = () => {
     });
   }, [phase]);
 
-  // Wave charge calculation loop — runs during idle phase on login screen
+  // Wave charge calculation loop — throttled to prevent React frame thrashing
   useEffect(() => {
     if (phase !== 'idle' || inApp) return;
 
-    const updateCharge = () => {
-      const slot = logoContainerRef.current?.querySelector('[data-prism-slot]') as HTMLElement | null;
-      if (waveCanvasRef.current && slot) {
-        const rect = slot.getBoundingClientRect();
-        const cx = rect.left + rect.width / 2;
-        const cy = rect.top + rect.height / 2;
-        const charge = waveCanvasRef.current.getWaveCharge(cx, cy);
-        setWaveCharge(charge);
+    let lastCharge = 0;
+    let lastTime = 0;
+
+    const updateCharge = (time: number) => {
+      if (time - lastTime > 60) {
+        lastTime = time;
+        const slot = logoContainerRef.current?.querySelector('[data-prism-slot]') as HTMLElement | null;
+        if (waveCanvasRef.current && slot) {
+          const rect = slot.getBoundingClientRect();
+          const cx = rect.left + rect.width / 2;
+          const cy = rect.top + rect.height / 2;
+          const charge = waveCanvasRef.current.getWaveCharge(cx, cy);
+          if (Math.abs(charge - lastCharge) > 0.04) {
+            lastCharge = charge;
+            setWaveCharge(charge);
+          }
+        }
       }
       chargeRafRef.current = requestAnimationFrame(updateCharge);
     };
@@ -217,17 +226,16 @@ const MainAppContent: React.FC = () => {
     return () => cancelAnimationFrame(chargeRafRef.current);
   }, [phase, inApp]);
 
-  // TAP TO BEGIN: Triggers continuous loader and enters app
+  // TAP TO BEGIN: Triggers continuous loader and enters app immediately (tapping anywhere logs in)
   const handleTapToBegin = useCallback(() => {
     if (!loggedInUser) {
-      setLoginModalOpen(true);
-    } else {
-      triggerLoader(950, () => {
-        setInApp(true);
-      });
-      setCurrentScreen(defaultStartupScreen || 'chemistry');
+      login('Universal Guest');
     }
-  }, [loggedInUser, triggerLoader, setCurrentScreen, defaultStartupScreen, setInApp]);
+    triggerLoader(950, () => {
+      setInApp(true);
+    });
+    setCurrentScreen(defaultStartupScreen || 'chemistry');
+  }, [loggedInUser, login, triggerLoader, setCurrentScreen, defaultStartupScreen, setInApp]);
 
   return (
     <div style={{ width: '100%', height: '100%', position: 'relative', overflow: 'hidden', background: 'var(--color-bg, #000000)' }}>
@@ -328,6 +336,23 @@ const MainAppContent: React.FC = () => {
             </div>
           )}
 
+          {/* Full-Screen Tap Anywhere to Log In Overlay (§1) */}
+          {phase === 'idle' && (
+            <div
+              onClick={(e) => {
+                // If clicking SWITCH button or inside login modal, ignore
+                if ((e.target as HTMLElement).closest('.prismate-login-controls') || loginModalOpen) return;
+                handleTapToBegin();
+              }}
+              style={{
+                position: 'fixed',
+                inset: 0,
+                zIndex: 15,
+                cursor: 'pointer',
+              }}
+            />
+          )}
+
           {/* HUD: TAP TO BEGIN (smooth blink, Free Fire style) */}
           {phase === 'idle' && (
             <button
@@ -339,29 +364,32 @@ const MainAppContent: React.FC = () => {
                 transform: 'translateX(-50%)',
                 background: 'none',
                 border: 'none',
-                color: '#F2F2F2',
+                color: theme === 'light' ? '#111114' : '#F2F2F2',
                 fontFamily: 'var(--font-subheading)',
                 fontSize: '16px',
                 letterSpacing: '4px',
                 cursor: 'pointer',
-                opacity: tapBlinkVisible ? 1 : 0.15,
+                opacity: tapBlinkVisible ? 1 : 0.22,
                 transition: 'opacity 0.5s ease',
                 zIndex: 20,
                 padding: '12px 24px',
+                fontWeight: 600,
+                textShadow: theme === 'light' ? '0 1px 4px rgba(0,0,0,0.1)' : '0 0 12px rgba(255,255,255,0.4)',
               }}
             >
               TAP TO BEGIN
             </button>
           )}
 
-          {/* HUD: Bottom-Left — Solid #F2F2F2 Rectangle LOG IN / SWITCH button */}
+          {/* HUD: Bottom-Left — Solid Rectangle LOG IN / SWITCH button */}
           {phase === 'idle' && (
             <div
+              className="prismate-login-controls"
               style={{
                 position: 'fixed',
                 bottom: '24px',
                 left: '24px',
-                zIndex: 20,
+                zIndex: 25,
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'flex-start',
@@ -371,7 +399,7 @@ const MainAppContent: React.FC = () => {
               {loggedInUser && (
                 <span
                   style={{
-                    color: '#F2F2F2',
+                    color: theme === 'light' ? '#111114' : '#F2F2F2',
                     fontFamily: 'var(--font-subheading)',
                     fontSize: '14px',
                     paddingLeft: '4px',
@@ -385,16 +413,17 @@ const MainAppContent: React.FC = () => {
               <button
                 onClick={() => setLoginModalOpen(true)}
                 style={{
-                  background: '#F2F2F2',
+                  background: theme === 'light' ? '#111114' : '#F2F2F2',
                   border: 'none',
-                  color: '#000000',
+                  color: theme === 'light' ? '#FFFFFF' : '#000000',
                   fontFamily: 'var(--font-subheading)',
                   fontSize: '13px',
                   fontWeight: 'bold',
                   letterSpacing: '2px',
                   padding: '10px 20px',
                   cursor: 'pointer',
-                  borderRadius: '2px',
+                  borderRadius: '4px',
+                  boxShadow: theme === 'light' ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
                 }}
               >
                 {loggedInUser ? 'SWITCH' : 'LOG IN'}
@@ -409,7 +438,7 @@ const MainAppContent: React.FC = () => {
                 position: 'fixed',
                 bottom: '28px',
                 right: '28px',
-                color: '#F2F2F2',
+                color: theme === 'light' ? 'rgba(17, 17, 20, 0.55)' : '#F2F2F2',
                 fontFamily: 'var(--font-heading)',
                 fontSize: '14px',
                 letterSpacing: '2px',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useApp } from '../context/useApp';
 import { IMMERSIVE_WALLPAPERS } from '../data/wallpapers';
@@ -18,15 +18,34 @@ export const ImmersiveBackground: React.FC = () => {
 
   const [hudCollapsed, setHudCollapsed] = useState<boolean>(false);
 
-  if (theme !== 'immersive') {
-    return null;
-  }
-
   // Determine which wallpaper to show
   const activeWallpaper =
     immersiveWallpaperMode === 'fixed'
       ? IMMERSIVE_WALLPAPERS.find((w) => w.url === immersiveFixedWallpaper) || IMMERSIVE_WALLPAPERS[0]
       : IMMERSIVE_WALLPAPERS[currentWallpaperIndex] || IMMERSIVE_WALLPAPERS[0];
+
+  // Material You Dynamic Theme Accent Extraction
+  useEffect(() => {
+    if (theme !== 'immersive' || !activeWallpaper?.materialYou) return;
+    const { primary, secondary, glow, surfaceTint } = activeWallpaper.materialYou;
+    document.documentElement.style.setProperty('--color-accent', primary);
+    document.documentElement.style.setProperty('--tile-border-hover', primary);
+    document.documentElement.style.setProperty('--glow-accent', glow);
+    document.documentElement.style.setProperty('--material-you-primary', primary);
+    document.documentElement.style.setProperty('--material-you-secondary', secondary);
+    document.documentElement.style.setProperty('--material-you-tint', surfaceTint);
+
+    return () => {
+      document.documentElement.style.removeProperty('--material-you-primary');
+      document.documentElement.style.removeProperty('--material-you-secondary');
+      document.documentElement.style.removeProperty('--material-you-tint');
+      document.documentElement.style.removeProperty('--glow-accent');
+    };
+  }, [theme, activeWallpaper]);
+
+  if (theme !== 'immersive') {
+    return null;
+  }
 
   return (
     <>
@@ -128,7 +147,7 @@ export const ImmersiveBackground: React.FC = () => {
               }}
               title="Click to expand/collapse wallpaper controls"
             >
-              <Sparkles style={{ width: '13px', height: '13px', color: '#33F0FF' }} />
+              <Sparkles style={{ width: '13px', height: '13px', color: activeWallpaper?.materialYou?.primary || '#33F0FF' }} />
               <span
                 style={{
                   fontFamily: 'var(--font-heading)',
@@ -144,15 +163,34 @@ export const ImmersiveBackground: React.FC = () => {
 
             {!hudCollapsed && (
               <>
+                {activeWallpaper.materialYou && (
+                  <span
+                    style={{
+                      fontSize: '9px',
+                      fontFamily: 'monospace',
+                      color: activeWallpaper.materialYou.primary,
+                      background: activeWallpaper.materialYou.surfaceTint,
+                      border: `1px solid ${activeWallpaper.materialYou.primary}55`,
+                      padding: '2px 7px',
+                      borderRadius: '10px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                    }}
+                  >
+                    <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: activeWallpaper.materialYou.primary }} />
+                    {activeWallpaper.materialYou.name}
+                  </span>
+                )}
                 <span
                   style={{
                     fontSize: '9px',
                     fontFamily: 'var(--font-subheading)',
-                    color: '#33F0FF',
-                    background: 'rgba(51, 240, 255, 0.14)',
+                    color: activeWallpaper?.materialYou?.primary || '#33F0FF',
+                    background: 'rgba(255, 255, 255, 0.08)',
                     padding: '2px 6px',
                     borderRadius: '12px',
-                    border: '1px solid rgba(51, 240, 255, 0.3)',
+                    border: '1px solid rgba(255, 255, 255, 0.15)',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '4px',

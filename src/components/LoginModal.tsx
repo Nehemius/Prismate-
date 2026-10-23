@@ -73,21 +73,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }
     reader.readAsDataURL(file);
   };
 
-  const handleUserClick = useCallback((username: string) => {
+  const handleUserClick = useCallback((profile: ProfileSummary) => {
     setIsCreatingProfile(false);
-    if (expandedUser === username) {
+    if (profile.id === 'universal_guest' || !profile.password) {
+      onLogin(profile.username);
+      onClose();
+      return;
+    }
+    if (expandedUser === profile.username) {
       setExpandedUser(null);
       setPassword('');
       setError(false);
     } else {
-      setExpandedUser(username);
+      setExpandedUser(profile.username);
       setPassword('');
       setError(false);
       setTimeout(() => {
         passwordInputRef.current?.focus();
       }, 50);
     }
-  }, [expandedUser]);
+  }, [expandedUser, onLogin, onClose]);
 
   const handleSubmit = useCallback(
     (e: React.FormEvent, profile: ProfileSummary) => {
@@ -220,7 +225,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }
                   }}
                 >
                   <button
-                    onClick={() => handleUserClick(profile.username)}
+                    onClick={() => handleUserClick(profile)}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -243,7 +248,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }
                           width: '32px',
                           height: '32px',
                           borderRadius: '50%',
-                          background: '#F2F2F2',
+                          background: profile.id === 'universal_guest' ? '#33F0FF' : '#F2F2F2',
                           color: '#000000',
                           display: 'flex',
                           alignItems: 'center',
@@ -260,19 +265,26 @@ export const LoginModal: React.FC<LoginModalProps> = ({ open, onClose, onLogin }
                           profile.avatar
                         )}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-heading)', fontSize: '17px' }}>
-                        {profile.username}
-                      </span>
+                      <div style={{ display: 'flex', flexDirection: 'column' }}>
+                        <span style={{ fontFamily: 'var(--font-heading)', fontSize: '17px' }}>
+                          {profile.username}
+                        </span>
+                        {profile.id === 'universal_guest' && (
+                          <span style={{ fontFamily: 'var(--font-subheading)', fontSize: '9px', color: '#33F0FF', letterSpacing: '1px' }}>
+                            ⚡ 1-TAP INSTANT LOGIN (NO PASSWORD)
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <span
                       style={{
                         fontSize: '11px',
-                        color: 'rgba(242,242,242,0.45)',
+                        color: profile.id === 'universal_guest' ? '#33F0FF' : 'rgba(242,242,242,0.45)',
                         transform: isExpanded ? 'rotate(90deg)' : 'none',
                         transition: 'transform 0.2s ease',
                       }}
                     >
-                      ▶
+                      {profile.id === 'universal_guest' ? 'ENTER ➔' : '▶'}
                     </span>
                   </button>
 

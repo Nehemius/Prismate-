@@ -3,6 +3,7 @@ import { AnimatePresence } from 'motion/react';
 import DiagramsModal from '../components/DiagramsModal';
 import PapersModal from '../components/PapersModal';
 import QuizEngine from '../components/QuizEngine';
+import ComeBookModal from '../components/ComeBookModal';
 import { INITIAL_QUESTIONS } from '../data/mockData';
 import { useApp } from '../context/useApp';
 import GridGuides from '../components/GridGuides';
@@ -659,7 +660,11 @@ export const MathematicsPage: React.FC = () => {
           <PapersModal key="modal-board" type="board" subject="Mathematics" onClose={() => setActiveModal(null)} />
         )}
 
-        {(activeModal === 'formula-quiz' || activeModal === 'bb-quiz' || activeModal === 'come-book') && (
+        {activeModal === 'come-book' && (
+          <ComeBookModal key="modal-come-book" onClose={() => setActiveModal(null)} />
+        )}
+
+        {(activeModal === 'formula-quiz' || activeModal === 'bb-quiz') && (
           <QuizEngine
             key={`modal-quiz-${activeModal}`}
             title={`MATHEMATICS ${activeModal.replace('-', ' ').toUpperCase()}`}

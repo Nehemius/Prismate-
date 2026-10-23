@@ -98,8 +98,8 @@ export const StackCard3D: React.FC<StackCard3DProps> = ({
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
             border: isSelected
-              ? (isLight ? '2px solid #0055FF' : '1.5px solid #FFFFFF')
-              : (isLight ? '1px solid rgba(0, 0, 0, 0.12)' : '1px solid rgba(242, 242, 242, 0.12)'),
+              ? (isLight ? '2.5px solid #000000' : '1.5px solid #FFFFFF')
+              : (isLight ? '1.5px solid rgba(0, 0, 0, 0.55)' : '1px solid rgba(242, 242, 242, 0.12)'),
             boxShadow: isSelected
               ? (isLight
                   ? '0 0 28px rgba(0, 85, 255, 0.28), inset 0 1px 0 0 #FFFFFF'
@@ -523,7 +523,7 @@ export const StackCard3D: React.FC<StackCard3DProps> = ({
               : 'linear-gradient(135deg, rgba(20, 20, 24, 0.94), rgba(12, 12, 14, 0.88))',
             backdropFilter: 'blur(16px)',
             WebkitBackdropFilter: 'blur(16px)',
-            border: isLight ? '1px solid rgba(0, 0, 0, 0.14)' : '1px solid rgba(242, 242, 242, 0.16)',
+            border: isLight ? '1.5px solid rgba(0, 0, 0, 0.55)' : '1px solid rgba(242, 242, 242, 0.16)',
             boxShadow: isLight
               ? '0 12px 32px rgba(0, 0, 0, 0.08)'
               : '0 12px 30px -4px rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(242, 242, 242, 0.22)',

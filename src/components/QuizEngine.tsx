@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import type { QuizQuestion, DifficultyLevel, ListType } from '../types/prismate';
 import { useApp } from '../context/useApp';
 import UniversalLoader from './UniversalLoader';
@@ -127,7 +127,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
   onClose,
   category,
 }) => {
-  const { addToList, isInList } = useApp();
+  const { addToList, removeFromList, isInList, weaklist, studylist, stronglist, theme } = useApp();
+  const isLight = theme === 'light';
 
   // Infer targetCategory: either passed explicitly or if all questions share the same category
   const targetCategory = category || (
@@ -188,12 +189,34 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
     ? loadedQuestions.filter((q) => q.category === targetCategory)
     : loadedQuestions;
 
-  const filteredQuestions = baseCategoryQuestions.filter((q) => {
-    if (selectedFilter === 'all') return true;
-    return isInList(selectedFilter, q.question);
-  });
+  // Priority sorting: when 'all' is selected in quiz configuration, order is weaklist > studylist > stronglist > remaining
+  const activeQuestions = useMemo(() => {
+    if (selectedFilter !== 'all') {
+      const filtered = baseCategoryQuestions.filter((q) => isInList(selectedFilter, q.question));
+      return filtered.length > 0 ? filtered : baseCategoryQuestions;
+    }
 
-  const activeQuestions = filteredQuestions.length > 0 ? filteredQuestions : baseCategoryQuestions;
+    const weak: QuizQuestion[] = [];
+    const study: QuizQuestion[] = [];
+    const strong: QuizQuestion[] = [];
+    const other: QuizQuestion[] = [];
+
+    baseCategoryQuestions.forEach((q) => {
+      if (isInList('weaklist', q.question)) {
+        weak.push(q);
+      } else if (isInList('studylist', q.question)) {
+        study.push(q);
+      } else if (isInList('stronglist', q.question)) {
+        strong.push(q);
+      } else {
+        other.push(q);
+      }
+    });
+
+    const combined = [...weak, ...study, ...strong, ...other];
+    return combined.length > 0 ? combined : baseCategoryQuestions;
+  }, [baseCategoryQuestions, selectedFilter, weaklist, studylist, stronglist, isInList]);
+
   const currentQ = activeQuestions[currentIndex];
 
   // Start sequence
@@ -385,8 +408,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
         position: 'fixed',
         inset: 0,
         zIndex: 5000,
-        background: '#000000',
-        color: '#F2F2F2',
+        background: isLight ? '#F4F7FC' : '#000000',
+        color: isLight ? '#111114' : '#F2F2F2',
         display: 'flex',
         flexDirection: 'column',
         boxSizing: 'border-box',
@@ -401,8 +424,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '16px 28px',
-          background: '#0A0A0A',
-          borderBottom: '1px solid rgba(242,242,242,0.10)',
+          background: isLight ? '#FFFFFF' : '#0A0A0A',
+          borderBottom: isLight ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(242,242,242,0.10)',
           position: 'relative',
           zIndex: 20,
         }}
@@ -411,19 +434,20 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
           <button
             onClick={onClose}
             style={{
-              background: 'none',
-              border: '1px solid rgba(242,242,242,0.22)',
+              background: isLight ? '#FFFFFF' : 'none',
+              border: isLight ? '1.5px solid rgba(0,0,0,0.28)' : '1px solid rgba(242,242,242,0.22)',
               borderRadius: '6px',
-              color: '#F2F2F2',
+              color: isLight ? '#111114' : '#F2F2F2',
               fontFamily: 'var(--font-subheading)',
               fontSize: '11px',
               letterSpacing: '2px',
               padding: '6px 14px',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
+              boxShadow: isLight ? '0 1px 3px rgba(0,0,0,0.06)' : 'none',
             }}
-            onMouseEnter={(e) => (e.currentTarget.style.borderColor = '#F2F2F2')}
-            onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(242,242,242,0.22)')}
+            onMouseEnter={(e) => (e.currentTarget.style.borderColor = isLight ? '#111114' : '#F2F2F2')}
+            onMouseLeave={(e) => (e.currentTarget.style.borderColor = isLight ? 'rgba(0,0,0,0.28)' : 'rgba(242,242,242,0.22)')}
           >
             ← EXIT [ESC]
           </button>
@@ -433,6 +457,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               fontSize: '15px',
               letterSpacing: '2px',
               textTransform: 'uppercase',
+              color: isLight ? '#111114' : '#F2F2F2',
             }}
           >
             {title}
@@ -449,9 +474,9 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                   fontFamily: 'var(--font-heading)',
                   fontSize: '12px',
                   letterSpacing: '1.5px',
-                  color: '#FFFFFF',
-                  background: 'rgba(242,242,242,0.12)',
-                  border: '1px solid rgba(242,242,242,0.3)',
+                  color: isLight ? '#111114' : '#FFFFFF',
+                  background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(242,242,242,0.12)',
+                  border: isLight ? '1px solid rgba(0,0,0,0.16)' : '1px solid rgba(242,242,242,0.3)',
                   padding: '4px 10px',
                   borderRadius: '20px',
                 }}
@@ -460,18 +485,20 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               </span>
             )}
 
-            {/* Hearts indicator */}
+            {/* Hearts indicator (with empty outline glyph ♡ when depleted) */}
             <div style={{ display: 'flex', gap: '6px' }}>
               {Array.from({ length: maxHearts }).map((_, i) => (
                 <span
                   key={i}
                   style={{
                     fontSize: '18px',
-                    color: i < hearts ? '#EB104B' : 'rgba(242,242,242,0.18)',
-                    transition: 'color 0.3s ease',
+                    color: i < hearts ? '#EB104B' : (isLight ? 'rgba(0, 0, 0, 0.25)' : 'rgba(242, 242, 242, 0.20)'),
+                    opacity: i < hearts ? 1 : (isLight ? 0.45 : 0.25),
+                    transition: 'all 0.3s ease',
+                    textShadow: i < hearts ? '0 0 10px rgba(235,16,75,0.4)' : 'none',
                   }}
                 >
-                  ♥
+                  {i < hearts ? '♥' : '♡'}
                 </span>
               ))}
             </div>
@@ -482,7 +509,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                 style={{
                   fontFamily: 'var(--font-heading)',
                   fontSize: '15px',
-                  color: timeLeft <= 5 ? '#EB104B' : '#F2F2F2',
+                  color: timeLeft <= 5 ? '#EB104B' : (isLight ? '#111114' : '#F2F2F2'),
                   letterSpacing: '1px',
                 }}
               >
@@ -495,7 +522,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               style={{
                 fontFamily: 'var(--font-heading)',
                 fontSize: '15px',
-                color: '#F2F2F2',
+                color: isLight ? '#111114' : '#F2F2F2',
                 letterSpacing: '1px',
               }}
             >
@@ -527,6 +554,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               letterSpacing: '4px',
               marginBottom: '32px',
               textAlign: 'center',
+              color: isLight ? '#111114' : '#F2F2F2',
             }}
           >
             QUIZ CONFIGURATION
@@ -539,9 +567,10 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                 fontFamily: 'var(--font-subheading)',
                 fontSize: '12px',
                 letterSpacing: '2px',
-                color: 'rgba(242,242,242,0.5)',
+                color: isLight ? '#374151' : 'rgba(242,242,242,0.5)',
                 display: 'block',
                 marginBottom: '10px',
+                fontWeight: 600,
               }}
             >
               SOURCE LIST FILTER
@@ -552,9 +581,15 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                   key={filter}
                   onClick={() => setSelectedFilter(filter)}
                   style={{
-                    background: selectedFilter === filter ? '#F2F2F2' : 'rgba(242,242,242,0.06)',
-                    border: '1px solid rgba(242,242,242,0.2)',
-                    color: selectedFilter === filter ? '#000000' : '#F2F2F2',
+                    background: selectedFilter === filter
+                      ? (isLight ? '#111114' : '#F2F2F2')
+                      : (isLight ? '#FFFFFF' : 'rgba(242,242,242,0.06)'),
+                    border: isLight
+                      ? (selectedFilter === filter ? '1px solid #111114' : '1px solid rgba(0,0,0,0.18)')
+                      : (selectedFilter === filter ? '1px solid #F2F2F2' : '1px solid rgba(242,242,242,0.2)'),
+                    color: selectedFilter === filter
+                      ? (isLight ? '#FFFFFF' : '#000000')
+                      : (isLight ? '#111114' : '#F2F2F2'),
                     fontFamily: 'var(--font-heading)',
                     fontSize: '11px',
                     letterSpacing: '1px',
@@ -562,6 +597,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                     borderRadius: '8px',
                     cursor: 'pointer',
                     textTransform: 'uppercase',
+                    boxShadow: isLight && selectedFilter === filter ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
                   }}
                 >
                   {filter}
@@ -577,9 +613,10 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                 fontFamily: 'var(--font-subheading)',
                 fontSize: '12px',
                 letterSpacing: '2px',
-                color: 'rgba(242,242,242,0.5)',
+                color: isLight ? '#374151' : 'rgba(242,242,242,0.5)',
                 display: 'block',
                 marginBottom: '10px',
+                fontWeight: 600,
               }}
             >
               DIFFICULTY LEVEL
@@ -596,15 +633,22 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                   key={d.id}
                   onClick={() => setDifficulty(d.id)}
                   style={{
-                    background: difficulty === d.id ? '#F2F2F2' : 'rgba(242,242,242,0.06)',
-                    border: '1px solid rgba(242,242,242,0.2)',
-                    color: difficulty === d.id ? '#000000' : '#F2F2F2',
+                    background: difficulty === d.id
+                      ? (isLight ? '#111114' : '#F2F2F2')
+                      : (isLight ? '#FFFFFF' : 'rgba(242,242,242,0.06)'),
+                    border: isLight
+                      ? (difficulty === d.id ? '1px solid #111114' : '1px solid rgba(0,0,0,0.18)')
+                      : (difficulty === d.id ? '1px solid #F2F2F2' : '1px solid rgba(242,242,242,0.2)'),
+                    color: difficulty === d.id
+                      ? (isLight ? '#FFFFFF' : '#000000')
+                      : (isLight ? '#111114' : '#F2F2F2'),
                     fontFamily: 'var(--font-heading)',
                     fontSize: '11px',
                     letterSpacing: '1px',
                     padding: '12px 8px',
                     borderRadius: '8px',
                     cursor: 'pointer',
+                    boxShadow: isLight && difficulty === d.id ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
                   }}
                 >
                   {d.label}
@@ -621,21 +665,22 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               alignItems: 'center',
               justifyContent: 'space-between',
               padding: '16px 20px',
-              background: 'rgba(242,242,242,0.04)',
-              border: '1px solid rgba(242,242,242,0.12)',
+              background: isLight ? '#FFFFFF' : 'rgba(242,242,242,0.04)',
+              border: isLight ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(242,242,242,0.12)',
               borderRadius: '8px',
               marginBottom: '36px',
+              boxShadow: isLight ? '0 2px 8px rgba(0,0,0,0.04)' : 'none',
             }}
           >
             <div>
-              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '14px', margin: 0 }}>
+              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '14px', margin: 0, color: isLight ? '#111114' : '#F2F2F2' }}>
                 25-SECOND SPEED TIMER
               </p>
               <p
                 style={{
                   fontFamily: 'var(--font-content)',
                   fontSize: '12px',
-                  color: 'rgba(242,242,242,0.4)',
+                  color: isLight ? '#6B7280' : 'rgba(242,242,242,0.4)',
                   margin: '2px 0 0',
                 }}
               >
@@ -645,8 +690,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
             <button
               onClick={() => setTimeControl((t) => !t)}
               style={{
-                background: timeControl ? '#F2F2F2' : 'rgba(242,242,242,0.1)',
-                color: timeControl ? '#000000' : '#F2F2F2',
+                background: timeControl ? (isLight ? '#111114' : '#F2F2F2') : (isLight ? 'rgba(0,0,0,0.08)' : 'rgba(242,242,242,0.1)'),
+                color: timeControl ? (isLight ? '#FFFFFF' : '#000000') : (isLight ? '#111114' : '#F2F2F2'),
                 border: 'none',
                 borderRadius: '16px',
                 padding: '6px 16px',
@@ -664,8 +709,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
             onClick={handleStart}
             style={{
               width: '100%',
-              background: '#F2F2F2',
-              color: '#000000',
+              background: isLight ? '#111114' : '#F2F2F2',
+              color: isLight ? '#FFFFFF' : '#000000',
               border: 'none',
               borderRadius: '8px',
               padding: '16px',
@@ -673,7 +718,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               fontSize: '16px',
               letterSpacing: '3px',
               cursor: 'pointer',
-              boxShadow: '0 4px 20px rgba(242,242,242,0.2)',
+              boxShadow: isLight ? '0 4px 18px rgba(0,0,0,0.18)' : '0 4px 20px rgba(242,242,242,0.2)',
             }}
           >
             START DRILL →
@@ -755,10 +800,10 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               <button
                 onClick={() => setIsFlipped((f) => !f)}
                 style={{
-                  background: 'none',
-                  border: '1px solid rgba(242,242,242,0.25)',
+                  background: isLight ? 'rgba(0,0,0,0.06)' : 'none',
+                  border: isLight ? '1px solid rgba(0,0,0,0.2)' : '1px solid rgba(242,242,242,0.25)',
                   borderRadius: '4px',
-                  color: '#F2F2F2',
+                  color: isLight ? '#111114' : '#F2F2F2',
                   fontSize: '10px',
                   fontFamily: 'var(--font-subheading)',
                   letterSpacing: '1px',
@@ -768,7 +813,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               >
                 {isFlipped ? 'SHOW QUESTION [Space]' : 'FLIP TO SOLUTION [Space]'}
               </button>
-              <span>
+              <span style={{ color: isLight ? '#4B5563' : 'rgba(242,242,242,0.6)' }}>
                 QUESTION {currentIndex + 1} OF {activeQuestions.length}
               </span>
             </div>
@@ -788,17 +833,23 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               <div
                 className={`flashcard-face ${isTimeout ? 'al-grayscale' : ''}`}
                 style={{
-                  background: isWrong
-                    ? 'linear-gradient(135deg, rgba(30,10,15,0.92), rgba(15,10,12,0.95))'
-                    : 'linear-gradient(135deg, rgba(18,18,18,0.95), rgba(10,10,10,0.92))',
+                  background: isLight
+                    ? (isWrong
+                        ? 'linear-gradient(135deg, rgba(254,242,242,0.98), rgba(254,226,226,0.95))'
+                        : 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(245,248,255,0.95))')
+                    : (isWrong
+                        ? 'linear-gradient(135deg, rgba(30,10,15,0.92), rgba(15,10,12,0.95))'
+                        : 'linear-gradient(135deg, rgba(18,18,18,0.95), rgba(10,10,10,0.92))'),
                   border: isWrong
-                    ? '1px solid #EB104B'
+                    ? '1.5px solid #EB104B'
                     : isCorrect
-                    ? '1px solid #10B981'
-                    : '1px solid rgba(242,242,242,0.18)',
+                    ? '1.5px solid #10B981'
+                    : (isLight ? '1.5px solid rgba(0,0,0,0.18)' : '1px solid rgba(242,242,242,0.18)'),
                   borderRadius: '20px',
                   padding: '32px',
-                  boxShadow: '0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(242,242,242,0.2)',
+                  boxShadow: isLight
+                    ? '0 16px 40px rgba(0,0,0,0.10), inset 0 1px 0 #FFFFFF'
+                    : '0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(242,242,242,0.2)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -829,9 +880,9 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                           fontFamily: 'var(--font-heading)',
                           fontSize: '10px',
                           letterSpacing: '1.5px',
-                          color: '#F2F2F2',
-                          background: 'rgba(242,242,242,0.12)',
-                          border: '1px solid rgba(242,242,242,0.25)',
+                          color: isLight ? '#111114' : '#F2F2F2',
+                          background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(242,242,242,0.12)',
+                          border: isLight ? '1px solid rgba(0,0,0,0.15)' : '1px solid rgba(242,242,242,0.25)',
                           padding: '4px 10px',
                           borderRadius: '4px',
                         }}
@@ -847,7 +898,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                       fontFamily: 'var(--font-content)',
                       fontSize: 'clamp(18px, 2vw, 24px)',
                       lineHeight: 1.45,
-                      color: '#F2F2F2',
+                      color: isLight ? '#111114' : '#F2F2F2',
                       marginBottom: '28px',
                       fontWeight: 500,
                     }}
@@ -860,20 +911,20 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                     className={isTimeout ? 'al-option-blur' : ''}
                     style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}
                   >
-                    {currentQ.options.map((opt, idx) => {
-                      let bg = 'rgba(242,242,242,0.05)';
-                      let border = '1px solid rgba(242,242,242,0.18)';
-                      let color = '#F2F2F2';
+                    {currentQ.options.map((opt: string, idx: number) => {
+                      let bg = isLight ? '#FFFFFF' : 'rgba(242,242,242,0.05)';
+                      let border = isLight ? '1.5px solid rgba(0,0,0,0.14)' : '1px solid rgba(242,242,242,0.18)';
+                      let color = isLight ? '#111114' : '#F2F2F2';
 
                       if (isAnswerChecked) {
                         if (idx === currentQ.correctIndex) {
-                          bg = 'rgba(16,185,129,0.2)';
-                          border = '1px solid #10B981';
-                          color = '#10B981';
+                          bg = isLight ? 'rgba(16,185,129,0.15)' : 'rgba(16,185,129,0.2)';
+                          border = '1.5px solid #10B981';
+                          color = isLight ? '#065F46' : '#10B981';
                         } else if (idx === selectedAnswer) {
-                          bg = 'rgba(235,16,75,0.25)';
-                          border = '1px solid #EB104B';
-                          color = '#EB104B';
+                          bg = isLight ? 'rgba(235,16,75,0.15)' : 'rgba(235,16,75,0.25)';
+                          border = '1.5px solid #EB104B';
+                          color = isLight ? '#991B1B' : '#EB104B';
                         }
                       }
 
@@ -897,12 +948,13 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'space-between',
+                            boxShadow: isLight ? '0 2px 6px rgba(0,0,0,0.04)' : 'none',
                           }}
                           onMouseEnter={(e) => {
-                            if (!isAnswerChecked) e.currentTarget.style.borderColor = 'rgba(242,242,242,0.5)';
+                            if (!isAnswerChecked) e.currentTarget.style.borderColor = isLight ? '#0077EE' : 'rgba(242,242,242,0.5)';
                           }}
                           onMouseLeave={(e) => {
-                            if (!isAnswerChecked) e.currentTarget.style.borderColor = 'rgba(242,242,242,0.18)';
+                            if (!isAnswerChecked) e.currentTarget.style.borderColor = border;
                           }}
                         >
                           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -910,7 +962,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                               style={{
                                 fontFamily: 'var(--font-heading)',
                                 fontSize: '12px',
-                                color: 'rgba(242,242,242,0.4)',
+                                color: isLight ? '#6B7280' : 'rgba(242,242,242,0.4)',
                                 marginRight: '10px',
                               }}
                             >
@@ -922,10 +974,10 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                             style={{
                               fontFamily: 'monospace',
                               fontSize: '10px',
-                              color: 'rgba(242,242,242,0.3)',
+                              color: isLight ? '#9CA3AF' : 'rgba(242,242,242,0.3)',
                               padding: '2px 6px',
                               borderRadius: '4px',
-                              background: 'rgba(242,242,242,0.06)',
+                              background: isLight ? 'rgba(0,0,0,0.05)' : 'rgba(242,242,242,0.06)',
                             }}
                           >
                             [{idx + 1}]
@@ -945,15 +997,15 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                       top: '38%',
                       left: '50%',
                       transform: 'translate(-50%, -50%) rotate(-6deg)',
-                      border: `3px solid ${isWrong ? '#EB104B' : '#F2F2F2'}`,
+                      border: `3px solid ${isWrong ? '#EB104B' : (isLight ? '#111114' : '#F2F2F2')}`,
                       borderRadius: '8px',
                       padding: '10px 24px',
                       fontFamily: 'var(--font-heading)',
                       fontSize: '28px',
                       letterSpacing: '4px',
-                      color: isWrong ? '#EB104B' : '#F2F2F2',
-                      background: 'rgba(0,0,0,0.85)',
-                      boxShadow: `0 0 25px ${isWrong ? 'rgba(235,16,75,0.4)' : 'rgba(242,242,242,0.4)'}`,
+                      color: isWrong ? '#EB104B' : (isLight ? '#111114' : '#F2F2F2'),
+                      background: isLight ? 'rgba(255,255,255,0.92)' : 'rgba(0,0,0,0.85)',
+                      boxShadow: `0 0 25px ${isWrong ? 'rgba(235,16,75,0.4)' : (isLight ? 'rgba(0,0,0,0.2)' : 'rgba(242,242,242,0.4)')}`,
                       pointerEvents: 'none',
                       zIndex: 30,
                     }}
@@ -967,15 +1019,19 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               <div
                 className="flashcard-face flashcard-back"
                 style={{
-                  background: 'linear-gradient(135deg, rgba(20,20,22,0.98), rgba(12,12,14,0.95))',
+                  background: isLight
+                    ? 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(245,248,255,0.95))'
+                    : 'linear-gradient(135deg, rgba(20,20,22,0.98), rgba(12,12,14,0.95))',
                   border: isCorrect
-                    ? '1px solid #10B981'
+                    ? '1.5px solid #10B981'
                     : isWrong
-                    ? '1px solid #EB104B'
-                    : '1px solid rgba(242,242,242,0.25)',
+                    ? '1.5px solid #EB104B'
+                    : (isLight ? '1.5px solid rgba(0,0,0,0.18)' : '1px solid rgba(242,242,242,0.25)'),
                   borderRadius: '20px',
                   padding: '32px',
-                  boxShadow: '0 16px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(242,242,242,0.22)',
+                  boxShadow: isLight
+                    ? '0 16px 40px rgba(0,0,0,0.12), inset 0 1px 0 #FFFFFF'
+                    : '0 16px 40px rgba(0,0,0,0.7), inset 0 1px 0 rgba(242,242,242,0.22)',
                   display: 'flex',
                   flexDirection: 'column',
                   justifyContent: 'space-between',
@@ -991,7 +1047,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                       justifyContent: 'space-between',
                       marginBottom: '16px',
                       paddingBottom: '12px',
-                      borderBottom: '1px solid rgba(242,242,242,0.10)',
+                      borderBottom: isLight ? '1px solid rgba(0,0,0,0.10)' : '1px solid rgba(242,242,242,0.10)',
                     }}
                   >
                     <span
@@ -1011,7 +1067,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                       style={{
                         fontFamily: 'var(--font-subheading)',
                         fontSize: '11px',
-                        color: 'rgba(242,242,242,0.4)',
+                        color: isLight ? '#4B5563' : 'rgba(242,242,242,0.4)',
                         letterSpacing: '1px',
                       }}
                     >
@@ -1022,36 +1078,36 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                   {/* Correct Option Highlight */}
                   <div
                     style={{
-                      background: 'rgba(242,242,242,0.06)',
-                      border: '1px solid rgba(242,242,242,0.18)',
+                      background: isLight ? 'rgba(0,0,0,0.03)' : 'rgba(242,242,242,0.06)',
+                      border: isLight ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(242,242,242,0.18)',
                       borderRadius: '8px',
                       padding: '12px 16px',
-                      marginBottom: '20px',
+                      marginBottom: '16px',
                     }}
                   >
                     <div
                       style={{
                         fontFamily: 'var(--font-heading)',
                         fontSize: '11px',
-                        color: 'rgba(242,242,242,0.5)',
+                        color: isLight ? '#4B5563' : 'rgba(242,242,242,0.5)',
                         marginBottom: '4px',
                       }}
                     >
                       VERIFIED FORMULA / STATEMENT:
                     </div>
-                    <div style={{ fontFamily: 'var(--font-content)', fontSize: '15px', color: '#F2F2F2' }}>
+                    <div style={{ fontFamily: 'var(--font-content)', fontSize: '15px', color: isLight ? '#111114' : '#F2F2F2' }}>
                       {formatMathText(currentQ.options[currentQ.correctIndex])}
                     </div>
                   </div>
 
                   {/* Step-by-Step Textbook Derivation */}
-                  <div>
+                  <div style={{ marginBottom: '16px' }}>
                     <h4
                       style={{
                         fontFamily: 'var(--font-heading)',
                         fontSize: '12px',
                         letterSpacing: '1.5px',
-                        color: 'rgba(242,242,242,0.6)',
+                        color: isLight ? '#4B5563' : 'rgba(242,242,242,0.6)',
                         margin: '0 0 8px',
                       }}
                     >
@@ -1062,17 +1118,72 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                         fontFamily: 'var(--font-content)',
                         fontSize: '14px',
                         lineHeight: 1.6,
-                        color: 'rgba(242,242,242,0.88)',
+                        color: isLight ? '#1F2937' : 'rgba(242,242,242,0.88)',
                         margin: 0,
                       }}
                     >
                       {formatMathText(currentQ.explanation)}
                     </p>
                   </div>
+
+                  {/* Quick List Actions: Weaklist, Studylist, Stronglist */}
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', paddingTop: '10px' }}>
+                    <span style={{ fontSize: '11px', fontFamily: 'var(--font-heading)', letterSpacing: '1px', color: isLight ? '#4B5563' : 'rgba(242,242,242,0.5)' }}>
+                      ADD TO LIST:
+                    </span>
+                    {(['weaklist', 'studylist', 'stronglist'] as const).map((listType) => {
+                      const inThisList = isInList(listType, currentQ.question);
+                      const badgeColor = listType === 'weaklist' ? '#EB104B' : listType === 'studylist' ? '#D97706' : '#10B981';
+                      return (
+                        <button
+                          key={listType}
+                          onClick={() => {
+                            if (inThisList) {
+                              const listSource = listType === 'weaklist' ? weaklist : listType === 'studylist' ? studylist : stronglist;
+                              const item = listSource.find((i) => i.title.toLowerCase() === currentQ.question.toLowerCase());
+                              if (item) removeFromList(listType, item.id);
+                            } else {
+                              addToList(listType, {
+                                subject,
+                                category: (currentQ.category === 'formula' || currentQ.category === 'unit' ? currentQ.category : 'question') as any,
+                                title: currentQ.question,
+                                content: currentQ.explanation || currentQ.options[currentQ.correctIndex],
+                                source: currentQ.topic || subject,
+                              });
+                            }
+                          }}
+                          style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '6px',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontFamily: 'var(--font-heading)',
+                            fontSize: '11px',
+                            letterSpacing: '1px',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s ease',
+                            background: inThisList
+                              ? (isLight ? `${badgeColor}18` : `${badgeColor}28`)
+                              : (isLight ? '#FFFFFF' : 'rgba(242,242,242,0.06)'),
+                            border: inThisList
+                              ? `1.5px solid ${badgeColor}`
+                              : (isLight ? '1.5px solid rgba(0,0,0,0.18)' : '1px solid rgba(242,242,242,0.2)'),
+                            color: inThisList ? badgeColor : (isLight ? '#374151' : 'rgba(242,242,242,0.7)'),
+                            fontWeight: inThisList ? 700 : 500,
+                            boxShadow: isLight && inThisList ? `0 2px 8px ${badgeColor}22` : 'none',
+                          }}
+                        >
+                          <span>{inThisList ? '✓ IN' : '+ ADD'}</span>
+                          <span>{listType.toUpperCase()}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Spaced-Repetition Grade Bar (Kokonut UI) */}
-                <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(242,242,242,0.10)' }}>
+                <div style={{ marginTop: '20px', paddingTop: '14px', borderTop: isLight ? '1px solid rgba(0,0,0,0.10)' : '1px solid rgba(242,242,242,0.10)' }}>
                   <div
                     style={{
                       display: 'flex',
@@ -1086,12 +1197,12 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                         fontFamily: 'var(--font-subheading)',
                         fontSize: '10px',
                         letterSpacing: '1.5px',
-                        color: 'rgba(242,242,242,0.4)',
+                        color: isLight ? '#4B5563' : 'rgba(242,242,242,0.4)',
                       }}
                     >
                       SELF RETENTION GRADING (SPACED REPETITION)
                     </span>
-                    <span style={{ fontSize: '10px', color: 'rgba(242,242,242,0.4)', fontFamily: 'monospace' }}>
+                    <span style={{ fontSize: '10px', color: isLight ? '#6B7280' : 'rgba(242,242,242,0.4)', fontFamily: 'monospace' }}>
                       Press [Space] to Continue
                     </span>
                   </div>
@@ -1116,11 +1227,11 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                     <button
                       onClick={() => handleRateRetention('hard')}
                       style={{
-                        background: 'rgba(242,242,242,0.06)',
-                        border: '1px solid rgba(242,242,242,0.2)',
+                        background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(242,242,242,0.06)',
+                        border: isLight ? '1px solid rgba(0,0,0,0.18)' : '1px solid rgba(242,242,242,0.2)',
                         borderRadius: '8px',
                         padding: '10px 4px',
-                        color: '#F2F2F2',
+                        color: isLight ? '#111114' : '#F2F2F2',
                         fontFamily: 'var(--font-heading)',
                         fontSize: '11px',
                         cursor: 'pointer',
@@ -1132,11 +1243,11 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                     <button
                       onClick={() => handleRateRetention('good')}
                       style={{
-                        background: 'rgba(242,242,242,0.06)',
-                        border: '1px solid rgba(242,242,242,0.2)',
+                        background: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(242,242,242,0.06)',
+                        border: isLight ? '1px solid rgba(0,0,0,0.18)' : '1px solid rgba(242,242,242,0.2)',
                         borderRadius: '8px',
                         padding: '10px 4px',
-                        color: '#F2F2F2',
+                        color: isLight ? '#111114' : '#F2F2F2',
                         fontFamily: 'var(--font-heading)',
                         fontSize: '11px',
                         cursor: 'pointer',
@@ -1152,7 +1263,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                         border: '1px solid rgba(16,185,129,0.4)',
                         borderRadius: '8px',
                         padding: '10px 4px',
-                        color: '#10B981',
+                        color: isLight ? '#065F46' : '#10B981',
                         fontFamily: 'var(--font-heading)',
                         fontSize: '11px',
                         cursor: 'pointer',
@@ -1173,7 +1284,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               marginTop: '16px',
               fontFamily: 'var(--font-subheading)',
               fontSize: '11px',
-              color: 'rgba(242,242,242,0.3)',
+              color: isLight ? '#6B7280' : 'rgba(242,242,242,0.3)',
               letterSpacing: '1px',
               display: 'flex',
               gap: '16px',
@@ -1211,7 +1322,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               fontFamily: 'var(--font-heading)',
               fontSize: '36px',
               letterSpacing: '6px',
-              color: hearts > 0 ? '#F2F2F2' : '#EB104B',
+              color: hearts > 0 ? (isLight ? '#111114' : '#F2F2F2') : '#EB104B',
               marginBottom: '12px',
             }}
           >
@@ -1221,7 +1332,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
             style={{
               fontFamily: 'var(--font-content)',
               fontSize: '14px',
-              color: 'rgba(242,242,242,0.5)',
+              color: isLight ? '#4B5563' : 'rgba(242,242,242,0.5)',
               marginBottom: '32px',
             }}
           >
@@ -1233,8 +1344,9 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
           <div
             style={{
               width: '100%',
-              background: 'rgba(242,242,242,0.04)',
-              border: '1px solid rgba(242,242,242,0.12)',
+              background: isLight ? '#FFFFFF' : 'rgba(242,242,242,0.04)',
+              border: isLight ? '1.5px solid rgba(0,0,0,0.14)' : '1px solid rgba(242,242,242,0.12)',
+              boxShadow: isLight ? '0 12px 30px rgba(0,0,0,0.06)' : 'none',
               borderRadius: '16px',
               padding: '24px',
               marginBottom: '32px',
@@ -1244,24 +1356,24 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
             }}
           >
             <div>
-              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', color: 'rgba(242,242,242,0.4)' }}>
+              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', color: isLight ? '#6B7280' : 'rgba(242,242,242,0.4)' }}>
                 FINAL SCORE
               </p>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', margin: '4px 0 0' }}>{score}</h3>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', margin: '4px 0 0', color: isLight ? '#111114' : '#F2F2F2' }}>{score}</h3>
             </div>
             <div>
-              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', color: 'rgba(242,242,242,0.4)' }}>
+              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', color: isLight ? '#6B7280' : 'rgba(242,242,242,0.4)' }}>
                 HEARTS LEFT
               </p>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', margin: '4px 0 0' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', margin: '4px 0 0', color: isLight ? '#111114' : '#F2F2F2' }}>
                 {hearts} / {maxHearts}
               </h3>
             </div>
             <div>
-              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', color: 'rgba(242,242,242,0.4)' }}>
+              <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', color: isLight ? '#6B7280' : 'rgba(242,242,242,0.4)' }}>
                 WEAKLIST ADDED
               </p>
-              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', margin: '4px 0 0' }}>
+              <h3 style={{ fontFamily: 'var(--font-heading)', fontSize: '24px', margin: '4px 0 0', color: isLight ? '#111114' : '#F2F2F2' }}>
                 {wrongQuestionIds.length}
               </h3>
             </div>
@@ -1272,8 +1384,8 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               onClick={handleStart}
               style={{
                 flex: 1,
-                background: '#F2F2F2',
-                color: '#000000',
+                background: isLight ? '#111114' : '#F2F2F2',
+                color: isLight ? '#FFFFFF' : '#000000',
                 border: 'none',
                 borderRadius: '8px',
                 padding: '14px',
@@ -1281,6 +1393,7 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
                 fontSize: '13px',
                 letterSpacing: '2px',
                 cursor: 'pointer',
+                boxShadow: isLight ? '0 4px 14px rgba(0,0,0,0.18)' : 'none',
               }}
             >
               RETRY DRILL
@@ -1289,9 +1402,9 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               onClick={onClose}
               style={{
                 flex: 1,
-                background: 'transparent',
-                color: '#F2F2F2',
-                border: '1px solid rgba(242,242,242,0.25)',
+                background: isLight ? '#FFFFFF' : 'transparent',
+                color: isLight ? '#111114' : '#F2F2F2',
+                border: isLight ? '1.5px solid rgba(0,0,0,0.2)' : '1px solid rgba(242,242,242,0.25)',
                 borderRadius: '8px',
                 padding: '14px',
                 fontFamily: 'var(--font-heading)',

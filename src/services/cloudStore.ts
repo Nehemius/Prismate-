@@ -44,6 +44,7 @@ const LOCAL_PROFILES_KEY = 'prismate_profiles_summary';
 const USER_DATA_PREFIX = 'prismate_userdata_';
 
 export const DEFAULT_PROFILES: ProfileSummary[] = [
+  { id: 'universal_guest', username: 'Universal Guest', avatar: 'G', password: '', updatedAt: 0 },
   { id: 'aqua', username: 'Aqua √X', avatar: 'A', password: 'prismate1.5', updatedAt: 0 },
   { id: 'pyroo', username: 'Pyroo', avatar: 'P', password: 'prismate1.5', updatedAt: 0 },
   { id: 'tanjiro', username: 'Tanjiro', avatar: 'T', password: 'prismate1.5', updatedAt: 0 },
@@ -57,7 +58,12 @@ export function getLocalProfiles(): ProfileSummary[] {
     const raw = localStorage.getItem(LOCAL_PROFILES_KEY);
     if (!raw) return DEFAULT_PROFILES;
     const parsed = JSON.parse(raw) as ProfileSummary[];
-    return parsed.length > 0 ? parsed : DEFAULT_PROFILES;
+    if (!parsed || parsed.length === 0) return DEFAULT_PROFILES;
+    // Ensure universal_guest exists
+    if (!parsed.some(p => p.id === 'universal_guest')) {
+      parsed.unshift({ id: 'universal_guest', username: 'Universal Guest', avatar: 'G', password: '', updatedAt: 0 });
+    }
+    return parsed;
   } catch {
     return DEFAULT_PROFILES;
   }

@@ -81,29 +81,31 @@
 
 /* ─── Light Mode Theme Tokens ─── */
 [data-theme="light"] {
-  --color-bg: #FFFFFF;
+  --color-bg: #EEF2F8;
   --color-fg: #111114;
-  --color-surface: #FFFFFF;
-  --color-card-bg: #FFFFFF;
-  --color-card-border: rgba(0, 0, 0, 0.14);
+  --color-surface: rgba(255, 255, 255, 0.92);
+  --color-card-bg: rgba(255, 255, 255, 0.94);
+  --color-card-border: rgba(0, 0, 0, 0.22);
   --color-text-primary: #111114;
   --color-text-secondary: #374151;
   --color-text-muted: #6B7280;
   --color-accent: #0077EE;
   --color-accent-subtle: rgba(0, 119, 238, 0.12);
 
-  --color-dock-bg: rgba(255, 255, 255, 0.96);
-  --color-dock-border: rgba(0, 0, 0, 0.14);
+  --color-dock-bg: rgba(255, 255, 255, 0.92);
+  --color-dock-border: rgba(0, 0, 0, 0.18);
   --color-dock-fg: rgba(17, 17, 20, 0.75);
   --color-dock-fg-muted: rgba(17, 17, 20, 0.45);
   --color-dock-active-bg: #111114;
   --color-dock-active-fg: #FFFFFF;
 
-  --tile-bg: #FFFFFF;
-  --tile-bg-hover: #F8FAFC;
-  --tile-border: rgba(0, 0, 0, 0.14);
-  --tile-border-hover: rgba(0, 119, 238, 0.45);
-  --tile-shadow: 0 4px 20px rgba(0, 0, 0, 0.06), inset 0 1px 0 0 rgba(255, 255, 255, 0.95);
+  /* Frosted & Liquid Glass Bento Slabs in Light Mode */
+  --tile-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.92) 0%, rgba(240, 245, 255, 0.82) 100%);
+  --tile-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, rgba(235, 242, 255, 0.92) 100%);
+  --tile-border: rgba(255, 255, 255, 0.95);
+  --tile-border-hover: rgba(0, 119, 238, 0.65);
+  --tile-shadow: 0 14px 34px -4px rgba(10, 30, 60, 0.14), 0 2px 6px rgba(0, 0, 0, 0.05), inset 0 1.5px 1px 0 rgba(255, 255, 255, 1);
+  --tile-backdrop: blur(28px) saturate(180%);
 
   --banner-bg: rgba(255, 255, 255, 0.96);
   --banner-border: rgba(0, 0, 0, 0.14);
@@ -477,22 +479,22 @@ body {
 
 /* ─── 3D Stacks Workspace & Cards in Light Mode ─── */
 [data-theme="light"] .stack-card-3d-face {
-  background: rgba(255, 255, 255, 0.86) !important;
+  background: rgba(255, 255, 255, 0.90) !important;
   backdrop-filter: blur(18px) saturate(180%) !important;
   -webkit-backdrop-filter: blur(18px) saturate(180%) !important;
-  border: 1px solid rgba(0, 0, 0, 0.12) !important;
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.08), inset 0 1px 0 0 rgba(255, 255, 255, 0.95) !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.55) !important;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.12), inset 0 1px 0 0 rgba(255, 255, 255, 0.95) !important;
   color: #111114 !important;
 }
 
 [data-theme="light"] .stack-card-3d-front.is-selected {
-  border: 2px solid #0055FF !important;
-  box-shadow: 0 0 28px rgba(0, 85, 255, 0.3), inset 0 1px 0 0 rgba(255, 255, 255, 0.95) !important;
+  border: 2.5px solid #000000 !important;
+  box-shadow: 0 0 28px rgba(0, 0, 0, 0.35), inset 0 1px 0 0 rgba(255, 255, 255, 0.95) !important;
 }
 
 [data-theme="light"] .stack-card-3d-back {
-  background: rgba(252, 252, 254, 0.94) !important;
-  border: 1px solid rgba(0, 0, 0, 0.14) !important;
+  background: rgba(252, 252, 254, 0.96) !important;
+  border: 1.5px solid rgba(0, 0, 0, 0.55) !important;
 }
 
 [data-theme="light"] .stack-card-3d-face h3,
