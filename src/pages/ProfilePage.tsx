@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useRef } from 'react';
 import type { ScreenType, ListType } from '../types/prismate';
 import { useApp } from '../context/useApp';
+import { IMMERSIVE_WALLPAPERS } from '../data/wallpapers';
+import { Sparkles, Check, Lock, RefreshCw } from 'lucide-react';
 
 /**
  * ProfilePage — Conventional Settings & Master List Manager
@@ -34,6 +36,16 @@ export const ProfilePage: React.FC = () => {
     lastCloudSyncTime,
     theme,
     setTheme,
+    bentoGlassStyle,
+    setBentoGlassStyle,
+    immersiveWallpaperMode,
+    setImmersiveWallpaperMode,
+    immersiveCycleMinutes,
+    setImmersiveCycleMinutes,
+    immersiveFixedWallpaper,
+    setImmersiveFixedWallpaper,
+    currentWallpaperIndex,
+    setCurrentWallpaperIndex,
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<ListType>('weaklist');
@@ -496,7 +508,7 @@ export const ProfilePage: React.FC = () => {
           </button>
         </div>
 
-        {/* Appearance / Theme Selector */}
+        {/* Appearance / Theme Selector (3-way) */}
         <div
           style={{
             display: 'flex',
@@ -512,8 +524,8 @@ export const ProfilePage: React.FC = () => {
             <p style={{ fontFamily: 'var(--font-subheading)', fontSize: '12px', margin: 0 }}>
               APPEARANCE / THEME
             </p>
-            <p style={{ fontFamily: 'var(--font-content)', fontSize: '10.5px', color: 'rgba(242,242,242,0.4)', margin: '2px 0 0' }}>
-              Select high-contrast dark or crisp white mode
+            <p style={{ fontFamily: 'var(--font-content)', fontSize: '10.5px', color: 'var(--color-text-muted, rgba(242,242,242,0.4))', margin: '2px 0 0' }}>
+              Select Dark, crisp Light, or dynamic Immersive wallpaper mode
             </p>
           </div>
           <div style={{ display: 'flex', gap: '6px' }}>
@@ -521,7 +533,7 @@ export const ProfilePage: React.FC = () => {
               onClick={() => setTheme('dark')}
               style={{
                 background: theme === 'dark' ? '#F2F2F2' : 'transparent',
-                color: theme === 'dark' ? '#000000' : 'rgba(242,242,242,0.6)',
+                color: theme === 'dark' ? '#000000' : 'var(--color-text-muted, rgba(242,242,242,0.6))',
                 border: theme === 'dark' ? 'none' : '1px solid rgba(242,242,242,0.2)',
                 borderRadius: '16px',
                 padding: '6px 12px',
@@ -540,7 +552,7 @@ export const ProfilePage: React.FC = () => {
               onClick={() => setTheme('light')}
               style={{
                 background: theme === 'light' ? '#111114' : 'transparent',
-                color: theme === 'light' ? '#FFFFFF' : 'rgba(242,242,242,0.6)',
+                color: theme === 'light' ? '#FFFFFF' : 'var(--color-text-muted, rgba(242,242,242,0.6))',
                 border: theme === 'light' ? 'none' : '1px solid rgba(242,242,242,0.2)',
                 borderRadius: '16px',
                 padding: '6px 12px',
@@ -555,6 +567,384 @@ export const ProfilePage: React.FC = () => {
             >
               ☀️ LIGHT
             </button>
+            <button
+              onClick={() => setTheme('immersive')}
+              style={{
+                background: theme === 'immersive' ? '#33F0FF' : 'transparent',
+                color: theme === 'immersive' ? '#000000' : 'var(--color-text-muted, rgba(242,242,242,0.6))',
+                border: theme === 'immersive' ? 'none' : '1px solid rgba(51, 240, 255, 0.3)',
+                borderRadius: '16px',
+                padding: '6px 12px',
+                fontFamily: 'var(--font-heading)',
+                fontSize: '10.5px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '4px',
+                boxShadow: theme === 'immersive' ? '0 0 14px rgba(51, 240, 255, 0.4)' : 'none',
+              }}
+            >
+              🌌 IMMERSIVE
+            </button>
+          </div>
+        </div>
+
+        {/* ── Immersive Mode Customization Panel ── */}
+        <div
+          style={{
+            background: 'var(--tile-bg, rgba(242,242,242,0.04))',
+            border: theme === 'immersive' ? '1.5px solid rgba(51, 240, 255, 0.35)' : '1px solid var(--tile-border, rgba(242,242,242,0.12))',
+            borderRadius: '14px',
+            padding: '18px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '16px',
+            boxShadow: theme === 'immersive' ? '0 10px 30px rgba(0, 0, 0, 0.25), 0 0 20px rgba(51, 240, 255, 0.08)' : 'none',
+          }}
+        >
+          {/* Header */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Sparkles style={{ width: '16px', height: '16px', color: '#33F0FF' }} />
+              <div>
+                <h4 style={{ fontFamily: 'var(--font-heading)', fontSize: '13px', letterSpacing: '1px', margin: 0, color: 'var(--color-text-primary, #FFFFFF)' }}>
+                  IMMERSIVE MODE & BENTO GLASS SETTINGS
+                </h4>
+                <p style={{ fontFamily: 'var(--font-content)', fontSize: '10.5px', color: 'var(--color-text-muted, rgba(242,242,242,0.5))', margin: '2px 0 0' }}>
+                  Wallpapers rotated from wallfolder, auto-cycle every 5-10m or lock one forever
+                </p>
+              </div>
+            </div>
+            {theme !== 'immersive' && (
+              <button
+                onClick={() => setTheme('immersive')}
+                style={{
+                  background: 'rgba(51, 240, 255, 0.12)',
+                  color: '#33F0FF',
+                  border: '1px solid rgba(51, 240, 255, 0.35)',
+                  borderRadius: '14px',
+                  padding: '5px 10px',
+                  fontSize: '9.5px',
+                  fontFamily: 'var(--font-heading)',
+                  letterSpacing: '1px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                ACTIVATE NOW
+              </button>
+            )}
+          </div>
+
+          {/* 1. Bento Cube Glass Style Selector */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', letterSpacing: '1px', color: 'var(--color-text-secondary, rgba(242,242,242,0.75))' }}>
+                BENTO CUBE GLASS STYLE
+              </span>
+              <span style={{ fontSize: '10px', color: '#33F0FF', fontFamily: 'var(--font-subheading)' }}>
+                {bentoGlassStyle === 'frosted' ? 'MATTE REFRACTIVE BLUR' : 'HIGH-GLOSS CHROMATIC SHEEN'}
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setBentoGlassStyle('frosted')}
+                style={{
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: bentoGlassStyle === 'frosted' ? '1.5px solid #33F0FF' : '1px solid rgba(255,255,255,0.14)',
+                  background: bentoGlassStyle === 'frosted' ? 'rgba(51, 240, 255, 0.12)' : 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(20px)',
+                  color: bentoGlassStyle === 'frosted' ? '#FFFFFF' : 'rgba(255,255,255,0.65)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', letterSpacing: '1px', fontWeight: 'bold' }}>
+                    FROSTED GLASS
+                  </span>
+                  {bentoGlassStyle === 'frosted' && <Check style={{ width: '14px', height: '14px', color: '#33F0FF' }} />}
+                </div>
+                <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-content)', opacity: 0.75 }}>
+                  Subtle matte frosted glass with smooth blur & soft shadows
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBentoGlassStyle('liquid')}
+                style={{
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: bentoGlassStyle === 'liquid' ? '1.5px solid #33F0FF' : '1px solid rgba(255,255,255,0.14)',
+                  background: bentoGlassStyle === 'liquid' ? 'rgba(51, 240, 255, 0.16)' : 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(30px)',
+                  boxShadow: bentoGlassStyle === 'liquid' ? '0 0 16px rgba(51, 240, 255, 0.2)' : 'none',
+                  color: bentoGlassStyle === 'liquid' ? '#FFFFFF' : 'rgba(255,255,255,0.65)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', letterSpacing: '1px', fontWeight: 'bold' }}>
+                    LIQUID GLASS ✨
+                  </span>
+                  {bentoGlassStyle === 'liquid' && <Check style={{ width: '14px', height: '14px', color: '#33F0FF' }} />}
+                </div>
+                <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-content)', opacity: 0.75 }}>
+                  Specular chromatic rim lighting, deep refractive gloss & sheen
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* 2. Wallpaper Cycling Mode */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <span style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', letterSpacing: '1px', color: 'var(--color-text-secondary, rgba(242,242,242,0.75))' }}>
+              WALLPAPER TRANSITION & CYCLE MODE
+            </span>
+            <div style={{ display: 'flex', gap: '8px' }}>
+              <button
+                type="button"
+                onClick={() => setImmersiveWallpaperMode('auto')}
+                style={{
+                  flex: 1,
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: immersiveWallpaperMode === 'auto' ? '#F2F2F2' : 'transparent',
+                  color: immersiveWallpaperMode === 'auto' ? '#000000' : 'var(--color-text-primary, #FFFFFF)',
+                  border: immersiveWallpaperMode === 'auto' ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '10.5px',
+                  letterSpacing: '1px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <RefreshCw style={{ width: '13px', height: '13px' }} />
+                AUTO-CYCLE (MOTION.DEV)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setImmersiveWallpaperMode('fixed')}
+                style={{
+                  flex: 1,
+                  padding: '10px 14px',
+                  borderRadius: '8px',
+                  background: immersiveWallpaperMode === 'fixed' ? '#33F0FF' : 'transparent',
+                  color: immersiveWallpaperMode === 'fixed' ? '#000000' : 'var(--color-text-primary, #FFFFFF)',
+                  border: immersiveWallpaperMode === 'fixed' ? 'none' : '1px solid rgba(255,255,255,0.2)',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '10.5px',
+                  letterSpacing: '1px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Lock style={{ width: '13px', height: '13px' }} />
+                SET WALLPAPER FOREVER
+              </button>
+            </div>
+
+            {/* Cycle Interval Selector (When in Auto-Cycle) */}
+            {immersiveWallpaperMode === 'auto' && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'rgba(255,255,255,0.03)', padding: '8px 12px', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <span style={{ fontSize: '10.5px', fontFamily: 'var(--font-content)', color: 'var(--color-text-muted, rgba(255,255,255,0.65))' }}>
+                  Crossfade cycle duration:
+                </span>
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  {[5, 7, 10].map((mins) => (
+                    <button
+                      key={mins}
+                      type="button"
+                      onClick={() => setImmersiveCycleMinutes(mins)}
+                      style={{
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        background: immersiveCycleMinutes === mins ? '#33F0FF' : 'rgba(255,255,255,0.08)',
+                        color: immersiveCycleMinutes === mins ? '#000000' : '#FFFFFF',
+                        border: 'none',
+                        fontSize: '9.5px',
+                        fontFamily: 'var(--font-heading)',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                      }}
+                    >
+                      {mins} MINS
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 3. Interactive Wallpaper Gallery (10 Wallpapers Rotated from wallfolder) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', letterSpacing: '1px', color: 'var(--color-text-secondary, rgba(242,242,242,0.75))' }}>
+                WALLPAPER VAULT (10 WALLPAPERS FROM WALLFOLDER)
+              </span>
+              <span style={{ fontSize: '10px', color: 'var(--color-text-muted, rgba(255,255,255,0.5))', fontFamily: 'var(--font-subheading)' }}>
+                CLICK TO PREVIEW OR LOCK
+              </span>
+            </div>
+
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))',
+                gap: '10px',
+                maxHeight: '260px',
+                overflowY: 'auto',
+                padding: '4px',
+              }}
+            >
+              {IMMERSIVE_WALLPAPERS.map((wall, idx) => {
+                const isCurrentActive =
+                  immersiveWallpaperMode === 'fixed'
+                    ? immersiveFixedWallpaper === wall.url
+                    : currentWallpaperIndex === idx;
+                const isFixed = immersiveFixedWallpaper === wall.url && immersiveWallpaperMode === 'fixed';
+
+                return (
+                  <div
+                    key={wall.id}
+                    onClick={() => {
+                      setCurrentWallpaperIndex(idx);
+                      if (immersiveWallpaperMode === 'fixed') {
+                        setImmersiveFixedWallpaper(wall.url);
+                      }
+                    }}
+                    style={{
+                      position: 'relative',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      border: isCurrentActive ? '2px solid #33F0FF' : '1px solid rgba(255,255,255,0.15)',
+                      boxShadow: isCurrentActive ? '0 0 14px rgba(51, 240, 255, 0.45)' : 'none',
+                      transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      aspectRatio: '16/9',
+                    }}
+                  >
+                    <img
+                      src={wall.thumbUrl}
+                      alt={wall.name}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'cover',
+                      }}
+                    />
+                    <div
+                      style={{
+                        position: 'absolute',
+                        inset: 0,
+                        background: isCurrentActive
+                          ? 'linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)'
+                          : 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 70%)',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'flex-end',
+                        padding: '6px',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '9px',
+                          fontFamily: 'var(--font-heading)',
+                          fontWeight: 'bold',
+                          color: '#FFFFFF',
+                          lineHeight: 1.1,
+                          textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                        }}
+                      >
+                        {wall.name}
+                      </span>
+                      <span
+                        style={{
+                          fontSize: '7.5px',
+                          fontFamily: 'var(--font-subheading)',
+                          color: isCurrentActive ? '#33F0FF' : 'rgba(255,255,255,0.7)',
+                          marginTop: '2px',
+                        }}
+                      >
+                        {isFixed ? '🔒 LOCKED' : isCurrentActive ? '▶ ACTIVE' : wall.mood}
+                      </span>
+                    </div>
+
+                    {isFixed && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          top: '4px',
+                          right: '4px',
+                          background: '#33F0FF',
+                          color: '#000000',
+                          borderRadius: '50%',
+                          width: '16px',
+                          height: '16px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Lock style={{ width: '9px', height: '9px' }} />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Lock Current Wallpaper Forever Button */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '4px' }}>
+              <button
+                type="button"
+                onClick={() => {
+                  const currentWall = IMMERSIVE_WALLPAPERS[currentWallpaperIndex] || IMMERSIVE_WALLPAPERS[0];
+                  setImmersiveFixedWallpaper(currentWall.url);
+                  setImmersiveWallpaperMode('fixed');
+                }}
+                style={{
+                  background: immersiveWallpaperMode === 'fixed' ? 'rgba(51, 240, 255, 0.16)' : 'rgba(255,255,255,0.08)',
+                  color: '#33F0FF',
+                  border: '1px solid rgba(51, 240, 255, 0.3)',
+                  borderRadius: '8px',
+                  padding: '6px 14px',
+                  fontFamily: 'var(--font-heading)',
+                  fontSize: '9.5px',
+                  letterSpacing: '1px',
+                  cursor: 'pointer',
+                  fontWeight: 'bold',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                }}
+              >
+                <Lock style={{ width: '12px', height: '12px' }} />
+                {immersiveWallpaperMode === 'fixed' ? 'WALLPAPER IS CURRENTLY LOCKED FOREVER' : 'LOCK CURRENT ACTIVE WALLPAPER FOREVER'}
+              </button>
+            </div>
           </div>
         </div>
 

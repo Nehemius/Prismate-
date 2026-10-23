@@ -4,6 +4,7 @@ import gsap from 'gsap';
 import UniversalLoader from './components/UniversalLoader';
 import WaveCanvas from './components/WaveCanvas';
 import type { WaveCanvasRef } from './components/WaveCanvas';
+import ImmersiveBackground from './components/ImmersiveBackground';
 import Prism from './components/Prism';
 import PrismateLogo from './components/PrismateLogo';
 import LightStreaks from './components/LightStreaks';
@@ -49,6 +50,7 @@ const MainAppContent: React.FC = () => {
     triggerLoader,
     inApp,
     setInApp,
+    theme,
   } = useApp();
 
   const [phase, setPhase] = useState<AppPhase>(() => {
@@ -239,17 +241,20 @@ const MainAppContent: React.FC = () => {
         metadata={globalLoaderMetadata || undefined}
       />
 
-      {/* ── Global Wave Canvas (Flows in login and across all workspaces except user page) */}
+      {/* ── Immersive Mode Wallpaper Background (Rotates wallpapers every 5-10m or fixed) */}
+      <ImmersiveBackground />
+
+      {/* ── Global Wave Canvas (Flows in login and across workspaces, removed in profile & immersive mode) */}
       <WaveCanvas
         ref={waveCanvasRef}
-        active={currentScreen !== 'profile'}
+        active={currentScreen !== 'profile' && theme !== 'immersive'}
         style={{
           position: 'fixed',
           inset: 0,
           zIndex: inApp ? 1 : 0,
           pointerEvents: 'none',
-          opacity: currentScreen === 'profile' ? 0 : inApp ? 0.72 : 1,
-          display: currentScreen === 'profile' ? 'none' : 'block',
+          opacity: currentScreen === 'profile' || theme === 'immersive' ? 0 : inApp ? 0.72 : 1,
+          display: currentScreen === 'profile' || theme === 'immersive' ? 'none' : 'block',
           transition: 'opacity 0.4s ease',
         }}
       />

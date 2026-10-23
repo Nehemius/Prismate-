@@ -33,9 +33,22 @@ export interface AppContextType {
   inApp: boolean;
   setInApp: (val: boolean) => void;
   // Theme System
-  theme: 'dark' | 'light';
-  setTheme: (theme: 'dark' | 'light') => void;
+  theme: 'dark' | 'light' | 'immersive';
+  setTheme: (theme: 'dark' | 'light' | 'immersive') => void;
   toggleTheme: () => void;
+  // Immersive Mode & Bento Glass System
+  bentoGlassStyle: 'frosted' | 'liquid';
+  setBentoGlassStyle: (style: 'frosted' | 'liquid') => void;
+  immersiveWallpaperMode: 'auto' | 'fixed';
+  setImmersiveWallpaperMode: (mode: 'auto' | 'fixed') => void;
+  immersiveCycleMinutes: number;
+  setImmersiveCycleMinutes: (mins: number) => void;
+  immersiveFixedWallpaper: string;
+  setImmersiveFixedWallpaper: (url: string) => void;
+  currentWallpaperIndex: number;
+  setCurrentWallpaperIndex: (idx: number) => void;
+  nextWallpaper: () => void;
+  prevWallpaper: () => void;
   // Cloud & Profile Extension
   profiles: ProfileSummary[];
   addProfile: (username: string, avatar: string, password?: string) => Promise<void>;

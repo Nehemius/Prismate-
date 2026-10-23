@@ -332,30 +332,53 @@ export const NavDock: React.FC = () => {
           }}
         />
 
-        {/* Theme Toggle Button (☀️ Light / 🌙 Dark) */}
+        {/* Theme Toggle Button (☀️ Light / 🌌 Immersive / 🌙 Dark) */}
         <motion.button
           className="prismate-theme-toggle-btn"
           whileHover={{ scale: 1.12 }}
           whileTap={{ scale: 0.92 }}
           onClick={toggleTheme}
-          aria-label={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          aria-label={
+            theme === 'dark'
+              ? 'Switch to Light Mode'
+              : theme === 'light'
+              ? 'Switch to Immersive Mode'
+              : 'Switch to Dark Mode'
+          }
+          title={
+            theme === 'dark'
+              ? 'Switch to Light Mode'
+              : theme === 'light'
+              ? 'Switch to Immersive Mode'
+              : 'Switch to Dark Mode'
+          }
           style={{
             width: '38px',
             height: '38px',
             borderRadius: '50%',
-            background: theme === 'dark' ? 'rgba(255, 255, 255, 0.08)' : 'rgba(0, 0, 0, 0.06)',
-            border: theme === 'dark' ? '1px solid rgba(255, 255, 255, 0.2)' : '1px solid rgba(0, 0, 0, 0.12)',
-            color: theme === 'dark' ? '#F2F2F2' : '#111114',
+            background:
+              theme === 'immersive'
+                ? 'rgba(51, 240, 255, 0.16)'
+                : theme === 'dark'
+                ? 'rgba(255, 255, 255, 0.08)'
+                : 'rgba(0, 0, 0, 0.06)',
+            border:
+              theme === 'immersive'
+                ? '1px solid rgba(51, 240, 255, 0.45)'
+                : theme === 'dark'
+                ? '1px solid rgba(255, 255, 255, 0.2)'
+                : '1px solid rgba(0, 0, 0, 0.12)',
+            color: theme === 'immersive' ? '#33F0FF' : theme === 'dark' ? '#F2F2F2' : '#111114',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '15px',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
+            boxShadow: theme === 'immersive' ? '0 0 12px rgba(51, 240, 255, 0.3)' : 'none',
           }}
         >
-          {theme === 'dark' ? '☀️' : '🌙'}
+          {theme === 'dark' ? '☀️' : theme === 'light' ? '🌌' : '🌙'}
         </motion.button>
       </nav>
     </>

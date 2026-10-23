@@ -3,6 +3,7 @@ import type { ScreenType, ListType, ListItem } from '../types/prismate';
 import { INITIAL_LIST_ITEMS } from '../data/mockData';
 import { AppContext } from './appContextDefinition';
 import type { UniversalLoaderMetadata } from '../components/UniversalLoader';
+import { IMMERSIVE_WALLPAPERS } from '../data/wallpapers';
 import {
   type ProfileSummary,
   type UserFullData,
@@ -72,13 +73,13 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [globalLoader, setGlobalLoader] = useState(false);
   const [globalLoaderMetadata, setGlobalLoaderMetadata] = useState<UniversalLoaderMetadata | null>(null);
 
-  // Theme Management (Light & Dark System)
-  const [theme, setThemeState] = useState<'dark' | 'light'>(() => {
-    const saved = localStorage.getItem('prismate_theme') as 'dark' | 'light' | null;
-    return saved === 'light' ? 'light' : 'dark';
+  // Theme Management (Dark, Light & Immersive System)
+  const [theme, setThemeState] = useState<'dark' | 'light' | 'immersive'>(() => {
+    const saved = localStorage.getItem('prismate_theme') as 'dark' | 'light' | 'immersive' | null;
+    return saved === 'light' ? 'light' : saved === 'immersive' ? 'immersive' : 'dark';
   });
 
-  const setTheme = useCallback((t: 'dark' | 'light') => {
+  const setTheme = useCallback((t: 'dark' | 'light' | 'immersive') => {
     setThemeState(t);
     localStorage.setItem('prismate_theme', t);
     document.documentElement.setAttribute('data-theme', t);
@@ -86,16 +87,81 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
   const toggleTheme = useCallback(() => {
     setThemeState((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
+      const next: 'dark' | 'light' | 'immersive' =
+        prev === 'dark' ? 'light' : prev === 'light' ? 'immersive' : 'dark';
       localStorage.setItem('prismate_theme', next);
       document.documentElement.setAttribute('data-theme', next);
       return next;
     });
   }, []);
 
+  // Bento Glass Style ('frosted' | 'liquid')
+  const [bentoGlassStyle, setBentoGlassStyleState] = useState<'frosted' | 'liquid'>(() => {
+    const saved = localStorage.getItem('prismate_bento_glass_style') as 'frosted' | 'liquid' | null;
+    return saved === 'liquid' ? 'liquid' : 'frosted';
+  });
+
+  const setBentoGlassStyle = useCallback((style: 'frosted' | 'liquid') => {
+    setBentoGlassStyleState(style);
+    localStorage.setItem('prismate_bento_glass_style', style);
+    document.documentElement.setAttribute('data-glass-style', style);
+  }, []);
+
+  // Immersive Wallpaper Cycling Settings
+  const [immersiveWallpaperMode, setImmersiveWallpaperModeState] = useState<'auto' | 'fixed'>(() => {
+    const saved = localStorage.getItem('prismate_immersive_wall_mode') as 'auto' | 'fixed' | null;
+    return saved === 'fixed' ? 'fixed' : 'auto';
+  });
+
+  const setImmersiveWallpaperMode = useCallback((mode: 'auto' | 'fixed') => {
+    setImmersiveWallpaperModeState(mode);
+    localStorage.setItem('prismate_immersive_wall_mode', mode);
+  }, []);
+
+  const [immersiveCycleMinutes, setImmersiveCycleMinutesState] = useState<number>(() => {
+    const saved = localStorage.getItem('prismate_immersive_cycle_mins');
+    return saved ? Math.max(1, parseInt(saved, 10)) : 5;
+  });
+
+  const setImmersiveCycleMinutes = useCallback((mins: number) => {
+    setImmersiveCycleMinutesState(mins);
+    localStorage.setItem('prismate_immersive_cycle_mins', mins.toString());
+  }, []);
+
+  const [immersiveFixedWallpaper, setImmersiveFixedWallpaperState] = useState<string>(() => {
+    const saved = localStorage.getItem('prismate_immersive_fixed_wall');
+    return saved || IMMERSIVE_WALLPAPERS[0]?.url || '/wallpapers/wallpaper_01.jpg';
+  });
+
+  const setImmersiveFixedWallpaper = useCallback((url: string) => {
+    setImmersiveFixedWallpaperState(url);
+    localStorage.setItem('prismate_immersive_fixed_wall', url);
+  }, []);
+
+  const [currentWallpaperIndex, setCurrentWallpaperIndex] = useState<number>(0);
+
+  const nextWallpaper = useCallback(() => {
+    setCurrentWallpaperIndex((prev) => (prev + 1) % IMMERSIVE_WALLPAPERS.length);
+  }, []);
+
+  const prevWallpaper = useCallback(() => {
+    setCurrentWallpaperIndex((prev) => (prev - 1 + IMMERSIVE_WALLPAPERS.length) % IMMERSIVE_WALLPAPERS.length);
+  }, []);
+
+  // Auto-cycle timer when in 'auto' mode and theme is 'immersive' (every 5-10 minutes)
+  useEffect(() => {
+    if (theme !== 'immersive' || immersiveWallpaperMode !== 'auto') return;
+    const intervalMs = Math.max(1, immersiveCycleMinutes) * 60 * 1000;
+    const timer = setInterval(() => {
+      setCurrentWallpaperIndex((prev) => (prev + 1) % IMMERSIVE_WALLPAPERS.length);
+    }, intervalMs);
+    return () => clearInterval(timer);
+  }, [theme, immersiveWallpaperMode, immersiveCycleMinutes]);
+
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-  }, [theme]);
+    document.documentElement.setAttribute('data-glass-style', bentoGlassStyle);
+  }, [theme, bentoGlassStyle]);
 
   // Cloud & Profiles State
   const [profiles, setProfiles] = useState<ProfileSummary[]>(() => getLocalProfiles());
@@ -469,6 +535,18 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         theme,
         setTheme,
         toggleTheme,
+        bentoGlassStyle,
+        setBentoGlassStyle,
+        immersiveWallpaperMode,
+        setImmersiveWallpaperMode,
+        immersiveCycleMinutes,
+        setImmersiveCycleMinutes,
+        immersiveFixedWallpaper,
+        setImmersiveFixedWallpaper,
+        currentWallpaperIndex,
+        setCurrentWallpaperIndex,
+        nextWallpaper,
+        prevWallpaper,
         profiles,
         addProfile,
         deleteProfile,

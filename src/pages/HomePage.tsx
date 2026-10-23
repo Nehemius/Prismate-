@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
+import { motion } from 'motion/react';
 import { useApp } from '../context/useApp';
 import { INITIAL_DIAGRAMS, INITIAL_QUESTIONS } from '../data/mockData';
 import GridGuides from '../components/GridGuides';
@@ -64,6 +65,8 @@ const TILE_BASE: React.CSSProperties = {
   borderColor: 'var(--tile-border, rgba(242,242,242,0.10))',
   borderRadius: '20px',
   boxShadow: 'var(--tile-shadow, inset 0 1px 0 0 rgba(242,242,242,0.22))',
+  backdropFilter: 'var(--tile-backdrop, none)',
+  WebkitBackdropFilter: 'var(--tile-backdrop, none)',
   padding: '20px',
   display: 'flex',
   flexDirection: 'column' as const,
@@ -72,7 +75,7 @@ const TILE_BASE: React.CSSProperties = {
   boxSizing: 'border-box' as const,
   width: '100%',
   height: '100%',
-  transition: 'border-color 0.2s ease, background 0.2s ease',
+  transition: 'border-color 0.25s ease, background 0.25s ease, box-shadow 0.25s ease',
 };
 
 export const HomePage: React.FC = () => {
@@ -88,6 +91,8 @@ export const HomePage: React.FC = () => {
     addToList,
     removeFromList,
     isInList,
+    theme,
+    bentoGlassStyle,
   } = useApp();
   const isEditMode = editModeScreen === 'home';
 
@@ -665,8 +670,13 @@ export const HomePage: React.FC = () => {
       />
 
       {/* ── Whole-Screen 16 × 8 Bento Canvas (100% width/height edge-to-edge) */}
-      <div
+      <motion.div
         className="prismate-home-grid"
+        initial={{ opacity: 0, scale: 0.995 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.45, ease: [0.16, 1, 0.3, 1] }}
+        data-theme={theme}
+        data-glass-style={bentoGlassStyle}
         style={{
           position: 'relative',
           flex: 1,
@@ -708,7 +718,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setClockModalOpen(true)}
               style={tileStyle('clock', { justifyContent: 'center', alignItems: 'center' })}
             >
@@ -820,7 +830,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setPomoModalOpen(true)}
               style={tileStyle('pomodoro', { justifyContent: 'center', alignItems: 'center', gap: '14px' })}
             >
@@ -935,7 +945,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setTasksQuotesModalOpen(true)}
               style={tileStyle('todos', { justifyContent: 'flex-start', overflowY: 'auto' })}
             >
@@ -1014,7 +1024,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setTasksQuotesModalOpen(true)}
               style={tileStyle('pulse', { justifyContent: 'center' })}
             >
@@ -1072,7 +1082,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setFormulaIdx((i) => (i + 1) % formulas.length)}
               style={tileStyle('formula', {
                 cursor: isEditMode ? 'grab' : 'pointer',
@@ -1147,7 +1157,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile centre-title-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile centre-title-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setWelcomeModalOpen(true)}
               style={tileStyle('welcome', {
                 flexDirection: 'row',
@@ -1236,7 +1246,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setDiagIdx((i) => (i + 1) % INITIAL_DIAGRAMS.length)}
               style={tileStyle('diagram', {
                 cursor: isEditMode ? 'grab' : 'pointer',
@@ -1300,7 +1310,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setActiveQuizModalOpen(true)}
               style={tileStyle('quiz', { justifyContent: 'center' })}
             >
@@ -1409,7 +1419,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setHistoryModalOpen(true)}
               style={tileStyle('history', { justifyContent: 'flex-start', overflowY: 'auto' })}
             >
@@ -1490,7 +1500,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && setStudyTubeModalOpen(true)}
               style={tileStyle('studytube', {
                 justifyContent: 'center',
@@ -1550,7 +1560,7 @@ export const HomePage: React.FC = () => {
               />
             )}
             <div
-              className={`prism-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
+              className={`prism-bento-tile prismate-bento-tile ${isEditMode ? 'is-edit-mode' : ''}`}
               onDoubleClick={() => !isEditMode && fileInputRef.current?.click()}
               style={tileStyle('custom_pic', { padding: 0, overflow: 'hidden' })}
             >
@@ -1604,7 +1614,7 @@ export const HomePage: React.FC = () => {
             </div>
           </div>
         )}
-      </div>
+      </motion.div>
 
       {/* ── All Double-Click Popups & Modals ───────────────────────────────── */}
       <ClockModal

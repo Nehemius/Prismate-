@@ -128,6 +128,85 @@
   --toolbar-text-faint: #9CA3AF;
 }
 
+/* ─── Immersive Mode Theme Tokens ─── */
+[data-theme="immersive"] {
+  --color-bg: transparent;
+  --color-fg: #FFFFFF;
+  --color-surface: rgba(14, 16, 26, 0.75);
+  --color-card-bg: rgba(16, 18, 28, 0.65);
+  --color-card-border: rgba(255, 255, 255, 0.22);
+  --color-text-primary: #FFFFFF;
+  --color-text-secondary: rgba(255, 255, 255, 0.88);
+  --color-text-muted: rgba(255, 255, 255, 0.65);
+  --color-accent: #33F0FF;
+  --color-accent-subtle: rgba(51, 240, 255, 0.2);
+
+  --color-dock-bg: rgba(12, 14, 24, 0.75);
+  --color-dock-border: rgba(255, 255, 255, 0.25);
+  --color-dock-fg: rgba(255, 255, 255, 0.85);
+  --color-dock-fg-muted: rgba(255, 255, 255, 0.55);
+  --color-dock-active-bg: #33F0FF;
+  --color-dock-active-fg: #000000;
+
+  --banner-bg: rgba(14, 16, 26, 0.88);
+  --banner-border: rgba(255, 255, 255, 0.32);
+  --banner-shadow: 0 16px 40px rgba(0, 0, 0, 0.65);
+  --banner-grip: rgba(255, 255, 255, 0.6);
+  --banner-text: #FFFFFF;
+  --banner-muted: rgba(255, 255, 255, 0.65);
+  --banner-btn-bg: #33F0FF;
+  --banner-btn-fg: #000000;
+  --color-shadow: rgba(0, 0, 0, 0.5);
+
+  --toolbar-bg: rgba(12, 14, 24, 0.88);
+  --toolbar-locked-bg: rgba(10, 12, 20, 0.85);
+  --toolbar-border: rgba(255, 255, 255, 0.25);
+  --toolbar-title-fg: #FFFFFF;
+  --toolbar-span-fg: rgba(255, 255, 255, 0.7);
+  --toolbar-dim-fg: rgba(255, 255, 255, 0.5);
+  --toolbar-btn-bg: rgba(255, 255, 255, 0.14);
+  --toolbar-btn-border: rgba(255, 255, 255, 0.3);
+  --toolbar-btn-fg: #FFFFFF;
+  --toolbar-text-muted: rgba(255, 255, 255, 0.7);
+  --toolbar-text-faint: rgba(255, 255, 255, 0.5);
+
+  /* Frosted Glass (Default) */
+  --tile-bg: rgba(18, 20, 32, 0.62);
+  --tile-bg-hover: rgba(26, 30, 48, 0.75);
+  --tile-border: rgba(255, 255, 255, 0.20);
+  --tile-border-hover: rgba(51, 240, 255, 0.55);
+  --tile-shadow: 0 12px 32px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.28);
+  --tile-backdrop: blur(24px) saturate(160%);
+}
+
+/* Liquid Glass Variant */
+[data-theme="immersive"][data-glass-style="liquid"] {
+  --tile-bg: linear-gradient(135deg, rgba(255, 255, 255, 0.18) 0%, rgba(16, 20, 38, 0.52) 42%, rgba(51, 240, 255, 0.14) 100%);
+  --tile-bg-hover: linear-gradient(135deg, rgba(255, 255, 255, 0.26) 0%, rgba(22, 28, 52, 0.62) 42%, rgba(51, 240, 255, 0.22) 100%);
+  --tile-border: rgba(255, 255, 255, 0.38);
+  --tile-border-hover: #33F0FF;
+  --tile-shadow: 0 18px 48px rgba(0, 0, 0, 0.55), inset 0 1.5px 1px rgba(255, 255, 255, 0.5), inset 0 -1.5px 2px rgba(51, 240, 255, 0.3), 0 0 24px rgba(51, 240, 255, 0.18);
+  --tile-backdrop: blur(34px) saturate(220%) brightness(1.1);
+}
+
+/* Liquid Glass Sheen Effect on Bento Tiles */
+[data-glass-style="liquid"] .prismate-bento-tile::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.8) 50%, rgba(51, 240, 255, 0.8) 100%);
+  opacity: 0.7;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+}
+
+[data-glass-style="liquid"] .prismate-bento-tile:hover::before {
+  opacity: 1;
+}
+
 /* Reset */
 *, *::before, *::after {
   margin: 0;
@@ -163,6 +242,16 @@ body {
   background: var(--tile-bg-hover, linear-gradient(135deg, rgba(22, 22, 22, 0.94), rgba(36, 36, 36, 0.82))) !important;
   transform: translateY(-2px);
   box-shadow: 0 12px 28px -4px var(--color-shadow, rgba(0, 0, 0, 0.55)), inset 0 1px 0 0 rgba(242, 242, 242, 0.30) !important;
+}
+
+[data-theme="immersive"] .prism-bento-tile:not(.is-edit-mode):hover {
+  transform: translateY(-5px) scale(1.012) !important;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.35) !important;
+}
+
+[data-theme="immersive"][data-glass-style="liquid"] .prism-bento-tile:not(.is-edit-mode):hover {
+  transform: translateY(-6px) scale(1.016) !important;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.65), inset 0 2px 2px rgba(255, 255, 255, 0.6), inset 0 -2px 3px rgba(51, 240, 255, 0.4), 0 0 32px rgba(51, 240, 255, 0.28) !important;
 }
 
 /* ─── 3D Flashcard Transitions (Kokonut UI & Motion) ─── */
