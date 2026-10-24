@@ -38,6 +38,8 @@ export const ProfilePage: React.FC = () => {
     setTheme,
     bentoGlassStyle,
     setBentoGlassStyle,
+    immersiveTone,
+    setImmersiveTone,
     immersiveWallpaperMode,
     setImmersiveWallpaperMode,
     immersiveCycleMinutes,
@@ -647,7 +649,7 @@ export const ProfilePage: React.FC = () => {
                 {bentoGlassStyle === 'frosted' ? 'MATTE REFRACTIVE BLUR' : 'HIGH-GLOSS CHROMATIC SHEEN'}
               </span>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px' }}>
               <button
                 type="button"
                 onClick={() => setBentoGlassStyle('frosted')}
@@ -704,6 +706,107 @@ export const ProfilePage: React.FC = () => {
                 </div>
                 <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-content)', opacity: 0.75 }}>
                   Specular chromatic rim lighting, deep refractive gloss & sheen
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setBentoGlassStyle('obsidian')}
+                style={{
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: bentoGlassStyle === 'obsidian' ? '1.5px solid #33F0FF' : '1px solid rgba(255,255,255,0.14)',
+                  background: bentoGlassStyle === 'obsidian' ? 'rgba(51, 240, 255, 0.16)' : 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(28px)',
+                  boxShadow: bentoGlassStyle === 'obsidian' ? '0 0 16px rgba(51, 240, 255, 0.2)' : 'none',
+                  color: bentoGlassStyle === 'obsidian' ? '#FFFFFF' : 'rgba(255,255,255,0.65)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', letterSpacing: '1px', fontWeight: 'bold' }}>
+                    OBSIDIAN GLASS 🖤
+                  </span>
+                  {bentoGlassStyle === 'obsidian' && <Check style={{ width: '14px', height: '14px', color: '#33F0FF' }} />}
+                </div>
+                <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-content)', opacity: 0.75 }}>
+                  Smoked acrylic glass with top-right specular corner sheen (Math workspace)
+                </span>
+              </button>
+            </div>
+          </div>
+
+          {/* 1.5. Immersive Mode Tone Selector (Dark vs Light under Immersive Mode) */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span style={{ fontFamily: 'var(--font-subheading)', fontSize: '11px', letterSpacing: '1px', color: 'var(--color-text-secondary, rgba(242,242,242,0.75))' }}>
+                IMMERSIVE MODE TONE (OVER DYNAMIC WALLPAPERS)
+              </span>
+              <span style={{ fontSize: '10px', color: '#33F0FF', fontFamily: 'var(--font-subheading)' }}>
+                {immersiveTone === 'dark' ? 'DARK SMOKED SLABS' : 'LIGHT FROSTED SLABS'}
+              </span>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setImmersiveTone('dark')}
+                style={{
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: immersiveTone === 'dark' ? '1.5px solid #33F0FF' : '1px solid rgba(255,255,255,0.14)',
+                  background: immersiveTone === 'dark' ? 'rgba(51, 240, 255, 0.12)' : 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(20px)',
+                  color: immersiveTone === 'dark' ? '#FFFFFF' : 'rgba(255,255,255,0.65)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', letterSpacing: '1px', fontWeight: 'bold' }}>
+                    IMMERSIVE DARK 🌙
+                  </span>
+                  {immersiveTone === 'dark' && <Check style={{ width: '14px', height: '14px', color: '#33F0FF' }} />}
+                </div>
+                <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-content)', opacity: 0.75 }}>
+                  Smoked translucent dark glass slabs with crisp white text & Material You neon glow
+                </span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setImmersiveTone('light')}
+                style={{
+                  padding: '12px',
+                  borderRadius: '10px',
+                  border: immersiveTone === 'light' ? '1.5px solid #33F0FF' : '1px solid rgba(255,255,255,0.14)',
+                  background: immersiveTone === 'light' ? 'rgba(51, 240, 255, 0.16)' : 'rgba(255,255,255,0.03)',
+                  backdropFilter: 'blur(20px)',
+                  color: immersiveTone === 'light' ? '#FFFFFF' : 'rgba(255,255,255,0.65)',
+                  cursor: 'pointer',
+                  textAlign: 'left',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '4px',
+                  transition: 'all 0.2s',
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <span style={{ fontFamily: 'var(--font-heading)', fontSize: '11px', letterSpacing: '1px', fontWeight: 'bold' }}>
+                    IMMERSIVE LIGHT ☀️
+                  </span>
+                  {immersiveTone === 'light' && <Check style={{ width: '14px', height: '14px', color: '#33F0FF' }} />}
+                </div>
+                <span style={{ fontSize: '9.5px', fontFamily: 'var(--font-content)', opacity: 0.75 }}>
+                  Luminous frosted white slabs with dark typography floating over dynamic wallpapers
                 </span>
               </button>
             </div>
@@ -870,25 +973,27 @@ export const ProfilePage: React.FC = () => {
                     >
                       <span
                         style={{
-                          fontSize: '9px',
+                          fontSize: '9.5px',
                           fontFamily: 'var(--font-heading)',
                           fontWeight: 'bold',
                           color: '#FFFFFF',
                           lineHeight: 1.1,
                           textShadow: '0 1px 3px rgba(0,0,0,0.8)',
+                          letterSpacing: '1px',
                         }}
                       >
-                        {wall.name}
+                        {`WALLPAPER ${String(idx + 1).padStart(2, '0')}`}
                       </span>
                       <span
                         style={{
-                          fontSize: '7.5px',
+                          fontSize: '8px',
                           fontFamily: 'var(--font-subheading)',
                           color: isCurrentActive ? '#33F0FF' : 'rgba(255,255,255,0.7)',
                           marginTop: '2px',
+                          letterSpacing: '0.5px',
                         }}
                       >
-                        {isFixed ? '🔒 LOCKED' : isCurrentActive ? '▶ ACTIVE' : wall.mood}
+                        {isFixed ? '🔒 LOCKED' : isCurrentActive ? '▶ ACTIVE' : `SLOT ${idx + 1}`}
                       </span>
                     </div>
 

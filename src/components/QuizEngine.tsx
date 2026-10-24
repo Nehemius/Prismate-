@@ -127,8 +127,9 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
   onClose,
   category,
 }) => {
-  const { addToList, removeFromList, isInList, weaklist, studylist, stronglist, theme } = useApp();
-  const isLight = theme === 'light';
+  const { addToList, removeFromList, isInList, weaklist, studylist, stronglist, theme, immersiveTone } = useApp();
+  const isImmersive = theme === 'immersive';
+  const isLight = theme === 'light' || (isImmersive && immersiveTone === 'light');
 
   // Infer targetCategory: either passed explicitly or if all questions share the same category
   const targetCategory = category || (
@@ -408,7 +409,11 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
         position: 'fixed',
         inset: 0,
         zIndex: 5000,
-        background: isLight ? '#F4F7FC' : '#000000',
+        background: isImmersive
+          ? (immersiveTone === 'light' ? 'rgba(244, 247, 252, 0.72)' : 'rgba(8, 10, 18, 0.75)')
+          : isLight ? '#F4F7FC' : '#000000',
+        backdropFilter: isImmersive ? 'blur(28px) saturate(160%)' : 'none',
+        WebkitBackdropFilter: isImmersive ? 'blur(28px) saturate(160%)' : 'none',
         color: isLight ? '#111114' : '#F2F2F2',
         display: 'flex',
         flexDirection: 'column',
@@ -424,7 +429,10 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
           alignItems: 'center',
           justifyContent: 'space-between',
           padding: '16px 28px',
-          background: isLight ? '#FFFFFF' : '#0A0A0A',
+          background: isImmersive
+            ? (immersiveTone === 'light' ? 'rgba(255, 255, 255, 0.82)' : 'rgba(14, 18, 28, 0.82)')
+            : isLight ? '#FFFFFF' : '#0A0A0A',
+          backdropFilter: isImmersive ? 'blur(24px)' : 'none',
           borderBottom: isLight ? '1px solid rgba(0,0,0,0.12)' : '1px solid rgba(242,242,242,0.10)',
           position: 'relative',
           zIndex: 20,
@@ -833,13 +841,22 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               <div
                 className={`flashcard-face ${isTimeout ? 'al-grayscale' : ''}`}
                 style={{
-                  background: isLight
+                  background: isImmersive
+                    ? (isWrong
+                        ? 'linear-gradient(135deg, rgba(60,15,25,0.85), rgba(35,10,18,0.88))'
+                        : isCorrect
+                        ? 'linear-gradient(135deg, rgba(10,40,25,0.85), rgba(12,28,20,0.88))'
+                        : (isLight
+                            ? 'linear-gradient(135deg, rgba(255,255,255,0.88), rgba(240,245,255,0.78))'
+                            : 'linear-gradient(135deg, rgba(16,20,32,0.82), rgba(10,12,22,0.88))'))
+                    : isLight
                     ? (isWrong
                         ? 'linear-gradient(135deg, rgba(254,242,242,0.98), rgba(254,226,226,0.95))'
                         : 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(245,248,255,0.95))')
                     : (isWrong
                         ? 'linear-gradient(135deg, rgba(30,10,15,0.92), rgba(15,10,12,0.95))'
                         : 'linear-gradient(135deg, rgba(18,18,18,0.95), rgba(10,10,10,0.92))'),
+                  backdropFilter: isImmersive ? 'blur(30px) saturate(180%)' : 'none',
                   border: isWrong
                     ? '1.5px solid #EB104B'
                     : isCorrect
@@ -1019,9 +1036,14 @@ export const QuizEngine: React.FC<QuizEngineProps> = ({
               <div
                 className="flashcard-face flashcard-back"
                 style={{
-                  background: isLight
+                  background: isImmersive
+                    ? (isLight
+                        ? 'linear-gradient(135deg, rgba(255,255,255,0.88), rgba(240,245,255,0.78))'
+                        : 'linear-gradient(135deg, rgba(16,20,32,0.82), rgba(10,12,22,0.88))')
+                    : isLight
                     ? 'linear-gradient(135deg, rgba(255,255,255,0.98), rgba(245,248,255,0.95))'
                     : 'linear-gradient(135deg, rgba(20,20,22,0.98), rgba(12,12,14,0.95))',
+                  backdropFilter: isImmersive ? 'blur(30px) saturate(180%)' : 'none',
                   border: isCorrect
                     ? '1.5px solid #10B981'
                     : isWrong

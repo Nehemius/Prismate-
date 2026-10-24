@@ -37,8 +37,11 @@ export interface AppContextType {
   setTheme: (theme: 'dark' | 'light' | 'immersive') => void;
   toggleTheme: () => void;
   // Immersive Mode & Bento Glass System
-  bentoGlassStyle: 'frosted' | 'liquid';
-  setBentoGlassStyle: (style: 'frosted' | 'liquid') => void;
+  bentoGlassStyle: 'frosted' | 'liquid' | 'obsidian';
+  setBentoGlassStyle: (style: 'frosted' | 'liquid' | 'obsidian') => void;
+  immersiveTone: 'dark' | 'light';
+  setImmersiveTone: (tone: 'dark' | 'light') => void;
+  toggleImmersiveTone: () => void;
   immersiveWallpaperMode: 'auto' | 'fixed';
   setImmersiveWallpaperMode: (mode: 'auto' | 'fixed') => void;
   immersiveCycleMinutes: number;

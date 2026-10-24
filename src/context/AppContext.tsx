@@ -89,23 +89,68 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     document.documentElement.setAttribute('data-theme', t);
   }, []);
 
-  const toggleTheme = useCallback(() => {
-    setThemeState((prev) => {
-      const next: 'dark' | 'light' | 'immersive' =
-        prev === 'dark' ? 'light' : prev === 'light' ? 'immersive' : 'dark';
-      localStorage.setItem('prismate_theme', next);
-      document.documentElement.setAttribute('data-theme', next);
+  // Immersive Tone ('dark' | 'light')
+  const [immersiveTone, setImmersiveToneState] = useState<'dark' | 'light'>(() => {
+    const saved = localStorage.getItem('prismate_immersive_tone') as 'dark' | 'light' | null;
+    const initial = saved === 'light' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-immersive-tone', initial);
+    return initial;
+  });
+
+  const setImmersiveTone = useCallback((tone: 'dark' | 'light') => {
+    setImmersiveToneState(tone);
+    localStorage.setItem('prismate_immersive_tone', tone);
+    document.documentElement.setAttribute('data-immersive-tone', tone);
+  }, []);
+
+  const toggleImmersiveTone = useCallback(() => {
+    setImmersiveToneState((prev) => {
+      const next: 'dark' | 'light' = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('prismate_immersive_tone', next);
+      document.documentElement.setAttribute('data-immersive-tone', next);
       return next;
     });
   }, []);
 
-  // Bento Glass Style ('frosted' | 'liquid')
-  const [bentoGlassStyle, setBentoGlassStyleState] = useState<'frosted' | 'liquid'>(() => {
-    const saved = localStorage.getItem('prismate_bento_glass_style') as 'frosted' | 'liquid' | null;
-    return saved === 'liquid' ? 'liquid' : 'frosted';
+  const toggleTheme = useCallback(() => {
+    setThemeState((prev) => {
+      if (prev === 'dark') {
+        const next = 'light';
+        localStorage.setItem('prismate_theme', next);
+        document.documentElement.setAttribute('data-theme', next);
+        return next;
+      }
+      if (prev === 'light') {
+        const next = 'immersive';
+        localStorage.setItem('prismate_theme', next);
+        document.documentElement.setAttribute('data-theme', next);
+        setImmersiveTone('dark');
+        return next;
+      }
+      if (prev === 'immersive') {
+        if (immersiveTone === 'dark') {
+          setImmersiveTone('light');
+          return 'immersive';
+        } else {
+          const next = 'dark';
+          localStorage.setItem('prismate_theme', next);
+          document.documentElement.setAttribute('data-theme', next);
+          return next;
+        }
+      }
+      return 'dark';
+    });
+  }, [immersiveTone, setImmersiveTone]);
+
+  // Bento Glass Style ('frosted' | 'liquid' | 'obsidian')
+  const [bentoGlassStyle, setBentoGlassStyleState] = useState<'frosted' | 'liquid' | 'obsidian'>(() => {
+    const saved = localStorage.getItem('prismate_bento_glass_style') as 'frosted' | 'liquid' | 'obsidian' | null;
+    const initial = saved === 'liquid' ? 'liquid' : saved === 'obsidian' ? 'obsidian' : 'frosted';
+    document.documentElement.setAttribute('data-glass-style', initial);
+    return initial;
   });
 
-  const setBentoGlassStyle = useCallback((style: 'frosted' | 'liquid') => {
+  const setBentoGlassStyle = useCallback((style: 'frosted' | 'liquid' | 'obsidian') => {
     setBentoGlassStyleState(style);
     localStorage.setItem('prismate_bento_glass_style', style);
     document.documentElement.setAttribute('data-glass-style', style);
@@ -541,6 +586,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         toggleTheme,
         bentoGlassStyle,
         setBentoGlassStyle,
+        immersiveTone,
+        setImmersiveTone,
+        toggleImmersiveTone,
         immersiveWallpaperMode,
         setImmersiveWallpaperMode,
         immersiveCycleMinutes,

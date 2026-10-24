@@ -42,6 +42,7 @@ export const NavDock: React.FC = () => {
     userAvatar,
     theme,
     toggleTheme,
+    immersiveTone,
   } = useApp();
 
   const [collapsed, setCollapsed] = useState(false);
@@ -342,14 +343,18 @@ export const NavDock: React.FC = () => {
             theme === 'dark'
               ? 'Switch to Light Mode'
               : theme === 'light'
-              ? 'Switch to Immersive Mode'
+              ? 'Switch to Immersive Dark Mode'
+              : immersiveTone === 'dark'
+              ? 'Switch to Immersive Light Mode'
               : 'Switch to Dark Mode'
           }
           title={
             theme === 'dark'
               ? 'Switch to Light Mode'
               : theme === 'light'
-              ? 'Switch to Immersive Mode'
+              ? 'Switch to Immersive Dark Mode'
+              : immersiveTone === 'dark'
+              ? 'Switch to Immersive Light Mode'
               : 'Switch to Dark Mode'
           }
           style={{
@@ -358,27 +363,49 @@ export const NavDock: React.FC = () => {
             borderRadius: '50%',
             background:
               theme === 'immersive'
-                ? 'rgba(51, 240, 255, 0.16)'
+                ? immersiveTone === 'light'
+                  ? 'rgba(0, 119, 238, 0.16)'
+                  : 'rgba(51, 240, 255, 0.16)'
                 : theme === 'dark'
                 ? 'rgba(255, 255, 255, 0.08)'
                 : 'rgba(0, 0, 0, 0.06)',
             border:
               theme === 'immersive'
-                ? '1px solid rgba(51, 240, 255, 0.45)'
+                ? immersiveTone === 'light'
+                  ? '1px solid rgba(0, 119, 238, 0.45)'
+                  : '1px solid rgba(51, 240, 255, 0.45)'
                 : theme === 'dark'
                 ? '1px solid rgba(255, 255, 255, 0.2)'
                 : '1px solid rgba(0, 0, 0, 0.12)',
-            color: theme === 'immersive' ? '#33F0FF' : theme === 'dark' ? '#F2F2F2' : '#111114',
+            color:
+              theme === 'immersive'
+                ? immersiveTone === 'light'
+                  ? '#0077EE'
+                  : '#33F0FF'
+                : theme === 'dark'
+                ? '#F2F2F2'
+                : '#111114',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             fontSize: '15px',
             cursor: 'pointer',
             transition: 'all 0.2s ease',
-            boxShadow: theme === 'immersive' ? '0 0 12px rgba(51, 240, 255, 0.3)' : 'none',
+            boxShadow:
+              theme === 'immersive'
+                ? immersiveTone === 'light'
+                  ? '0 0 12px rgba(0, 119, 238, 0.3)'
+                  : '0 0 12px rgba(51, 240, 255, 0.3)'
+                : 'none',
           }}
         >
-          {theme === 'dark' ? '☀️' : theme === 'light' ? '🌌' : '🌙'}
+          {theme === 'dark'
+            ? '☀️'
+            : theme === 'light'
+            ? '🌌'
+            : immersiveTone === 'dark'
+            ? '✨'
+            : '🌙'}
         </motion.button>
       </nav>
     </>
